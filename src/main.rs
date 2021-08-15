@@ -17,11 +17,11 @@ pub(crate) struct Opt {
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
 
-    /// Input file to process
+    /// Rustdoc josn input file to process
     #[structopt(parse(from_os_str))]
     input: PathBuf,
 
-    /// Output directory to process
+    /// Output directory of html files
     #[structopt(short, long, parse(from_os_str), default_value = ".")]
     output: PathBuf,
 }
