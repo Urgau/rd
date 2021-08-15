@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use rustdoc_types::*;
 use std::fs::File;
 use std::io::BufReader;
@@ -11,7 +11,7 @@ mod html;
 mod pp;
 
 #[derive(StructOpt)]
-struct Opt {
+pub(crate) struct Opt {
     // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
@@ -52,73 +52,7 @@ fn main() -> Result<()> {
         .get(&krate.root)
         .context("Unable to find the crate item")?;
 
-    /*let item = krate.index.get(&Id("0:547".to_string())).unwrap();
-    println!("{}", pp::Tokens::from_item(item, &krate.index).unwrap());*/
-
-    dump_to(
-        format!("{}/style.css", &opt.output.display()),
-        include_bytes!("static/css/style.css"),
-    )?;
-    dump_to(
-        format!("{}/rust.svg", &opt.output.display()),
-        include_bytes!("static/imgs/rust.svg"),
-    )?;
-    dump_to(
-        format!("{}/search.js", &opt.output.display()),
-        include_bytes!("static/js/search.js"),
-    )?;
-
-    if let ItemEnum::Module(krate_module) = &krate_item.inner {
-        let mut global_context = html::render::GlobalContext {
-            krate: &krate,
-            output_dir: &opt.output,
-            files: Default::default(),
-            item_paths: Default::default(),
-            krate_name: &krate_item.name.as_ref().context("expect a crate name")?,
-        };
-
-        html::render::module_page(&global_context, None, krate_item, krate_module)?;
-
-        let mut search = String::new();
-
-        search.push_str("\n\nconst INDEX = [\n");
-        for item in global_context.item_paths.iter_mut() {
-            search.push_str("  { components: [ ");
-            for (index, c) in item.0.iter().enumerate() {
-                if index != 0 {
-                    search.push_str(", ");
-                }
-                search.push_str("{ name: \"");
-                search.push_str(&c.name);
-                search.push_str("\", lower_case_name: \"");
-                search.push_str(&c.name.to_ascii_lowercase());
-                search.push_str("\", kind: \"");
-                search.push_str(&c.kind);
-                search.push_str("\" }");
-            }
-
-            let last = item.0.last().unwrap();
-            search.push_str(" ], filepath: \"");
-            search.push_str(&format!("{}", last.filepath.display()));
-            search.push_str("\" },\n");
-        }
-        search.push_str("\n];\n");
-
-        dump_to(
-            format!(
-                "{}/{}/search-index.js",
-                &opt.output.display(),
-                &krate_item.name.as_ref().unwrap()
-            ),
-            search.as_bytes(),
-        )?;
-    }
-
+    html::render::render(&opt, &krate, &krate_item)?;
     Ok(())
 }
 
-fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
-    let mut file = File::create(path)?;
-    std::io::Write::write_all(&mut file, buf)?;
-    Ok(())
-}

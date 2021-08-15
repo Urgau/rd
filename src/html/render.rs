@@ -1,7 +1,7 @@
-use crate::pp;
 use crate::html::markdown::{Markdown, MarkdownSummaryLine, MarkdownWithToc};
 use crate::html::templates::*;
 use crate::html::constants::*;
+use crate::pp;
 use anyhow::{Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
@@ -95,8 +95,80 @@ impl<'a> markup::Render for TocDestination<'a> {
     }
 }
 
+pub(crate) fn render<'krate>(
+    opt: &super::super::Opt,
+    krate: &'krate Crate,
+    krate_item: &'krate Item
+) -> Result<()> {
 
+    fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
+        let mut file = File::create(path)?;
+        std::io::Write::write_all(&mut file, buf)?;
+        Ok(())
+    }
 
+    dump_to(
+        format!("{}/{}", &opt.output.display(), STYLE_CSS),
+        include_bytes!("../static/css/style.css"),
+    )?;
+    dump_to(
+        format!("{}/{}", &opt.output.display(), RUST_SVG),
+        include_bytes!("../static/imgs/rust.svg"),
+    )?;
+    dump_to(
+        format!("{}/{}", &opt.output.display(), SEARCH_JS),
+        include_bytes!("../static/js/search.js"),
+    )?;
+
+    if let ItemEnum::Module(krate_module) = &krate_item.inner {
+        let mut global_context = GlobalContext {
+            krate: &krate,
+            output_dir: &opt.output,
+            files: Default::default(),
+            item_paths: Default::default(),
+            krate_name: &krate_item.name.as_ref().context("expect a crate name")?,
+        };
+
+        module_page(&global_context, None, krate_item, krate_module)?;
+
+        let mut search = String::new();
+
+        search.push_str("\n\nconst INDEX = [\n");
+        for item in global_context.item_paths.iter_mut() {
+            search.push_str("  { components: [ ");
+            for (index, c) in item.0.iter().enumerate() {
+                if index != 0 {
+                    search.push_str(", ");
+                }
+                search.push_str("{ name: \"");
+                search.push_str(&c.name);
+                search.push_str("\", lower_case_name: \"");
+                search.push_str(&c.name.to_ascii_lowercase());
+                search.push_str("\", kind: \"");
+                search.push_str(&c.kind);
+                search.push_str("\" }");
+            }
+
+            let last = item.0.last().unwrap();
+            search.push_str(" ], filepath: \"");
+            search.push_str(&format!("{}", last.filepath.display()));
+            search.push_str("\" },\n");
+        }
+        search.push_str("\n];\n");
+
+        dump_to(
+            format!(
+                "{}/{}/{}",
+                &opt.output.display(),
+                &krate_item.name.as_ref().unwrap(),
+                SEARCH_INDEX_JS,
+            ),
+            search.as_bytes(),
+        )?;
+    }
+
+    Ok(())
+}
 
 fn base_page<'context>(
     global_context: &'context GlobalContext<'context>,
@@ -185,7 +257,7 @@ fn item_definition<'context, 'krate>(
     Ok(TokensToHtml(global_context, page_context, tokens))
 }
 
-pub(crate) fn module_page<'context>(
+fn module_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: Option<&'context ItemPath>,
     item: &'context Item,
