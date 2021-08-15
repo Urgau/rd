@@ -103,6 +103,12 @@ impl<'a> markup::Render for TocDestination<'a> {
     }
 }
 
+impl<'deprecation> DeprecationNotice<'deprecation> {
+    fn from(deprecation: &'deprecation Option<Deprecation>) -> Option<Self> {
+        deprecation.as_ref().map(|deprecation| Self { since: &deprecation.since, note: &deprecation.note })
+    }
+}
+
 /// Html rendering entry
 pub(crate) fn render<'krate>(
     opt: &super::super::Opt,
@@ -634,6 +640,7 @@ fn module_page<'context>(
             item_type: if is_top_level { "Crate" } else { "Module" },
             item_name: module_name,
             item_path: page_context.item_path.display(&page_context),
+            item_deprecation: DeprecationNotice::from(&item.deprecation),
             item_definition: Option::<String>::None,
             item_doc: MarkdownWithToc::from_docs(
                 global_context,
@@ -824,6 +831,7 @@ fn trait_page<'context>(
             item_type: "Trait",
             item_name: name,
             item_definition: Some(definition),
+            item_deprecation: DeprecationNotice::from(&item.deprecation),
             item_path: page_context.item_path.display(&page_context),
             item_doc: MarkdownWithToc::from_docs(
                 global_context,
@@ -868,9 +876,11 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
             CodeEnchantedWithExtras<
                 TokensToHtml<'context, 'krate /*, 'tokens*/>,
                 Markdown<'context, 'krate, 'context>,
+                DeprecationNotice<'context>,
                 CodeEnchanted<
                     TokensToHtml<'context, 'krate /*, 'tokens*/>,
                     Markdown<'context, 'krate, 'context>,
+                    DeprecationNotice<'context>,
                 >,
             >,
         >,
@@ -1052,6 +1062,7 @@ macro_rules! ç {
                     item_type: $type,
                     item_name: name,
                     item_definition: Some(definition),
+                    item_deprecation: DeprecationNotice::from(&item.deprecation),
                     item_path: page_context.item_path.display(&page_context),
                     item_doc: MarkdownWithToc::from_docs(
                         global_context,
@@ -1091,6 +1102,7 @@ macro_rules! é {
                     item_type: $type,
                     item_name: name,
                     item_definition: Some(definition),
+                    item_deprecation: DeprecationNotice::from(&item.deprecation),
                     item_path: page_context.item_path.display(&page_context),
                     item_doc: MarkdownWithToc::from_docs(
                         global_context,
@@ -1121,7 +1133,7 @@ macro_rules! é {
 é!(Constant => constant_page "Constant");
 
 impl<'context, 'krate>
-    CodeEnchanted<TokensToHtml<'context, 'krate>, Markdown<'context, 'krate, 'context>>
+    CodeEnchanted<TokensToHtml<'context, 'krate>, Markdown<'context, 'krate, 'context>, DeprecationNotice<'context>>
 {
     fn from_item(
         global_context: &'context GlobalContext<'krate>,
@@ -1146,6 +1158,7 @@ impl<'context, 'krate>
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
             doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+            deprecation: DeprecationNotice::from(&item.deprecation),
             id,
             open,
             source_href: Option::<String>::None,
@@ -1164,6 +1177,7 @@ impl<'context, 'krate>
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
             doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+            deprecation: DeprecationNotice::from(&item.deprecation),
             open: false,
             id: Option::<String>::None,
             source_href: Option::<String>::None,
@@ -1175,9 +1189,11 @@ impl<'context, 'krate>
     CodeEnchantedWithExtras<
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
         Markdown<'context, 'krate, 'context>,
+        DeprecationNotice<'context>,
         CodeEnchanted<
             TokensToHtml<'context, 'krate /*, 'tokens*/>,
             Markdown<'context, 'krate, 'context>,
+            DeprecationNotice<'context>,
         >,
     >
 {
@@ -1212,6 +1228,7 @@ impl<'context, 'krate>
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
             doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+            deprecation: DeprecationNotice::from(&item.deprecation),
             id,
             open,
             source_href: Option::<String>::None,

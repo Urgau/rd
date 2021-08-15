@@ -70,7 +70,7 @@ markup::define! {
         }
     }
 
-    ItemPage<'a, Definition: markup::Render, ItemPath: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPath, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
+    ItemPage<'a, Definition: markup::Render, ItemPath: markup::Render, Deprecation: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPath, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_deprecation: Option<Deprecation>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
         div[class="rd-main"] {
             div#intro[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {
@@ -84,13 +84,16 @@ markup::define! {
                     pre[id="item-definition", class="rd-anchor rust"] {
                         @item_definition
                     }
+                    @item_deprecation
                 }
-                details[id="item-documentation", class="rd-anchor", open=""] {
-                    summary {
-                        "Expand description"
-                    }
-                    div[class = "item-doc"] {
-                        @item_doc
+                @if item_doc.is_some() {
+                    details[id="item-documentation", class="rd-anchor", open=""] {
+                        summary {
+                            "Expand description"
+                        }
+                        div[class = "item-doc"] {
+                            @item_doc
+                        }
                     }
                 }
             }
@@ -150,6 +153,23 @@ markup::define! {
         }
     }
 
+    DeprecationNotice<
+        'deprecation,
+    > (since: &'deprecation Option<String>, note : &'deprecation Option<String>) {
+        div[class="alert alert-warning", role="alert"] {
+            i[class="bi bi-exclamation-triangle me-2"] {}
+            "Deprecated"
+            @if let Some(since) = &since {
+                " since "
+                @since
+            }
+            @if let Some(note) = &note {
+                ": "
+                @note
+            }
+        }
+    }
+
     ModuleSection<
         'name,
         Left: markup::Render,
@@ -192,33 +212,38 @@ markup::define! {
 
     CodeEnchanted<
         Code: markup::Render,
-        Doc: markup::Render,
-    > (code: Code, doc: Option<Doc>, id: Option<String>, open: bool, source_href: Option<String>) {
+        Documentation: markup::Render,
+        Deprecation: markup::Render,
+    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, id: Option<String>, open: bool, source_href: Option<String>) {
         div[id=id, class="mt-2 mb-2 rd-anchor"] {
             @if doc.is_some() {
                 details[open=open] {
                     summary {
                         @InlineCodeWithSource { code, source_href }
                     }
+                    @deprecation
                     div[class="item-doc"] { @doc }
                 }
             } else {
                 @InlineCodeWithSource { code, source_href }
+                @deprecation
             }
         }
     }
 
     CodeEnchantedWithExtras<
         Code: markup::Render,
-        Doc: markup::Render,
+        Documentation: markup::Render,
+        Deprecation: markup::Render,
         Extra: markup::Render,
-    > (code: Code, doc: Option<Doc>, extras: Vec<Extra>, id: Option<String>, open: bool, source_href: Option<String>) {
+    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Vec<Extra>, id: Option<String>, open: bool, source_href: Option<String>) {
         div[id=id, class="mt-2 mb-2"] {
             @if doc.is_some() || !extras.is_empty() {
                 details[open=open] {
                     summary {
                         @InlineCodeWithSource { code, source_href }
                     }
+                    @deprecation
                     div[class="item-doc"] { @doc }
                     div[style = "padding-left:1.5rem;"] {
                         @for extra in extras {
@@ -228,6 +253,7 @@ markup::define! {
                 }
             } else {
                 @InlineCodeWithSource { code, source_href }
+                @deprecation
             }
         }
     }
@@ -305,11 +331,11 @@ markup::define! {
         @ModuleSection { name: CONSTANTS, id: CONSTANTS_ID, items: constants }
     }
 
-    TraitPageContent<Summary: markup::Render, Body: markup::Render, Trait: markup::Render>(
-        associated_types: Vec<CodeEnchanted<Summary, Body>>,
-        associated_consts: Vec<CodeEnchanted<Summary, Body>>,
-        required_methods: Vec<CodeEnchanted<Summary, Body>>,
-        provided_methods: Vec<CodeEnchanted<Summary, Body>>,
+    TraitPageContent<Code: markup::Render, Trait: markup::Render>(
+        associated_types: Vec<Code>,
+        associated_consts: Vec<Code>,
+        required_methods: Vec<Code>,
+        provided_methods: Vec<Code>,
         implementations_foreign_types: Vec<Trait>,
         implementors: Vec<Trait>,
         auto_implementors: Vec<Trait>,
