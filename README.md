@@ -43,7 +43,7 @@ OPTIONS:
     -o, --output <output>    Output directory of html files [default: .]
 
 ARGS:
-    <input>    Rustdoc josn input file to process
+    <input>    Rustdoc json input file to process
 ```
 
 ```bash

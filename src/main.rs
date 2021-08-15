@@ -18,7 +18,7 @@ pub(crate) struct Opt {
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
 
-    /// Rustdoc josn input file to process
+    /// Rustdoc json input file to process
     #[structopt(parse(from_os_str))]
     input: PathBuf,
 
