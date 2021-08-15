@@ -1,0 +1,17 @@
+[package]
+name = "rd"
+version = "0.1.0"
+edition = "2018"
+license = "BSD+Patent"
+
+[dependencies]
+structopt = "0.3"
+anyhow = "1.0"
+rustdoc-types = "0.3"
+serde_json = "1.0"
+serde = { default-features = false, features = ["derive"], version = "1.0" }
+pulldown-cmark = { version = "0.8", default-features = false }
+tracing = "0.1"
+tracing-subscriber = "0.2.0"
+markup = "0.12"
+typed-arena = "2.0"
