@@ -90,7 +90,7 @@ pub(crate) fn id<'krate>(
 
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
-        assert!(is_file && !matches!(&item.inner, ItemEnum::Typedef(_)));
+        assert!(is_file || !matches!(&item.inner, ItemEnum::Typedef(_)));
         Some((Cow::Borrowed(name), format!("{}.{}", item_kind_name, name)))
     } else if let ItemEnum::Impl(impl_) = &item.inner {
         let mut name = String::new();
