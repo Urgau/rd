@@ -3,26 +3,28 @@ rd
 
 [<img alt="github" src="https://img.shields.io/badge/github-urgau/rd-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/urgau/rd)
 [<img alt="license" src="https://img.shields.io/badge/license-BSD%2BPatent-blue?style=for-the-badge" height="20">](https://github.com/urgau/rd/)
-[<img alt="build status" src="https://img.shields.io/github/workflow/status/uegau/rd/CI/master?style=for-the-badge" height="20">](https://github.com/urgau/rd/actions?query=branch%3Amaster)
+[<img alt="build status" src="https://img.shields.io/github/workflow/status/Urgau/rd/Continuous integration/main?style=for-the-badge" height="20">](https://github.com/urgau/rd/actions?query=branch%3Amain)
 
-This project is a POC of an frontend fo the [rustdoc json](https://rust-lang.github.io/rfcs/2963-rustdoc-json.html) output format to generate html documentation.
+This project is a POC/experimental frontend for the [rustdoc json](https://rust-lang.github.io/rfcs/2963-rustdoc-json.html) output format to generate html documentation.
 
-Demo: [regex](http://urgau.rf.gd/rd/regex/index.html) or [anyhow](http://urgau.rf.gd/rd/anyhow/index.html)
+## Demos
+
+ - [regex](http://urgau.rf.gd/rd/regex/index.html) ([docs.rs](https://docs.rs/regex/1.5.4/regex/))
+ - [anyhow](http://urgau.rf.gd/rd/anyhow/index.html) ([docs.rs](https://docs.rs/anyhow/1.0.43/anyhow/))
 
 ## Features
 
 - [X] Pretty pritting of items (methods, structs, traits, ...)
-- [X] Minimal self-contained search engine
-- [X] HTML output with Bootstrap 5
-- [X] Responsive HTML pages
+- [X] Minimal self-contained search engine with index
+- [X] Bootstrap 5 html pages
 - [X] Syntax highlighting of items
-- [X] Navigation between items (even external if possible)
+- [X] Navigation between items (even external if available)
 - [X] Improved markdown output (similar to rustdoc)
-- [X] Table of content (markdown + items)
-- [ ] No `doc` `cfg` parsing or pritting
+- [X] Table of contents (markdown + items)
+- [ ] `doc(cfg)` parsing and pritting
 - [ ] Deprecated and stability notice
 - [ ] Source code inclusion
-- [ ] No themes or options
+- [ ] Themes or options
 
 ## Usage
 
