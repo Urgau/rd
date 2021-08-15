@@ -1,5 +1,5 @@
-pub(crate) mod render;
-mod markdown;
-mod templates;
 mod constants;
+mod markdown;
+pub(crate) mod render;
+mod templates;
 mod utils;

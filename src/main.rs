@@ -52,7 +52,6 @@ fn main() -> Result<()> {
         .get(&krate.root)
         .context("Unable to find the crate item")?;
 
-    html::render::render(&opt, &krate, &krate_item)?;
+    html::render::render(&opt, &krate, krate_item)?;
     Ok(())
 }
-

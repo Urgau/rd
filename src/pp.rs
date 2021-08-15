@@ -157,7 +157,7 @@ impl From<PusherError> for FromItemErrorKind {
 }
 
 impl Tokens<'_> {
-    pub fn from_type<'tokens>(type_: &'tokens Type) -> Result<Tokens<'tokens>, FromItemErrorKind> {
+    pub fn from_type(type_: &Type) -> Result<Tokens<'_>, FromItemErrorKind> {
         Ok({
             let mut tokens = Vec::new();
 
@@ -258,7 +258,7 @@ impl Tokens<'_> {
                         })
                         .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                    if items.len() > 0 {
+                    if !items.is_empty() {
                         NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
                             tokens.try_push(Token::Special(SpecialToken::NewLine))?;
                             for (i, (item, struct_field)) in items.iter().enumerate() {
@@ -345,7 +345,7 @@ impl Tokens<'_> {
                                 })
                                 .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                            if items.len() > 0 {
+                            if !items.is_empty() {
                                 NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
                                     for (item, struct_field) in &items {
                                         tokens.try_push(Token::Special(SpecialToken::NewLine))?;
@@ -385,7 +385,7 @@ impl Tokens<'_> {
                                 })
                                 .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                            if items.len() > 0 {
+                            if !items.is_empty() {
                                 for (index, (item, struct_field)) in items.iter().enumerate() {
                                     if index != 0 {
                                         tokens.try_push(Token::Ponct(","))?;
@@ -476,7 +476,7 @@ impl Tokens<'_> {
                         })
                         .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                    if items.len() > 0 {
+                    if !items.is_empty() {
                         NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
                             for (item, enum_variant) in &items {
                                 tokens.try_push(Token::Special(SpecialToken::NewLine))?;
@@ -509,9 +509,9 @@ impl Tokens<'_> {
 
                 if !function
                     .abi
-                    .strip_prefix("\"")
+                    .strip_prefix('\"')
                     .unwrap_or(&function.abi)
-                    .strip_suffix("\"")
+                    .strip_suffix('\"')
                     .unwrap_or(&function.abi)
                     .eq_ignore_ascii_case("rust")
                 {
@@ -522,7 +522,7 @@ impl Tokens<'_> {
                 }
 
                 let qualifiers = &function.header;
-                let qualifiers = qualifiers.into_iter().collect::<Vec<_>>();
+                let qualifiers = qualifiers.iter().collect::<Vec<_>>();
 
                 with(
                     &mut tokens,
@@ -781,7 +781,7 @@ impl Tokens<'_> {
                     if impl_.negative {
                         tokens.try_push(Token::Ponct("!"))?;
                     }
-                    with_type(&mut tokens, &type_)?;
+                    with_type(&mut tokens, type_)?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                     tokens.try_push(Token::Kw("for"))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -973,7 +973,7 @@ fn with_assoc_const<'tokens>(
 
     tokens.try_push(Token::Kw("const"))?;
     tokens.try_push(Token::Special(SpecialToken::Space))?;
-    tokens.try_push(Token::Ident(&item.name.as_ref().unwrap(), Some(&item.id)))?;
+    tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
     tokens.try_push(Token::Ponct(":"))?;
     tokens.try_push(Token::Special(SpecialToken::Space))?;
     with_type(tokens, type_)?;
@@ -1000,7 +1000,7 @@ fn with_assoc_type<'tokens>(
 
     tokens.try_push(Token::Kw("type"))?;
     tokens.try_push(Token::Special(SpecialToken::Space))?;
-    tokens.try_push(Token::Ident(&item.name.as_ref().unwrap(), Some(&item.id)))?;
+    tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
 
     with(
         tokens,
@@ -1040,7 +1040,7 @@ fn with_method<'tokens>(
     }
 
     let qualifiers = &method.header;
-    let qualifiers = qualifiers.into_iter().collect::<Vec<_>>();
+    let qualifiers = qualifiers.iter().collect::<Vec<_>>();
 
     with(
         tokens,
@@ -1143,14 +1143,14 @@ fn with_enum_variant<'tokens>(
     item: &'tokens Item,
     enum_variant: &'tokens Variant,
 ) -> Result<(), FromItemErrorKind> {
-    tokens.try_push(Token::Ident(&item.name.as_ref().unwrap(), None))?;
+    tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), None))?;
 
     match enum_variant {
         Variant::Plain => {}
         Variant::Tuple(items) => {
             with(
                 tokens,
-                &items,
+                items,
                 Some([Token::Ponct("(")]),
                 Some(Token::Ponct(")")),
                 Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
@@ -1176,7 +1176,7 @@ fn with_enum_variant<'tokens>(
                 })
                 .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-            if items.len() > 0 {
+            if !items.is_empty() {
                 for (index, (item, struct_field)) in items.iter().enumerate() {
                     if index != 0 {
                         tokens.try_push(Token::Ponct(","))?;
@@ -1230,7 +1230,7 @@ fn with_qualifiers<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     qualifiers: &&'tokens Qualifiers,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match qualifiers {
+    match qualifiers {
         Qualifiers::Const => {
             tokens.try_push(Token::Kw("const"))?;
         }
@@ -1243,12 +1243,13 @@ fn with_qualifiers<'tokens>(
         _ => {
             todo!("qualifier not handle");
         }
-    })
+    }
+    Ok(())
 }
 
 fn with_attrs<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
-    attrs: &'tokens Vec<String>,
+    attrs: &'tokens [String],
 ) -> Result<(), FromItemErrorKind> {
     with(
         tokens,
@@ -1267,7 +1268,7 @@ fn with_where_predicate<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     where_predicate: &'tokens WherePredicate,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match where_predicate {
+    match where_predicate {
         WherePredicate::BoundPredicate { ty, bounds } => {
             with_type(tokens, ty)?;
 
@@ -1313,14 +1314,15 @@ fn with_where_predicate<'tokens>(
 
             with_type(tokens, rhs)?;
         }
-    })
+    }
+    Ok(())
 }
 
 fn with_generic_bound<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     generic_bound: &'tokens GenericBound,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match generic_bound {
+    match generic_bound {
         GenericBound::TraitBound {
             trait_,
             generic_params,
@@ -1352,10 +1354,11 @@ fn with_generic_bound<'tokens>(
         GenericBound::Outlives(n) => {
             tokens.try_push(Token::Ident(n, None))?;
         }
-    })
+    }
+    Ok(())
 }
 
-fn without_impl<'items>(items: &'items [GenericParamDef]) -> &'items [GenericParamDef] {
+fn without_impl(items: &[GenericParamDef]) -> &[GenericParamDef] {
     let until = items
         .iter()
         .rev()
@@ -1372,7 +1375,7 @@ fn with_generic_param_def<'tcx>(
     tokens: &mut dyn Pusher<Token<'tcx>>,
     generic_param_def: &'tcx GenericParamDef,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match &generic_param_def.kind {
+    match &generic_param_def.kind {
         GenericParamDefKind::Lifetime => {
             tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
         }
@@ -1415,7 +1418,8 @@ fn with_generic_param_def<'tcx>(
                 tokens.try_push(Token::Ident(default, None))?;
             }
         }
-    })
+    }
+    Ok(())
 }
 
 fn with_type_binding<'tcx>(
@@ -1428,14 +1432,14 @@ fn with_type_binding<'tcx>(
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             tokens.try_push(Token::Ponct("="))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
-            with_type(tokens, &type_)?;
+            with_type(tokens, type_)?;
         }
         TypeBindingKind::Constraint(constraint) => {
-            dbg!(type_bindind);
+            eprintln!("don't really know how to handle TypeBindingKind::Constraint");
             tokens.try_push(Token::Plain(" ⚠️  "))?;
             with(
                 tokens,
-                &constraint,
+                constraint,
                 Option::<Token>::None,
                 Option::<Token>::None,
                 Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
@@ -1450,7 +1454,7 @@ fn with_generic_arg<'tcx>(
     tokens: &mut dyn Pusher<Token<'tcx>>,
     generic_arg: &'tcx GenericArg,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match generic_arg {
+    match generic_arg {
         GenericArg::Lifetime(lifetime) => {
             tokens.try_push(Token::Ident(lifetime, None))?;
         }
@@ -1471,17 +1475,18 @@ fn with_generic_arg<'tcx>(
                 tokens.try_push(Token::Ident(value, None))?;
             }
         }
-    })
+    }
+    Ok(())
 }
 
 fn with_generic_args<'tcx>(
     tokens: &mut dyn Pusher<Token<'tcx>>,
     generic_args: &'tcx GenericArgs,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match generic_args {
+    match generic_args {
         // <'a, 32, B: Copy, C = u32>
         GenericArgs::AngleBracketed { args, bindings } => {
-            if args.len() > 0 || bindings.len() > 0 {
+            if !args.is_empty() || !bindings.is_empty() {
                 tokens.try_push(Token::Ponct("<"))?;
                 with(
                     tokens,
@@ -1494,7 +1499,7 @@ fn with_generic_args<'tcx>(
                 with(
                     tokens,
                     bindings,
-                    if args.len() > 0 {
+                    if !args.is_empty() {
                         Some([Token::Ponct(","), Token::Special(SpecialToken::Space)])
                     } else {
                         None
@@ -1524,14 +1529,15 @@ fn with_generic_args<'tcx>(
                 with_type(tokens, output)?;
             }
         }
-    })
+    }
+    Ok(())
 }
 
 fn with_type<'tcx>(
     tokens: &mut dyn Pusher<Token<'tcx>>,
     type_: &'tcx Type,
 ) -> Result<(), FromItemErrorKind> {
-    Ok(match type_ {
+    match type_ {
         // Structs, enums, and traits
         Type::ResolvedPath {
             name,
@@ -1576,9 +1582,9 @@ fn with_type<'tcx>(
         Type::FunctionPointer(fn_ptr) => {
             if !fn_ptr
                 .abi
-                .strip_prefix("\"")
+                .strip_prefix('\"')
                 .unwrap_or(&fn_ptr.abi)
-                .strip_suffix("\"")
+                .strip_suffix('\"')
                 .unwrap_or(&fn_ptr.abi)
                 .eq_ignore_ascii_case("rust")
             {
@@ -1589,7 +1595,7 @@ fn with_type<'tcx>(
             }
 
             let qualifiers = &fn_ptr.header;
-            let qualifiers = qualifiers.into_iter().collect::<Vec<_>>();
+            let qualifiers = qualifiers.iter().collect::<Vec<_>>();
 
             with(
                 tokens,
@@ -1738,7 +1744,7 @@ fn with_type<'tcx>(
                 match &**trait_ {
                     Type::ResolvedPath { args, .. } if args.is_some() => {
                         tokens.try_push(Token::Ponct("<"))?;
-                        with_type(tokens, &self_type)?;
+                        with_type(tokens, self_type)?;
                         tokens.try_push(Token::Special(SpecialToken::Space))?;
                         tokens.try_push(Token::Kw("as"))?;
                         tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1748,7 +1754,7 @@ fn with_type<'tcx>(
                         tokens.try_push(Token::Ident(name, None))?;
                     }
                     Type::ResolvedPath { .. } => {
-                        with_type(tokens, &self_type)?;
+                        with_type(tokens, self_type)?;
                         tokens.try_push(Token::Ponct("::"))?;
                         tokens.try_push(Token::Ident(name, None))?;
                     }
@@ -1760,7 +1766,8 @@ fn with_type<'tcx>(
                 todo!("Type::QualifiedPath: not a Generic or QualifedPath");
             }
         }
-    })
+    }
+    Ok(())
 }
 
 fn with<
@@ -1787,7 +1794,7 @@ where
     After: IntoSlice<AFTER_N, Item = Token<'token>>,
     Between: IntoSlice<BETWEEN_N, Item = Token<'token>> + Clone,
 {
-    if items.len() > 0 {
+    if !items.is_empty() {
         if let Some(before) = before {
             tokens.try_extend_from_slice(&before.into_slice())?;
         }

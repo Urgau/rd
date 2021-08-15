@@ -1,9 +1,9 @@
-use std::path::PathBuf;
 use std::ops::Deref;
+use std::path::PathBuf;
 
-use super::render::{ItemPathDisplay, TocSection, GlobalContext, PageContext};
-use super::markdown::MarkdownWithToc;
 use super::constants::*;
+use super::markdown::MarkdownWithToc;
+use super::render::{GlobalContext, ItemPathDisplay, PageContext, TocSection};
 use super::utils::*;
 
 pub struct BodyInformations<'a> {
@@ -36,7 +36,7 @@ impl<'context, 'krate> BodyInformations<'krate> {
         Self {
             page_title,
             krate_name: global_context.krate_name,
-            root_path: top_of(&page_context.filepath),
+            root_path: top_of(page_context.filepath),
         }
     }
 }
@@ -108,7 +108,7 @@ markup::define! {
                                     //ul {
                                     a[class="rd-btn-toc d-inline-flex align-items-center rounded", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
                                     ul[id="toc-documentation", class="collapse show"] {
-                                        @for (level, ref name, ref destination) in item_doc.4.borrow_mut().into_iter() {
+                                        @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
                                             @if *level == 1 {
                                                 li {
                                                     a[href=format!("#{}", destination), class="d-inline-flex align-items-center rounded"] {
@@ -122,7 +122,7 @@ markup::define! {
                             }
                         }
                         @for TocSection { name: section_name, id: section_id, items: section_items } in toc.iter() {
-                            @if section_items.len() > 0 {
+                            @if !section_items.is_empty() {
                                 li {
                                     //a[href=format!("#{}", section_id), class="d-inline-flex align-items-center rounded"] { strong { @section_name } }
                                     //ul {
@@ -212,7 +212,7 @@ markup::define! {
         Extra: markup::Render,
     > (code: Code, doc: Option<Doc>, extras: Vec<Extra>, id: Option<String>, open: bool, source_href: Option<String>) {
         div[id=id, class="mt-2 mb-2"] {
-            @if doc.is_some() || extras.len() > 0 {
+            @if doc.is_some() || !extras.is_empty() {
                 details[open=open] {
                     summary {
                         @InlineCodeWithSource { code, source_href }
@@ -236,7 +236,7 @@ markup::define! {
         FieldDoc: markup::Render,
         Traits: markup::Render
     > (title: &'title str, fields: Vec<(Field, FieldDoc)>, traits: Traits) {
-        @if fields.len() > 0 {
+        @if !fields.is_empty() {
             section {
                 h2[class="border-bottom pb-1"] { @title }
                 @for (field, doc) in fields {

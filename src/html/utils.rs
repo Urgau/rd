@@ -1,7 +1,7 @@
+use anyhow::{anyhow, Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
-use std::path::PathBuf;
-use anyhow::{Context as _, Result, anyhow};
+use std::path::{Path, PathBuf};
 use tracing::{trace, warn};
 
 use super::render::{GlobalContext, PageContext};
@@ -77,29 +77,26 @@ pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Res
 
     Ok(match &item.inner {
         ItemEnum::Trait(trait_) => (trait_.is_auto, item.crate_id),
-        _ => Err(anyhow!("is_auto_trait: error not an trait"))?,
+        _ => return Err(anyhow!("is_auto_trait: error not an trait")),
     })
 }
 
-pub(crate) fn id<'krate>(krate: &'krate Crate, item: &'krate Item) -> Option<(Cow<'krate, str>, String)> {
+pub(crate) fn id<'krate>(
+    krate: &'krate Crate,
+    item: &'krate Item,
+) -> Option<(Cow<'krate, str>, String)> {
     if let Some(name) = &item.name {
         let (item_kind_name, is_file) = item_kind(item);
 
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
-        assert_eq!(
-            false,
-            is_file && !matches!(&item.inner, ItemEnum::Typedef(_))
-        );
+        assert!(is_file && !matches!(&item.inner, ItemEnum::Typedef(_)));
         Some((Cow::Borrowed(name), format!("{}.{}", item_kind_name, name)))
     } else if let ItemEnum::Impl(impl_) = &item.inner {
         let mut name = String::new();
         let mut id = String::new();
 
-        for token in pp::Tokens::from_item(item, &krate.index)
-            .unwrap()
-            .into_iter()
-        {
+        for token in pp::Tokens::from_item(item, &krate.index).unwrap().iter() {
             match token {
                 pp::Token::Ponct(_) => id.push('-'),
                 pp::Token::Ident(ident, _) => id.push_str(ident),
@@ -112,7 +109,7 @@ pub(crate) fn id<'krate>(krate: &'krate Crate, item: &'krate Item) -> Option<(Co
             Some(type_) => match type_ {
                 Type::ResolvedPath { id, .. } if !id.0.starts_with("0:") => {
                     if impl_.negative {
-                        name.push_str("!");
+                        name.push('!');
                     }
                     type_
                 }
@@ -121,7 +118,7 @@ pub(crate) fn id<'krate>(krate: &'krate Crate, item: &'krate Item) -> Option<(Co
             None => &impl_.for_,
         };
 
-        for token in pp::Tokens::from_type(name_type).unwrap().into_iter() {
+        for token in pp::Tokens::from_type(name_type).unwrap().iter() {
             match token {
                 pp::Token::Ponct(p) => name.push_str(p),
                 pp::Token::Ident(ident, _) => name.push_str(ident),
@@ -137,15 +134,14 @@ pub(crate) fn id<'krate>(krate: &'krate Crate, item: &'krate Item) -> Option<(Co
     }
 }
 
-pub(crate) fn relative(base: &PathBuf, url: &PathBuf) -> PathBuf {
+pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
     let mut relative = PathBuf::new();
 
     let ends_with_html = |c: &std::path::Component| -> bool {
         match c {
-            std::path::Component::Normal(path) => path
-                .to_str()
-                .and_then(|s| Some(s.ends_with(".html")))
-                .unwrap_or(false),
+            std::path::Component::Normal(path) => {
+                path.to_str().map(|s| s.ends_with(".html")).unwrap_or(false)
+            }
             _ => false,
         }
     };
@@ -191,18 +187,14 @@ pub(crate) fn relative(base: &PathBuf, url: &PathBuf) -> PathBuf {
     relative
 }
 
-pub(crate) fn top_of(base: &PathBuf) -> PathBuf {
+pub(crate) fn top_of(base: &Path) -> PathBuf {
     let mut relative = PathBuf::new();
 
     // Add `..` segments for the remainder of the base path
     for base_path_segment in base.components() {
         // Skip empty last segments
         if let std::path::Component::Normal(s) = base_path_segment {
-            if s.is_empty()
-                || s.to_str()
-                    .and_then(|s| Some(s.ends_with(".html")))
-                    .unwrap_or(false)
-            {
+            if s.is_empty() || s.to_str().map(|s| s.ends_with(".html")).unwrap_or(false) {
                 break;
             }
         }
@@ -282,6 +274,6 @@ pub(crate) fn href<'context, 'krate>(
         Some((external_crate_url, path, None, to_kind))
     } else {
         trace!(?to_kind, "not is_always_file");
-        return None;
+        None
     }
 }

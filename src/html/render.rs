@@ -7,9 +7,9 @@ use std::path::PathBuf;
 use tracing::{debug, error, info, trace, warn};
 use typed_arena::Arena;
 
+use super::constants::*;
 use super::markdown::{Markdown, MarkdownSummaryLine, MarkdownWithToc};
 use super::templates::*;
-use super::constants::*;
 use super::utils::*;
 use crate::pp;
 
@@ -73,9 +73,9 @@ impl<'context> markup::Render for ItemPathDisplay<'context> {
 }
 
 pub struct TocSection<'toc> {
-    pub(in super) name: &'static str,
-    pub(in super) id: &'static str,
-    pub(in super) items: Vec<(Cow<'toc, str>, TocDestination<'toc>)>,
+    pub(super) name: &'static str,
+    pub(super) id: &'static str,
+    pub(super) items: Vec<(Cow<'toc, str>, TocDestination<'toc>)>,
 }
 
 pub enum TocDestination<'a> {
@@ -100,9 +100,8 @@ impl<'a> markup::Render for TocDestination<'a> {
 pub(crate) fn render<'krate>(
     opt: &super::super::Opt,
     krate: &'krate Crate,
-    krate_item: &'krate Item
+    krate_item: &'krate Item,
 ) -> Result<()> {
-
     fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
         let mut file = File::create(path)?;
         std::io::Write::write_all(&mut file, buf)?;
@@ -124,11 +123,11 @@ pub(crate) fn render<'krate>(
 
     if let ItemEnum::Module(krate_module) = &krate_item.inner {
         let mut global_context = GlobalContext {
-            krate: &krate,
+            krate,
             output_dir: &opt.output,
             files: Default::default(),
             item_paths: Default::default(),
-            krate_name: &krate_item.name.as_ref().context("expect a crate name")?,
+            krate_name: krate_item.name.as_ref().context("expect a crate name")?,
         };
 
         module_page(&global_context, None, krate_item, krate_module)?;
@@ -147,7 +146,7 @@ pub(crate) fn render<'krate>(
                 search.push_str("\", lower_case_name: \"");
                 search.push_str(&c.name.to_ascii_lowercase());
                 search.push_str("\", kind: \"");
-                search.push_str(&c.kind);
+                search.push_str(c.kind);
                 search.push_str("\" }");
             }
 
@@ -196,19 +195,16 @@ fn base_page<'context>(
         format!("{}.{}.html", item_kind_name, name).into()
     };
 
-    match &item.inner {
-        ItemEnum::Module(_) => {
-            let mut path = global_context.output_dir.to_path_buf();
-            path.extend(parts);
-            path.push(name);
+    if let ItemEnum::Module(_) = &item.inner {
+        let mut path = global_context.output_dir.to_path_buf();
+        path.extend(parts);
+        path.push(name);
 
-            debug!("creating the module directory {:?}", &path);
-            DirBuilder::new()
-                .recursive(false)
-                .create(&path)
-                .context("unable to create the module dir")?;
-        }
-        _ => {}
+        debug!("creating the module directory {:?}", &path);
+        DirBuilder::new()
+            .recursive(false)
+            .create(&path)
+            .context("unable to create the module dir")?;
     }
 
     let mut filepath: PathBuf = "".into();
@@ -347,9 +343,7 @@ fn module_page<'context>(
             continue;
         }
 
-        let summary_line_doc = MarkdownSummaryLine::from_docs(
-            &item.docs,
-        );
+        let summary_line_doc = MarkdownSummaryLine::from_docs(&item.docs);
 
         match &item.inner {
             ItemEnum::Import(_) => {
@@ -369,7 +363,7 @@ fn module_page<'context>(
                     .context("unable to get the name of union")?;
 
                 let page_context =
-                    union_page(global_context, page_context.item_path, &item, union_)?;
+                    union_page(global_context, page_context.item_path, item, union_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_unions
@@ -393,7 +387,7 @@ fn module_page<'context>(
                     .context("unable to get the name of struct")?;
 
                 let page_context =
-                    struct_page(global_context, page_context.item_path, &item, struct_)?;
+                    struct_page(global_context, page_context.item_path, item, struct_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_structs
@@ -416,7 +410,7 @@ fn module_page<'context>(
                     .as_ref()
                     .context("unable to get the name of enum")?;
 
-                let page_context = enum_page(global_context, page_context.item_path, &item, enum_)?;
+                let page_context = enum_page(global_context, page_context.item_path, item, enum_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_enums
@@ -440,7 +434,7 @@ fn module_page<'context>(
                     .context("unable to get the name of function")?;
 
                 let page_context =
-                    function_page(global_context, &page_context.item_path, &item, function_)?;
+                    function_page(global_context, page_context.item_path, item, function_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_functions
@@ -464,7 +458,7 @@ fn module_page<'context>(
                     .context("unable to get the name of trait")?;
 
                 let page_context =
-                    trait_page(global_context, &page_context.item_path, &item, trait_)?;
+                    trait_page(global_context, page_context.item_path, item, trait_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_traits
@@ -498,7 +492,7 @@ fn module_page<'context>(
                     .context("unable to get the name of typedef")?;
 
                 let page_context2 =
-                    typedef_page(global_context, &page_context.item_path, &item, typedef_)?;
+                    typedef_page(global_context, page_context.item_path, item, typedef_)?;
                 let filename = filenames.alloc(page_context2.filename);
 
                 toc_typedefs
@@ -526,7 +520,7 @@ fn module_page<'context>(
                     .context("unable to get the name of constant")?;
 
                 let page_context =
-                    constant_page(global_context, page_context.item_path, &item, constant_)?;
+                    constant_page(global_context, page_context.item_path, item, constant_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_constants
@@ -550,7 +544,7 @@ fn module_page<'context>(
                     .context("unable to get the name of macro")?;
 
                 let page_context =
-                    macro_page(global_context, page_context.item_path, &item, macro_)?;
+                    macro_page(global_context, page_context.item_path, item, macro_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_macros
@@ -574,7 +568,7 @@ fn module_page<'context>(
                     .context("unable to get the name of proc_macro")?;
 
                 let page_context =
-                    proc_macro_page(global_context, page_context.item_path, &item, proc_macro_)?;
+                    proc_macro_page(global_context, page_context.item_path, item, proc_macro_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_proc_macros
@@ -597,7 +591,7 @@ fn module_page<'context>(
                     .as_ref()
                     .context("unable to get the name of module")?;
                 let page_context =
-                    module_page(global_context, Some(page_context.item_path), &item, module_)?;
+                    module_page(global_context, Some(page_context.item_path), item, module_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_modules
@@ -731,7 +725,7 @@ fn trait_page<'context>(
                     global_context,
                     &page_context,
                     toc,
-                    &item,
+                    item,
                     false,
                 )?);
             }
@@ -742,7 +736,7 @@ fn trait_page<'context>(
                         global_context,
                         &page_context,
                         &mut toc_associated_consts,
-                        &item,
+                        item,
                         false,
                     )?);
             }
@@ -753,7 +747,7 @@ fn trait_page<'context>(
                         global_context,
                         &page_context,
                         &mut toc_associated_types,
-                        &item,
+                        item,
                         false,
                     )?);
             }
@@ -775,9 +769,11 @@ fn trait_page<'context>(
                 item,
                 match &item.inner {
                     ItemEnum::Impl(impl_) => impl_,
-                    _ => Err(anyhow::anyhow!(
-                        "impl id is not impl in struct_union_content"
-                    ))?,
+                    _ => {
+                        return Err(anyhow::anyhow!(
+                            "impl id is not impl in struct_union_content"
+                        ))
+                    }
                 },
             ))
         })
@@ -841,13 +837,13 @@ fn trait_page<'context>(
     Ok(page_context)
 }
 
-
+#[allow(clippy::type_complexity)]
 fn struct_union_enum_content<'context, 'krate, 'title>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
     title: &'title str,
-    fields: &Vec<Id>,
-    impls: &Vec<Id>,
+    fields: &[Id],
+    impls: &[Id],
 ) -> Result<(
     Vec<TocSection<'context>>,
     StructUnionEnumContent<
@@ -879,9 +875,11 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 item,
                 match &item.inner {
                     ItemEnum::Impl(impl_) => impl_,
-                    _ => Err(anyhow::anyhow!(
-                        "impl id is not impl in struct_union_content"
-                    ))?,
+                    _ => {
+                        return Err(anyhow::anyhow!(
+                            "impl id is not impl in struct_union_content"
+                        ))
+                    }
                 },
             ))
         })
@@ -924,14 +922,9 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                     TokensToHtml(
                         global_context,
                         page_context,
-                        pp::Tokens::from_item(&item, &global_context.krate.index)?,
+                        pp::Tokens::from_item(item, &global_context.krate.index)?,
                     ),
-                    Markdown::from_docs(
-                        global_context,
-                        page_context,
-                        &item.docs,
-                        &item.links,
-                    ),
+                    Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
                 ))
             })
             .collect::<Result<Vec<_>>>()?,
@@ -954,48 +947,42 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
             trait_implementations: impls
                 .iter()
                 .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(type_), None) => match type_ {
-                        Type::ResolvedPath { id, .. } => {
-                            match is_auto_trait(&global_context.krate, &id) {
-                                Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                    global_context,
-                                    page_context,
-                                    Some(&mut toc_traits),
-                                    None,
-                                    item,
-                                    impl_,
-                                    false,
-                                )),
-                                Err(e) => Some(Err(e)),
-                                _ => None,
-                            }
+                    (Some(Type::ResolvedPath { id, .. }), None) => {
+                        match is_auto_trait(global_context.krate, id) {
+                            Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                global_context,
+                                page_context,
+                                Some(&mut toc_traits),
+                                None,
+                                item,
+                                impl_,
+                                false,
+                            )),
+                            Err(e) => Some(Err(e)),
+                            _ => None,
                         }
-                        _ => None,
-                    },
+                    }
                     _ => None,
                 })
                 .collect::<Result<Vec<_>>>()?,
             auto_trait_implementations: impls
                 .iter()
                 .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(type_), None) => match type_ {
-                        Type::ResolvedPath { id, .. } => {
-                            match is_auto_trait(&global_context.krate, &id) {
-                                Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                    global_context,
-                                    page_context,
-                                    Some(&mut toc_auto_traits),
-                                    None,
-                                    item,
-                                    impl_,
-                                    false,
-                                )),
-                                Err(e) => Some(Err(e)),
-                                _ => None,
-                            }
+                    (Some(Type::ResolvedPath { id, .. }), None) => {
+                        match is_auto_trait(global_context.krate, id) {
+                            Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                global_context,
+                                page_context,
+                                Some(&mut toc_auto_traits),
+                                None,
+                                item,
+                                impl_,
+                                false,
+                            )),
+                            Err(e) => Some(Err(e)),
+                            _ => None,
                         }
-                        _ => None,
-                    },
+                    }
                     _ => None,
                 })
                 .collect::<Result<Vec<_>>>()?,
@@ -1108,13 +1095,11 @@ macro_rules! é {
     };
 }
 
-type Macro = String;
-
 ç!(Union => union_page "Union" "Fields" fields);
 ç!(Struct => struct_page "Struct" "Fields" fields);
 ç!(Enum => enum_page "Enum" "Variants" variants);
 é!(Typedef => typedef_page "Type Definition");
-é!(Macro => macro_page "Macro");
+é!(str => macro_page "Macro");
 é!(ProcMacro => proc_macro_page "Proc-Macro");
 é!(Function => function_page "Function");
 é!(Constant => constant_page "Constant");
@@ -1129,7 +1114,7 @@ impl<'context, 'krate>
         item: &'krate Item,
         open: bool,
     ) -> Result<Self> {
-        let id = if let Some((name, id)) = id(&global_context.krate, item) {
+        let id = if let Some((name, id)) = id(global_context.krate, item) {
             toc_section
                 .items
                 .push((name, TocDestination::Id(id.clone())));
@@ -1142,14 +1127,9 @@ impl<'context, 'krate>
             code: TokensToHtml(
                 global_context,
                 page_context,
-                pp::Tokens::from_item(&item, &global_context.krate.index)?,
+                pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: Markdown::from_docs(
-                &global_context,
-                &page_context,
-                &item.docs,
-                &item.links,
-            ),
+            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
             id,
             open,
             source_href: Option::<String>::None,
@@ -1165,14 +1145,9 @@ impl<'context, 'krate>
             code: TokensToHtml(
                 global_context,
                 page_context,
-                pp::Tokens::from_item(&item, &global_context.krate.index)?,
+                pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: Markdown::from_docs(
-                &global_context,
-                &page_context,
-                &item.docs,
-                &item.links,
-            ),
+            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
             open: false,
             id: Option::<String>::None,
             source_href: Option::<String>::None,
@@ -1200,7 +1175,7 @@ impl<'context, 'krate>
         open: bool,
     ) -> Result<Self> {
         let id = if let Some(toc_top_section) = toc_top_section {
-            if let Some((name, id)) = id(&global_context.krate, item) {
+            if let Some((name, id)) = id(global_context.krate, item) {
                 toc_top_section
                     .items
                     .push((name, TocDestination::Id(id.clone())));
@@ -1220,12 +1195,7 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: Markdown::from_docs(
-                &global_context,
-                &page_context,
-                &item.docs,
-                &item.links,
-            ),
+            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
             id,
             open,
             source_href: Option::<String>::None,
@@ -1244,11 +1214,11 @@ impl<'context, 'krate>
                             global_context,
                             page_context,
                             toc_sub_section,
-                            &item,
+                            item,
                             open,
                         )
                     } else {
-                        CodeEnchanted::from_item_without_id(global_context, page_context, &item)
+                        CodeEnchanted::from_item_without_id(global_context, page_context, item)
                     }
                 })
                 .collect::<Result<Vec<_>>>()?,
@@ -1284,7 +1254,7 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                             writer.write_str("<a href=\"")?;
                             if let Some(external_crate_url) = external_crate_url {
                                 writer.write_str(external_crate_url)?;
-                                if !external_crate_url.ends_with("/") {
+                                if !external_crate_url.ends_with('/') {
                                     writer.write_str("/")?;
                                 }
                             }

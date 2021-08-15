@@ -1,8 +1,8 @@
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
-use std::{fmt, io, str};
 use std::collections::HashMap;
+use std::{fmt, io, str};
 
 use super::render::{GlobalContext, PageContext};
 use super::utils::*;
@@ -55,11 +55,9 @@ impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
         content: &'content Option<String>,
         links: &'krate HashMap<String, Id>,
     ) -> Option<Self> {
-        if let Some(content) = content {
-            Some(Self(global_context, page_context, content, links))
-        } else {
-            None
-        }
+        content
+            .as_ref()
+            .map(|content| Self(global_context, page_context, content, links))
     }
 }
 
@@ -128,17 +126,15 @@ impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'conten
         links: &'krate HashMap<String, Id>,
         toc: &'vec mut Vec<(u32, String, String)>,
     ) -> Option<Self> {
-        if let Some(content) = content {
-            Some(Self(
+        content.as_ref().map(move |content| {
+            Self(
                 global_context,
                 page_context,
                 content,
                 links,
                 std::cell::RefCell::new(toc),
-            ))
-        } else {
-            None
-        }
+            )
+        })
     }
 }
 
@@ -198,19 +194,11 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
 }
 
 /// Render an summary line of the Markdown in html
-pub(crate) struct MarkdownSummaryLine<'content>(
-    &'content String,
-);
+pub(crate) struct MarkdownSummaryLine<'content>(&'content String);
 
 impl<'content> MarkdownSummaryLine<'content> {
-    pub(crate) fn from_docs(
-        content: &'content Option<String>,
-    ) -> Option<Self> {
-        if let Some(content) = content {
-            Some(Self(content))
-        } else {
-            None
-        }
+    pub(crate) fn from_docs(content: &'content Option<String>) -> Option<Self> {
+        content.as_ref().map(|content| Self(content))
     }
 }
 
@@ -412,10 +400,7 @@ impl<'a, I: Iterator<Item = Event<'a>>> Iterator for CodeBlocks<'a, I> {
             let trimmed = l.trim();
             if trimmed.starts_with("##") {
                 Some(Cow::Owned(l.replacen("##", "#", 1)))
-            } else if let Some(_) = trimmed.strip_prefix("# ") {
-                // # text
-                None
-            } else if trimmed == "#" {
+            } else if trimmed.strip_prefix("# ").is_some() || trimmed == "#" {
                 // We cannot handle '#text' because it could be #[attr].
                 None
             } else {
@@ -495,13 +480,7 @@ impl LangString {
         string
             .split(|c| c == ',' || c == ' ' || c == '\t')
             .map(str::trim)
-            .map(|token| {
-                if token.chars().next() == Some('.') {
-                    &token[1..]
-                } else {
-                    token
-                }
-            })
+            .map(|token| token.strip_prefix('.').unwrap_or(token))
             .filter(|token| !token.is_empty())
     }
 
@@ -563,43 +542,42 @@ impl LangString {
                 }
                 x => {
                     let s = x.to_lowercase();
-                    match if s == "compile-fail" || s == "compile_fail" || s == "compilefail" {
-                        Some((
+                    if let Some((flag, _help)) =
+                        if s == "compile-fail" || s == "compile_fail" || s == "compilefail" {
+                            Some((
                             "compile_fail",
                             "the code block will either not be tested if not marked as a rust one \
                              or won't fail if it compiles successfully",
                         ))
-                    } else if s == "should-panic" || s == "should_panic" || s == "shouldpanic" {
-                        Some((
+                        } else if s == "should-panic" || s == "should_panic" || s == "shouldpanic" {
+                            Some((
                             "should_panic",
                             "the code block will either not be tested if not marked as a rust one \
                              or won't fail if it doesn't panic when running",
                         ))
-                    } else if s == "no-run" || s == "no_run" || s == "norun" {
-                        Some((
+                        } else if s == "no-run" || s == "no_run" || s == "norun" {
+                            Some((
                             "no_run",
                             "the code block will either not be tested if not marked as a rust one \
                              or will be run (which you might not want)",
                         ))
-                    } else if s == "allow-fail" || s == "allow_fail" || s == "allowfail" {
-                        Some((
+                        } else if s == "allow-fail" || s == "allow_fail" || s == "allowfail" {
+                            Some((
                             "allow_fail",
                             "the code block will either not be tested if not marked as a rust one \
                              or will be run (which you might not want)",
                         ))
-                    } else if s == "test-harness" || s == "test_harness" || s == "testharness" {
-                        Some((
+                        } else if s == "test-harness" || s == "test_harness" || s == "testharness" {
+                            Some((
                             "test_harness",
                             "the code block will either not be tested if not marked as a rust one \
                              or the code will be wrapped inside a main function",
                         ))
-                    } else {
-                        None
-                    } {
-                        Some((flag, _help)) => {
-                            tracing::warn!("unknow attribute `{}`. Did you mean `{}`?", x, flag);
+                        } else {
+                            None
                         }
-                        None => {}
+                    {
+                        tracing::warn!("unknow attribute `{}`. Did you mean `{}`?", x, flag);
                     }
                     seen_other_tags = true;
                 }

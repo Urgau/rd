@@ -1,8 +1,8 @@
-pub const STYLE_CSS: &'static str = "style.css";
-pub const RUST_SVG: &'static str = "rust.svg";
-pub const SEARCH_JS: &'static str = "search.js";
-pub const SEARCH_INDEX_JS: &'static str = "search-index.js";
- 
+pub const STYLE_CSS: &str = "style.css";
+pub const RUST_SVG: &str = "rust.svg";
+pub const SEARCH_JS: &str = "search.js";
+pub const SEARCH_INDEX_JS: &str = "search-index.js";
+
 pub const ASSOCIATED_TYPES: &str = "Associated Types";
 pub const ASSOCIATED_TYPES_ID: &str = "associated-types";
 pub const ASSOCIATED_CONSTS: &str = "Associated Consts";
