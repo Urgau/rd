@@ -1,16 +1,10 @@
-use crate::html::markdown::MarkdownWithToc;
-use crate::html::constants::*;
-use std::borrow::Cow;
 use std::path::PathBuf;
+use std::ops::Deref;
 
 use super::render::{ItemPathDisplay, TocSection, GlobalContext, PageContext};
-
-fn inner_cow<'c>(cow: &'c Cow<'c, str>) -> &'c str {
-    match cow {
-        Cow::Borrowed(b) => b,
-        Cow::Owned(o) => o,
-    }
-}
+use super::markdown::MarkdownWithToc;
+use super::constants::*;
+use super::utils::*;
 
 pub struct BodyInformations<'a> {
     page_title: String,
@@ -42,7 +36,7 @@ impl<'context, 'krate> BodyInformations<'krate> {
         Self {
             page_title,
             krate_name: global_context.krate_name,
-            root_path: super::render::top_of(&page_context.filepath),
+            root_path: top_of(&page_context.filepath),
         }
     }
 }
@@ -137,7 +131,7 @@ markup::define! {
                                         @for (ref name, destination) in section_items {
                                             li {
                                                 a[href=destination, class="d-inline-flex align-items-center rounded"] {
-                                                    @inner_cow(name)
+                                                    @name.deref()
                                                 }
                                             }
                                         }

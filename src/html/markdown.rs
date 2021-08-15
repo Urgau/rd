@@ -2,6 +2,10 @@ use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, T
 use rustdoc_types::Id;
 use std::borrow::Cow;
 use std::{fmt, io, str};
+use std::collections::HashMap;
+
+use super::render::{GlobalContext, PageContext};
+use super::utils::*;
 
 /// Convert an std::fmt::Wrte to std::io::Write
 struct Adapter<'a> {
@@ -38,18 +42,18 @@ fn summary_opts() -> Options {
 
 /// Render the all Markdown in html
 pub(crate) struct Markdown<'context, 'krate, 'content>(
-    &'context crate::html::render::GlobalContext<'krate>,
-    &'context crate::html::render::PageContext<'context>,
+    &'context GlobalContext<'krate>,
+    &'context PageContext<'context>,
     &'content String,
-    &'krate std::collections::HashMap<String, Id>,
+    &'krate HashMap<String, Id>,
 );
 
 impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::render::GlobalContext<'krate>,
-        page_context: &'context crate::html::render::PageContext<'context>,
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
         content: &'content Option<String>,
-        links: &'krate std::collections::HashMap<String, Id>,
+        links: &'krate HashMap<String, Id>,
     ) -> Option<Self> {
         if let Some(content) = content {
             Some(Self(global_context, page_context, content, links))
@@ -68,7 +72,7 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
                 //dbg!(broken_link.reference);
                 if let Some(id) = self.3.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::render::href(self.0, self.1, id)
+                        href(self.0, self.1, id)
                     {
                         Some((
                             {
@@ -108,20 +112,20 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
 
 /// Render the all Markdown in html
 pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
-    &'context crate::html::render::GlobalContext<'krate>,
-    &'context crate::html::render::PageContext<'context>,
+    &'context GlobalContext<'krate>,
+    &'context PageContext<'context>,
     &'content String,
-    &'krate std::collections::HashMap<String, Id>,
+    &'krate HashMap<String, Id>,
     // RefCell required here because of the immutable `&self` on `render`
     pub(crate) std::cell::RefCell<&'vec mut Vec<(u32, String, String)>>,
 );
 
 impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::render::GlobalContext<'krate>,
-        page_context: &'context crate::html::render::PageContext<'context>,
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
         content: &'content Option<String>,
-        links: &'krate std::collections::HashMap<String, Id>,
+        links: &'krate HashMap<String, Id>,
         toc: &'vec mut Vec<(u32, String, String)>,
     ) -> Option<Self> {
         if let Some(content) = content {
@@ -152,7 +156,7 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
                 //dbg!(broken_link.reference);
                 if let Some(id) = ids.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::render::href(gloabl_context, page_context, id)
+                        href(gloabl_context, page_context, id)
                     {
                         Some((
                             {
