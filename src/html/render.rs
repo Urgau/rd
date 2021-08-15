@@ -841,6 +841,188 @@ fn trait_page<'context>(
     Ok(page_context)
 }
 
+
+fn struct_union_enum_content<'context, 'krate, 'title>(
+    global_context: &'context GlobalContext<'krate>,
+    page_context: &'context PageContext<'context>,
+    title: &'title str,
+    fields: &Vec<Id>,
+    impls: &Vec<Id>,
+) -> Result<(
+    Vec<TocSection<'context>>,
+    StructUnionEnumContent<
+        'title,
+        TokensToHtml<'context, 'krate /*, 'tokens*/>,
+        Option<Markdown<'context, 'krate, 'context>>,
+        TraitsWithItems<
+            CodeEnchantedWithExtras<
+                TokensToHtml<'context, 'krate /*, 'tokens*/>,
+                Markdown<'context, 'krate, 'context>,
+                CodeEnchanted<
+                    TokensToHtml<'context, 'krate /*, 'tokens*/>,
+                    Markdown<'context, 'krate, 'context>,
+                >,
+            >,
+        >,
+    >,
+)> {
+    let impls = impls
+        .iter()
+        .map(|id| {
+            let item = global_context
+                .krate
+                .index
+                .get(id)
+                .with_context(|| format!("Unable to find the item {:?}", id))?;
+
+            Ok((
+                item,
+                match &item.inner {
+                    ItemEnum::Impl(impl_) => impl_,
+                    _ => Err(anyhow::anyhow!(
+                        "impl id is not impl in struct_union_content"
+                    ))?,
+                },
+            ))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut toc_methods = TocSection {
+        name: "Methods",
+        id: "methods",
+        items: vec![],
+    };
+    let mut toc_traits = TocSection {
+        name: TRAIT_IMPLEMENTATIONS,
+        id: TRAIT_IMPLEMENTATIONS_ID,
+        items: vec![],
+    };
+    let mut toc_auto_traits = TocSection {
+        name: AUTO_TRAIT_IMPLEMENTATIONS,
+        id: AUTO_TRAIT_IMPLEMENTATIONS_ID,
+        items: vec![],
+    };
+    let mut toc_blanket_traits = TocSection {
+        name: BLANKET_IMPLEMENTATIONS,
+        id: BLANKET_IMPLEMENTATIONS_ID,
+        items: vec![],
+    };
+
+    // TODO: Move all the filtering logic directly in the map above
+    let content = StructUnionEnumContent {
+        title,
+        fields: fields
+            .iter()
+            .map(|id| {
+                let item = global_context
+                    .krate
+                    .index
+                    .get(id)
+                    .with_context(|| format!("Unable to find the item {:?}", id))?;
+
+                Ok((
+                    TokensToHtml(
+                        global_context,
+                        page_context,
+                        pp::Tokens::from_item(&item, &global_context.krate.index)?,
+                    ),
+                    Markdown::from_docs(
+                        global_context,
+                        page_context,
+                        &item.docs,
+                        &item.links,
+                    ),
+                ))
+            })
+            .collect::<Result<Vec<_>>>()?,
+        traits: TraitsWithItems {
+            implementations: impls
+                .iter()
+                .filter(|(_item, impl_)| matches!(impl_.trait_, None))
+                .map(|(item, impl_)| {
+                    CodeEnchantedWithExtras::from_items(
+                        global_context,
+                        page_context,
+                        None,
+                        Some(&mut toc_methods),
+                        item,
+                        impl_,
+                        true,
+                    )
+                })
+                .collect::<Result<Vec<_>>>()?,
+            trait_implementations: impls
+                .iter()
+                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
+                    (Some(type_), None) => match type_ {
+                        Type::ResolvedPath { id, .. } => {
+                            match is_auto_trait(&global_context.krate, &id) {
+                                Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                    global_context,
+                                    page_context,
+                                    Some(&mut toc_traits),
+                                    None,
+                                    item,
+                                    impl_,
+                                    false,
+                                )),
+                                Err(e) => Some(Err(e)),
+                                _ => None,
+                            }
+                        }
+                        _ => None,
+                    },
+                    _ => None,
+                })
+                .collect::<Result<Vec<_>>>()?,
+            auto_trait_implementations: impls
+                .iter()
+                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
+                    (Some(type_), None) => match type_ {
+                        Type::ResolvedPath { id, .. } => {
+                            match is_auto_trait(&global_context.krate, &id) {
+                                Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                    global_context,
+                                    page_context,
+                                    Some(&mut toc_auto_traits),
+                                    None,
+                                    item,
+                                    impl_,
+                                    false,
+                                )),
+                                Err(e) => Some(Err(e)),
+                                _ => None,
+                            }
+                        }
+                        _ => None,
+                    },
+                    _ => None,
+                })
+                .collect::<Result<Vec<_>>>()?,
+            blanket_implementations: impls
+                .iter()
+                .filter(|(_item, impl_)| matches!(impl_.blanket_impl, Some(_)))
+                .map(|(item, impl_)| {
+                    CodeEnchantedWithExtras::from_items(
+                        global_context,
+                        page_context,
+                        Some(&mut toc_blanket_traits),
+                        None,
+                        item,
+                        impl_,
+                        false,
+                    )
+                })
+                .collect::<Result<Vec<_>>>()?,
+        },
+    };
+
+    Ok((
+        vec![toc_methods, toc_traits, toc_auto_traits, toc_blanket_traits],
+        content,
+    ))
+}
+
 macro_rules! ç {
     ($ty:ty => $fn:ident $type:literal $title:literal $fields:ident) => {
         fn $fn<'context>(
@@ -1072,187 +1254,6 @@ impl<'context, 'krate>
                 .collect::<Result<Vec<_>>>()?,
         })
     }
-}
-
-fn struct_union_enum_content<'context, 'krate, 'title>(
-    global_context: &'context GlobalContext<'krate>,
-    page_context: &'context PageContext<'context>,
-    title: &'title str,
-    fields: &Vec<Id>,
-    impls: &Vec<Id>,
-) -> Result<(
-    Vec<TocSection<'context>>,
-    StructUnionEnumContent<
-        'title,
-        TokensToHtml<'context, 'krate /*, 'tokens*/>,
-        Option<Markdown<'context, 'krate, 'context>>,
-        TraitsWithItems<
-            CodeEnchantedWithExtras<
-                TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                Markdown<'context, 'krate, 'context>,
-                CodeEnchanted<
-                    TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                    Markdown<'context, 'krate, 'context>,
-                >,
-            >,
-        >,
-    >,
-)> {
-    let impls = impls
-        .iter()
-        .map(|id| {
-            let item = global_context
-                .krate
-                .index
-                .get(id)
-                .with_context(|| format!("Unable to find the item {:?}", id))?;
-
-            Ok((
-                item,
-                match &item.inner {
-                    ItemEnum::Impl(impl_) => impl_,
-                    _ => Err(anyhow::anyhow!(
-                        "impl id is not impl in struct_union_content"
-                    ))?,
-                },
-            ))
-        })
-        .collect::<Result<Vec<_>>>()?;
-
-    let mut toc_methods = TocSection {
-        name: "Methods",
-        id: "methods",
-        items: vec![],
-    };
-    let mut toc_traits = TocSection {
-        name: TRAIT_IMPLEMENTATIONS,
-        id: TRAIT_IMPLEMENTATIONS_ID,
-        items: vec![],
-    };
-    let mut toc_auto_traits = TocSection {
-        name: AUTO_TRAIT_IMPLEMENTATIONS,
-        id: AUTO_TRAIT_IMPLEMENTATIONS_ID,
-        items: vec![],
-    };
-    let mut toc_blanket_traits = TocSection {
-        name: BLANKET_IMPLEMENTATIONS,
-        id: BLANKET_IMPLEMENTATIONS_ID,
-        items: vec![],
-    };
-
-    // TODO: Move all the filtering logic directly in the map above
-    let content = StructUnionEnumContent {
-        title,
-        fields: fields
-            .iter()
-            .map(|id| {
-                let item = global_context
-                    .krate
-                    .index
-                    .get(id)
-                    .with_context(|| format!("Unable to find the item {:?}", id))?;
-
-                Ok((
-                    TokensToHtml(
-                        global_context,
-                        page_context,
-                        pp::Tokens::from_item(&item, &global_context.krate.index)?,
-                    ),
-                    Markdown::from_docs(
-                        global_context,
-                        page_context,
-                        &item.docs,
-                        &item.links,
-                    ),
-                ))
-            })
-            .collect::<Result<Vec<_>>>()?,
-        traits: TraitsWithItems {
-            implementations: impls
-                .iter()
-                .filter(|(_item, impl_)| matches!(impl_.trait_, None))
-                .map(|(item, impl_)| {
-                    CodeEnchantedWithExtras::from_items(
-                        global_context,
-                        page_context,
-                        None,
-                        Some(&mut toc_methods),
-                        item,
-                        impl_,
-                        true,
-                    )
-                })
-                .collect::<Result<Vec<_>>>()?,
-            trait_implementations: impls
-                .iter()
-                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(type_), None) => match type_ {
-                        Type::ResolvedPath { id, .. } => {
-                            match is_auto_trait(&global_context.krate, &id) {
-                                Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                    global_context,
-                                    page_context,
-                                    Some(&mut toc_traits),
-                                    None,
-                                    item,
-                                    impl_,
-                                    false,
-                                )),
-                                Err(e) => Some(Err(e)),
-                                _ => None,
-                            }
-                        }
-                        _ => None,
-                    },
-                    _ => None,
-                })
-                .collect::<Result<Vec<_>>>()?,
-            auto_trait_implementations: impls
-                .iter()
-                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(type_), None) => match type_ {
-                        Type::ResolvedPath { id, .. } => {
-                            match is_auto_trait(&global_context.krate, &id) {
-                                Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                    global_context,
-                                    page_context,
-                                    Some(&mut toc_auto_traits),
-                                    None,
-                                    item,
-                                    impl_,
-                                    false,
-                                )),
-                                Err(e) => Some(Err(e)),
-                                _ => None,
-                            }
-                        }
-                        _ => None,
-                    },
-                    _ => None,
-                })
-                .collect::<Result<Vec<_>>>()?,
-            blanket_implementations: impls
-                .iter()
-                .filter(|(_item, impl_)| matches!(impl_.blanket_impl, Some(_)))
-                .map(|(item, impl_)| {
-                    CodeEnchantedWithExtras::from_items(
-                        global_context,
-                        page_context,
-                        Some(&mut toc_blanket_traits),
-                        None,
-                        item,
-                        impl_,
-                        false,
-                    )
-                })
-                .collect::<Result<Vec<_>>>()?,
-        },
-    };
-
-    Ok((
-        vec![toc_methods, toc_traits, toc_auto_traits, toc_blanket_traits],
-        content,
-    ))
 }
 
 struct TokensToHtml<'context, 'krate>(
