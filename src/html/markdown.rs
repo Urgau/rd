@@ -38,16 +38,16 @@ fn summary_opts() -> Options {
 
 /// Render the all Markdown in html
 pub(crate) struct Markdown<'context, 'krate, 'content>(
-    &'context crate::html::html::GlobalContext<'krate>,
-    &'context crate::html::html::PageContext<'context>,
+    &'context crate::html::render::GlobalContext<'krate>,
+    &'context crate::html::render::PageContext<'context>,
     &'content String,
     &'krate std::collections::HashMap<String, Id>,
 );
 
 impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::html::GlobalContext<'krate>,
-        page_context: &'context crate::html::html::PageContext<'context>,
+        global_context: &'context crate::html::render::GlobalContext<'krate>,
+        page_context: &'context crate::html::render::PageContext<'context>,
         content: &'content Option<String>,
         links: &'krate std::collections::HashMap<String, Id>,
     ) -> Option<Self> {
@@ -68,7 +68,7 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
                 //dbg!(broken_link.reference);
                 if let Some(id) = self.3.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::html::href(self.0, self.1, id)
+                        crate::html::render::href(self.0, self.1, id)
                     {
                         Some((
                             {
@@ -108,8 +108,8 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
 
 /// Render the all Markdown in html
 pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
-    &'context crate::html::html::GlobalContext<'krate>,
-    &'context crate::html::html::PageContext<'context>,
+    &'context crate::html::render::GlobalContext<'krate>,
+    &'context crate::html::render::PageContext<'context>,
     &'content String,
     &'krate std::collections::HashMap<String, Id>,
     // RefCell required here because of the immutable `&self` on `render`
@@ -118,8 +118,8 @@ pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
 
 impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::html::GlobalContext<'krate>,
-        page_context: &'context crate::html::html::PageContext<'context>,
+        global_context: &'context crate::html::render::GlobalContext<'krate>,
+        page_context: &'context crate::html::render::PageContext<'context>,
         content: &'content Option<String>,
         links: &'krate std::collections::HashMap<String, Id>,
         toc: &'vec mut Vec<(u32, String, String)>,
@@ -152,7 +152,7 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
                 //dbg!(broken_link.reference);
                 if let Some(id) = ids.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::html::href(gloabl_context, page_context, id)
+                        crate::html::render::href(gloabl_context, page_context, id)
                     {
                         Some((
                             {

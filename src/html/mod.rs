@@ -1,2 +1,4 @@
-pub(crate) mod html;
-pub(crate) mod markdown;
+pub(crate) mod render;
+mod markdown;
+mod templates;
+mod constants;
