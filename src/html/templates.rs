@@ -1,9 +1,11 @@
+//! HTML templates
+
 use std::ops::Deref;
 use std::path::PathBuf;
 
 use super::constants::*;
 use super::markdown::MarkdownWithToc;
-use super::render::{GlobalContext, ItemPathDisplay, PageContext, TocSection};
+use super::render::{GlobalContext, PageContext, TocSection};
 use super::utils::*;
 
 pub struct BodyInformations<'a> {
@@ -68,7 +70,7 @@ markup::define! {
         }
     }
 
-    ItemPage<'a, Definition: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPathDisplay<'a>, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
+    ItemPage<'a, Definition: markup::Render, ItemPath: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPath, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
         div[class="rd-main"] {
             div#intro[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {

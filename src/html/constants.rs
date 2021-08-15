@@ -1,3 +1,5 @@
+//! Collections constants used for the html output generation
+
 pub const STYLE_CSS: &str = "style.css";
 pub const RUST_SVG: &str = "rust.svg";
 pub const SEARCH_JS: &str = "search.js";
@@ -30,6 +32,8 @@ pub const IMPORTS: &str = "Re-exports";
 pub const IMPORTS_ID: &str = "imports";
 pub const MODULES: &str = "Modules";
 pub const MODULES_ID: &str = "modules";
+pub const METHODS: &str = "Methods";
+pub const METHODS_ID: &str = "methods";
 pub const UNIONS: &str = "Unions";
 pub const UNIONS_ID: &str = "unions";
 pub const STRUCTS: &str = "Structs";

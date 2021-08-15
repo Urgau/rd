@@ -1,3 +1,5 @@
+//! Pretty-printer for rustdoc-json output
+
 use rustdoc_types::*;
 use std::{collections::HashMap, fmt::Display, ops::Deref};
 

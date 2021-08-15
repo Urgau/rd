@@ -1,3 +1,5 @@
+//! Markdown handling for HTML output 
+
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
@@ -7,7 +9,7 @@ use std::{fmt, io, str};
 use super::render::{GlobalContext, PageContext};
 use super::utils::*;
 
-/// Convert an std::fmt::Wrte to std::io::Write
+/// Convert an std::fmt::Write to std::io::Write
 struct Adapter<'a> {
     f: &'a mut dyn fmt::Write,
 }
@@ -49,6 +51,7 @@ pub(crate) struct Markdown<'context, 'krate, 'content>(
 );
 
 impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
+    /// Create a [`Markdown`] struct from some context and a content
     pub(crate) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
@@ -119,6 +122,7 @@ pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
 );
 
 impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
+    /// Create a [`MarkdownWithToc`] struct from some context and a content
     pub(crate) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
@@ -197,6 +201,7 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
 pub(crate) struct MarkdownSummaryLine<'content>(&'content String);
 
 impl<'content> MarkdownSummaryLine<'content> {
+    /// Create a [`MarkdownSummaryLine`] struct from some context and a content
     pub(crate) fn from_docs(content: &'content Option<String>) -> Option<Self> {
         content.as_ref().map(|content| Self(content))
     }

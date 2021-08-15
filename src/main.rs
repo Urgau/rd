@@ -10,6 +10,7 @@ use tracing_subscriber::FmtSubscriber;
 mod html;
 mod pp;
 
+/// Commande-line options
 #[derive(StructOpt)]
 pub(crate) struct Opt {
     // The number of occurrences of the `v/verbose` flag
@@ -37,7 +38,8 @@ fn main() -> Result<()> {
         })
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber)
+        .context("setting default subscriber failed")?;
 
     info!("opening input file: {:?}", &opt.input);
     let reader = File::open(&opt.input).context("The file provided doesn't exists")?;

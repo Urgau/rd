@@ -1,3 +1,5 @@
+//! HTML renderer 
+
 use anyhow::{Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
@@ -13,6 +15,7 @@ use super::templates::*;
 use super::utils::*;
 use crate::pp;
 
+/// A context that is global for all the pages
 pub(crate) struct GlobalContext<'krate> {
     pub(crate) krate: &'krate Crate,
     pub(crate) krate_name: &'krate str,
@@ -21,6 +24,7 @@ pub(crate) struct GlobalContext<'krate> {
     pub(crate) output_dir: &'krate PathBuf,
 }
 
+/// A context that is unique from each page
 // TODO: Remove these pub(crate)
 pub(crate) struct PageContext<'context> {
     #[allow(dead_code)]
@@ -30,16 +34,18 @@ pub(crate) struct PageContext<'context> {
     pub(crate) item_path: &'context ItemPath,
 }
 
-pub struct ItemPath(pub(crate) Vec<ItemPathComponent>);
+/// Path to an item; slice of [`ItemPathComponent`]
+pub(crate) struct ItemPath(pub(crate) Vec<ItemPathComponent>);
 
 #[derive(Clone)]
-pub struct ItemPathComponent {
+pub(crate) struct ItemPathComponent {
     pub(crate) name: String,
     pub(crate) kind: &'static str,
     pub(crate) filepath: PathBuf,
 }
 
 impl<'context> ItemPath {
+    /// Create a `markup`able version of an [`ItemPath`]
     fn display(
         &'context self,
         page_context: &'context PageContext<'context>,
@@ -48,7 +54,7 @@ impl<'context> ItemPath {
     }
 }
 
-pub struct ItemPathDisplay<'a>(&'a ItemPath, &'a PageContext<'a>);
+struct ItemPathDisplay<'a>(&'a ItemPath, &'a PageContext<'a>);
 
 impl<'context> markup::Render for ItemPathDisplay<'context> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
@@ -97,6 +103,7 @@ impl<'a> markup::Render for TocDestination<'a> {
     }
 }
 
+/// Html rendering entry
 pub(crate) fn render<'krate>(
     opt: &super::super::Opt,
     krate: &'krate Crate,
@@ -166,11 +173,14 @@ pub(crate) fn render<'krate>(
             ),
             search.as_bytes(),
         )?;
+    } else {
+        unreachable!("main item is not a module");
     }
 
     Ok(())
 }
 
+/// Entry point of each page that create the file, page_context, ...
 fn base_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: Option<&'context ItemPath>,
@@ -246,6 +256,7 @@ fn base_page<'context>(
     ))
 }
 
+/// Helper function to get the item definition in a `markup`able way
 fn item_definition<'context, 'krate>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
@@ -255,6 +266,7 @@ fn item_definition<'context, 'krate>(
     Ok(TokensToHtml(global_context, page_context, tokens))
 }
 
+/// Module page generation function
 fn module_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: Option<&'context ItemPath>,
@@ -278,6 +290,7 @@ fn module_page<'context>(
         proc_macros: Default::default(),
     };
 
+    // TODO: this could probably be removed
     let filenames = Arena::<PathBuf>::new();
 
     let mut toc_macros = TocSection {
@@ -650,6 +663,7 @@ fn module_page<'context>(
     Ok(page_context)
 }
 
+/// Function for generating a Trait page
 fn trait_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: &'context ItemPath,
@@ -810,7 +824,6 @@ fn trait_page<'context>(
             item_type: "Trait",
             item_name: name,
             item_definition: Some(definition),
-            //item_path: &page_context.item_path,
             item_path: page_context.item_path.display(&page_context),
             item_doc: MarkdownWithToc::from_docs(
                 global_context,
@@ -837,6 +850,7 @@ fn trait_page<'context>(
     Ok(page_context)
 }
 
+/// Function for generating the content of an struct, union or enum
 #[allow(clippy::type_complexity)]
 fn struct_union_enum_content<'context, 'krate, 'title>(
     global_context: &'context GlobalContext<'krate>,
@@ -886,8 +900,8 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
         .collect::<Result<Vec<_>>>()?;
 
     let mut toc_methods = TocSection {
-        name: "Methods",
-        id: "methods",
+        name: METHODS,
+        id: METHODS_ID,
         items: vec![],
     };
     let mut toc_traits = TocSection {
@@ -1012,6 +1026,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
 
 macro_rules! ç {
     ($ty:ty => $fn:ident $type:literal $title:literal $fields:ident) => {
+        /// Function for generating a $ty page
         fn $fn<'context>(
             global_context: &'context GlobalContext<'context>,
             parent_item_path: &'context ItemPath,
@@ -1059,6 +1074,7 @@ macro_rules! ç {
 
 macro_rules! é {
     ($ty:ty => $fn:ident $type:literal) => {
+        /// Function for generating a $ty page
         fn $fn<'context>(
             global_context: &'context GlobalContext<'context>,
             parent_item_path: &'context ItemPath,
@@ -1226,6 +1242,7 @@ impl<'context, 'krate>
     }
 }
 
+/// Convert a [`pp::Tokens`] struct to an `markup`able output
 struct TokensToHtml<'context, 'krate>(
     &'context GlobalContext<'krate>,
     &'context PageContext<'context>,

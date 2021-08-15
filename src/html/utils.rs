@@ -1,3 +1,5 @@
+//! Collections of utilities functions for the html generation
+
 use anyhow::{anyhow, Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
@@ -57,6 +59,7 @@ pub(crate) fn item_kind(item: &Item) -> (&'static str, bool) {
     }
 }
 
+/// Try to get the [`Id`] of any [`Type`]
 pub(crate) fn type_id(type_: &Type) -> Result<&Id, Option<ItemKind>> {
     match type_ {
         Type::ResolvedPath { id, .. } => Ok(id),
@@ -69,6 +72,7 @@ pub(crate) fn type_id(type_: &Type) -> Result<&Id, Option<ItemKind>> {
     }
 }
 
+/// Determine if an [`Item`] is auto-trait and also return the crate id
 pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Result<(bool, u32)> {
     let item = krate
         .index
@@ -81,6 +85,7 @@ pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Res
     })
 }
 
+/// Compute an somewhat unique HTML-Id for a for a given [`Item`]
 pub(crate) fn id<'krate>(
     krate: &'krate Crate,
     item: &'krate Item,
@@ -134,9 +139,12 @@ pub(crate) fn id<'krate>(
     }
 }
 
+/// Create a relative path from a base one and a target
 pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
     let mut relative = PathBuf::new();
 
+    // TODO: This a hacky, replace with a better way
+    // maybe try the url crate ?
     let ends_with_html = |c: &std::path::Component| -> bool {
         match c {
             std::path::Component::Normal(path) => {
@@ -156,7 +164,6 @@ pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
         .peekable();
 
     // Skip over the common prefix
-    //while dbg!(base_components.peek().is_some()) && dbg!(base_components.peek()) == dbg!(url_components.peek()) {
     while base_components.peek().is_some() && base_components.peek() == url_components.peek() {
         base_components.next();
         url_components.next();
@@ -187,6 +194,7 @@ pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
     relative
 }
 
+/// Create a relative path for going to the top of the path
 pub(crate) fn top_of(base: &Path) -> PathBuf {
     let mut relative = PathBuf::new();
 
@@ -205,6 +213,7 @@ pub(crate) fn top_of(base: &Path) -> PathBuf {
     relative
 }
 
+/// Compute a HTML-href for a given [`Id`] in the context of the current page
 pub(crate) fn href<'context, 'krate>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
