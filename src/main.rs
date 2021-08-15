@@ -18,6 +18,10 @@ pub(crate) struct Opt {
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
 
+    /// Open the generated documentation if successful
+    #[structopt(long)]
+    open: bool,
+
     /// Rustdoc json input file to process
     #[structopt(parse(from_os_str))]
     input: PathBuf,
@@ -54,6 +58,11 @@ fn main() -> Result<()> {
         .get(&krate.root)
         .context("Unable to find the crate item")?;
 
-    html::render::render(&opt, &krate, krate_item)?;
+    let krate_index_path = html::render::render(&opt, &krate, krate_item)?;
+
+    if opt.open {
+        open::that(krate_index_path)?;
+    }
+
     Ok(())
 }

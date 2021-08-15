@@ -36,6 +36,7 @@ USAGE:
 
 FLAGS:
     -h, --help       Prints help information
+        --open       Open the generated documentation if successful
     -V, --version    Prints version information
     -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
 

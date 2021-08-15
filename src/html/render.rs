@@ -108,7 +108,7 @@ pub(crate) fn render<'krate>(
     opt: &super::super::Opt,
     krate: &'krate Crate,
     krate_item: &'krate Item,
-) -> Result<()> {
+) -> Result<PathBuf> {
     fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
         let mut file = File::create(path)?;
         std::io::Write::write_all(&mut file, buf)?;
@@ -137,8 +137,8 @@ pub(crate) fn render<'krate>(
             krate_name: krate_item.name.as_ref().context("expect a crate name")?,
         };
 
-        module_page(&global_context, None, krate_item, krate_module)?;
-
+        let module_page_context = module_page(&global_context, None, krate_item, krate_module)?;
+        let module_index_path = global_context.output_dir.join(module_page_context.filepath);
         let mut search = String::new();
 
         search.push_str("\n\nconst INDEX = [\n");
@@ -173,11 +173,11 @@ pub(crate) fn render<'krate>(
             ),
             search.as_bytes(),
         )?;
-    } else {
-        unreachable!("main item is not a module");
-    }
 
-    Ok(())
+        Ok(module_index_path)
+    } else {
+        anyhow::bail!("main item is not a Module")
+    }
 }
 
 /// Entry point of each page that create the file, page_context, ...
