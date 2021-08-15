@@ -117,15 +117,15 @@ pub(crate) fn render<'krate>(
 
     dump_to(
         format!("{}/{}", &opt.output.display(), STYLE_CSS),
-        include_bytes!("../static/css/style.css"),
+        include_bytes!("static/css/style.css"),
     )?;
     dump_to(
         format!("{}/{}", &opt.output.display(), RUST_SVG),
-        include_bytes!("../static/imgs/rust.svg"),
+        include_bytes!("static/imgs/rust.svg"),
     )?;
     dump_to(
         format!("{}/{}", &opt.output.display(), SEARCH_JS),
-        include_bytes!("../static/js/search.js"),
+        include_bytes!("static/js/search.js"),
     )?;
 
     if let ItemEnum::Module(krate_module) = &krate_item.inner {
