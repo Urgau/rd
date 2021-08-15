@@ -1,5 +1,5 @@
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
-use rustdoc_types::*;
+use rustdoc_types::Id;
 use std::borrow::Cow;
 use std::{fmt, io, str};
 
@@ -38,16 +38,16 @@ fn summary_opts() -> Options {
 
 /// Render the all Markdown in html
 pub(crate) struct Markdown<'context, 'krate, 'content>(
-    &'context crate::html::GlobalContext<'krate>,
-    &'context crate::html::PageContext<'context>,
+    &'context crate::html::html::GlobalContext<'krate>,
+    &'context crate::html::html::PageContext<'context>,
     &'content String,
     &'krate std::collections::HashMap<String, Id>,
 );
 
 impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::GlobalContext<'krate>,
-        page_context: &'context crate::html::PageContext<'context>,
+        global_context: &'context crate::html::html::GlobalContext<'krate>,
+        page_context: &'context crate::html::html::PageContext<'context>,
         content: &'content Option<String>,
         links: &'krate std::collections::HashMap<String, Id>,
     ) -> Option<Self> {
@@ -68,7 +68,7 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
                 //dbg!(broken_link.reference);
                 if let Some(id) = self.3.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::href(self.0, self.1, id)
+                        crate::html::html::href(self.0, self.1, id)
                     {
                         Some((
                             {
@@ -108,8 +108,8 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
 
 /// Render the all Markdown in html
 pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
-    &'context crate::html::GlobalContext<'krate>,
-    &'context crate::html::PageContext<'context>,
+    &'context crate::html::html::GlobalContext<'krate>,
+    &'context crate::html::html::PageContext<'context>,
     &'content String,
     &'krate std::collections::HashMap<String, Id>,
     // RefCell required here because of the immutable `&self` on `render`
@@ -118,8 +118,8 @@ pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
 
 impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
     pub(crate) fn from_docs(
-        global_context: &'context crate::html::GlobalContext<'krate>,
-        page_context: &'context crate::html::PageContext<'context>,
+        global_context: &'context crate::html::html::GlobalContext<'krate>,
+        page_context: &'context crate::html::html::PageContext<'context>,
         content: &'content Option<String>,
         links: &'krate std::collections::HashMap<String, Id>,
         toc: &'vec mut Vec<(u32, String, String)>,
@@ -152,7 +152,7 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
                 //dbg!(broken_link.reference);
                 if let Some(id) = ids.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
-                        crate::html::href(gloabl_context, page_context, id)
+                        crate::html::html::href(gloabl_context, page_context, id)
                     {
                         Some((
                             {
@@ -194,31 +194,27 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
 }
 
 /// Render an summary line of the Markdown in html
-pub(crate) struct MarkdownSummaryLine<'krate, 'content>(
-    &'krate Crate,
+pub(crate) struct MarkdownSummaryLine<'content>(
     &'content String,
-    &'content std::collections::HashMap<String, Id>,
 );
 
-impl<'krate, 'content> MarkdownSummaryLine<'krate, 'content> {
+impl<'content> MarkdownSummaryLine<'content> {
     pub(crate) fn from_docs(
-        krate: &'krate Crate,
         content: &'content Option<String>,
-        links: &'content std::collections::HashMap<String, Id>,
     ) -> Option<Self> {
         if let Some(content) = content {
-            Some(Self(krate, content, links))
+            Some(Self(content))
         } else {
             None
         }
     }
 }
 
-impl<'krate, 'content> markup::Render for MarkdownSummaryLine<'krate, 'content> {
+impl<'content> markup::Render for MarkdownSummaryLine<'content> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
-        if !self.1.is_empty() {
+        if !self.0.is_empty() {
             let adapter = Adapter { f: writer };
-            let parser = Parser::new_ext(self.1, summary_opts());
+            let parser = Parser::new_ext(self.0, summary_opts());
             let parser = SummaryLine::new(parser);
 
             html::write_html(adapter, parser).unwrap();

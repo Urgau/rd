@@ -1,5 +1,5 @@
-use crate::markdown;
 use crate::pp;
+use crate::html::markdown::{Markdown, MarkdownSummaryLine, MarkdownWithToc};
 use anyhow::{Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
@@ -214,7 +214,7 @@ markup::define! {
         }
     }
 
-    ItemPage<'a, Definition: markup::Render, /*Documentation: markup::Render, */Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPathDisplay<'a>, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_doc: Option<markdown::MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
+    ItemPage<'a, Definition: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPathDisplay<'a>, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
         div[class="rd-main"] {
             div#intro[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {
@@ -738,10 +738,8 @@ pub(crate) fn module_page<'context>(
             continue;
         }
 
-        let summary_line_doc = markdown::MarkdownSummaryLine::from_docs(
-            &global_context.krate,
+        let summary_line_doc = MarkdownSummaryLine::from_docs(
             &item.docs,
-            &item.links,
         );
 
         match &item.inner {
@@ -1021,7 +1019,7 @@ pub(crate) fn module_page<'context>(
             item_name: module_name,
             item_path: page_context.item_path.display(&page_context),
             item_definition: Option::<String>::None,
-            item_doc: markdown::MarkdownWithToc::from_docs(
+            item_doc: MarkdownWithToc::from_docs(
                 global_context,
                 &page_context,
                 &item.docs,
@@ -1209,7 +1207,7 @@ fn trait_page<'context>(
             item_definition: Some(definition),
             //item_path: &page_context.item_path,
             item_path: page_context.item_path.display(&page_context),
-            item_doc: markdown::MarkdownWithToc::from_docs(
+            item_doc: MarkdownWithToc::from_docs(
                 global_context,
                 &page_context,
                 &item.docs,
@@ -1262,7 +1260,7 @@ macro_rules! ç {
                     item_name: name,
                     item_definition: Some(definition),
                     item_path: page_context.item_path.display(&page_context),
-                    item_doc: markdown::MarkdownWithToc::from_docs(
+                    item_doc: MarkdownWithToc::from_docs(
                         global_context,
                         &page_context,
                         &item.docs,
@@ -1300,7 +1298,7 @@ macro_rules! é {
                     item_name: name,
                     item_definition: Some(definition),
                     item_path: page_context.item_path.display(&page_context),
-                    item_doc: markdown::MarkdownWithToc::from_docs(
+                    item_doc: MarkdownWithToc::from_docs(
                         global_context,
                         &page_context,
                         &item.docs,
@@ -1331,7 +1329,7 @@ type Macro = String;
 é!(Constant => constant_page "Constant");
 
 impl<'context, 'krate>
-    CodeEnchanted<TokensToHtml<'context, 'krate>, markdown::Markdown<'context, 'krate, 'context>>
+    CodeEnchanted<TokensToHtml<'context, 'krate>, Markdown<'context, 'krate, 'context>>
 {
     fn from_item(
         global_context: &'context GlobalContext<'krate>,
@@ -1355,7 +1353,7 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(&item, &global_context.krate.index)?,
             ),
-            doc: markdown::Markdown::from_docs(
+            doc: Markdown::from_docs(
                 &global_context,
                 &page_context,
                 &item.docs,
@@ -1378,7 +1376,7 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(&item, &global_context.krate.index)?,
             ),
-            doc: markdown::Markdown::from_docs(
+            doc: Markdown::from_docs(
                 &global_context,
                 &page_context,
                 &item.docs,
@@ -1394,10 +1392,10 @@ impl<'context, 'krate>
 impl<'context, 'krate>
     CodeEnchantedWithExtras<
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
-        markdown::Markdown<'context, 'krate, 'context>,
+        Markdown<'context, 'krate, 'context>,
         CodeEnchanted<
             TokensToHtml<'context, 'krate /*, 'tokens*/>,
-            markdown::Markdown<'context, 'krate, 'context>,
+            Markdown<'context, 'krate, 'context>,
         >,
     >
 {
@@ -1431,7 +1429,7 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: markdown::Markdown::from_docs(
+            doc: Markdown::from_docs(
                 &global_context,
                 &page_context,
                 &item.docs,
@@ -1490,14 +1488,14 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     StructUnionEnumContent<
         'title,
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
-        Option<markdown::Markdown<'context, 'krate, 'context>>,
+        Option<Markdown<'context, 'krate, 'context>>,
         TraitsWithItems<
             CodeEnchantedWithExtras<
                 TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                markdown::Markdown<'context, 'krate, 'context>,
+                Markdown<'context, 'krate, 'context>,
                 CodeEnchanted<
                     TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                    markdown::Markdown<'context, 'krate, 'context>,
+                    Markdown<'context, 'krate, 'context>,
                 >,
             >,
         >,
@@ -1563,7 +1561,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                         page_context,
                         pp::Tokens::from_item(&item, &global_context.krate.index)?,
                     ),
-                    markdown::Markdown::from_docs(
+                    Markdown::from_docs(
                         global_context,
                         page_context,
                         &item.docs,

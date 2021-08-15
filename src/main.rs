@@ -8,7 +8,6 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 mod html;
-mod markdown;
 mod pp;
 
 #[derive(StructOpt)]
@@ -70,7 +69,7 @@ fn main() -> Result<()> {
     )?;
 
     if let ItemEnum::Module(krate_module) = &krate_item.inner {
-        let mut global_context = html::GlobalContext {
+        let mut global_context = html::html::GlobalContext {
             krate: &krate,
             output_dir: &opt.output,
             files: Default::default(),
@@ -78,7 +77,7 @@ fn main() -> Result<()> {
             krate_name: &krate_item.name.as_ref().context("expect a crate name")?,
         };
 
-        html::module_page(&global_context, None, krate_item, krate_module)?;
+        html::html::module_page(&global_context, None, krate_item, krate_module)?;
 
         let mut search = String::new();
 
