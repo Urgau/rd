@@ -681,10 +681,10 @@ impl Tokens<'_> {
                             Some(item) => {
                                 match &item.inner {
                                     ItemEnum::AssocConst { type_, default } => {
-                                        with_assoc_const(tokens, item, type_, default)?
+                                        with_assoc_const(tokens, item, type_, default, false)?
                                     }
                                     ItemEnum::AssocType { bounds, default } => {
-                                        with_assoc_type(tokens, item, bounds, default)?
+                                        with_assoc_type(tokens, item, bounds, default, false)?
                                     }
                                     ItemEnum::Method(method) => with_method(tokens, item, method, false)?,
                                     _ => {
@@ -963,14 +963,14 @@ impl Tokens<'_> {
             ItemEnum::AssocConst { type_, default } => {
                 let mut tokens = Vec::with_capacity(12);
 
-                with_assoc_const(&mut tokens, item, type_, default)?;
+                with_assoc_const(&mut tokens, item, type_, default, true)?;
 
                 tokens
             }
             ItemEnum::AssocType { bounds, default } => {
                 let mut tokens = Vec::with_capacity(12);
 
-                with_assoc_type(&mut tokens, item, bounds, default)?;
+                with_assoc_type(&mut tokens, item, bounds, default, true)?;
 
                 tokens
             }
@@ -983,6 +983,7 @@ fn with_assoc_const<'tokens>(
     item: &'tokens Item,
     type_: &'tokens Type,
     default: &'tokens Option<String>,
+    standalone: bool,
 ) -> Result<(), FromItemErrorKind> {
     //with_attrs(tokens, &item.attrs)?;
     //with_visibility(&mut tokens, &item.visibility)?;
@@ -1001,7 +1002,10 @@ fn with_assoc_const<'tokens>(
         tokens.try_push(Token::Ident(default, None))?;
     }
 
-    tokens.try_push(Token::Ponct(";"))?;
+    if !standalone {
+        tokens.try_push(Token::Ponct(";"))?;
+    }
+
     Ok(())
 }
 
@@ -1010,6 +1014,7 @@ fn with_assoc_type<'tokens>(
     item: &'tokens Item,
     bounds: &'tokens [GenericBound],
     default: &'tokens Option<Type>,
+    standalone: bool,
 ) -> Result<(), FromItemErrorKind> {
     //with_attrs(tokens, &item.attrs)?;
     //with_visibility(&mut tokens, &item.visibility)?;
@@ -1034,7 +1039,10 @@ fn with_assoc_type<'tokens>(
         with_type(tokens, default)?;
     }
 
-    tokens.try_push(Token::Ponct(";"))?;
+    if !standalone {
+        tokens.try_push(Token::Ponct(";"))?;
+    }
+
     Ok(())
 }
 
