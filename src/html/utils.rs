@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
-use tracing::{trace, warn};
+use tracing::{error, trace, warn};
 
 use super::render::{GlobalContext, PageContext};
 use crate::pp;
@@ -240,7 +240,7 @@ pub(crate) fn href<'context, 'krate>(
                 _ => warn!("not handling this kind of items"),
             }
         } else {
-            warn!(?id, "id not in paths or index");
+            error!(?id, "id not in paths or index");
         }
         return None;
     }

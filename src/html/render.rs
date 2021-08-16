@@ -6,7 +6,7 @@ use std::borrow::Cow;
 use std::fs::{DirBuilder, File};
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use tracing::{debug, error, info, trace, warn};
+use tracing::{debug, info, trace, warn};
 use typed_arena::Arena;
 
 use super::constants::*;
@@ -361,7 +361,7 @@ fn module_page<'context>(
             .with_context(|| format!("Unable to find the item {:?}", id))?;
 
         if !id.0.starts_with("0:") {
-            error!("ignoring for now `pub use item`: {:?}", id);
+            warn!("ignoring for now `pub use`: {:?}", id);
             continue;
         }
 
