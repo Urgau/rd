@@ -27,6 +27,7 @@ pub enum SpecialToken {
     Space,
     Tabulation,
     Omitted,
+    Ignored,
 }
 
 #[allow(dead_code)]
@@ -132,6 +133,7 @@ impl Display for Tokens<'_> {
                     SpecialToken::Space => " ",
                     SpecialToken::Tabulation => "    ",
                     SpecialToken::Omitted => "/* fields ommited */",
+                    SpecialToken::Ignored => "...",
                 },
             })?;
         }
@@ -1106,6 +1108,15 @@ fn with_method<'tokens>(
         with_type(tokens, output)?;
     }
 
+    if method.has_body {
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+        tokens.try_push(Token::Ponct("{"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+        tokens.try_push(Token::Special(SpecialToken::Ignored))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+        tokens.try_push(Token::Ponct("}"))?;
+    }
+
     if method.decl.c_variadic {
         todo!("method c_variadic");
     }
@@ -1128,7 +1139,9 @@ fn with_method<'tokens>(
         with_where_predicate,
     )?;
 
-    tokens.try_push(Token::Ponct(";"))?;
+    if !method.has_body && method.generics.where_predicates.is_empty() {
+        tokens.try_push(Token::Ponct(";"))?;
+    }
 
     Ok(())
 }
