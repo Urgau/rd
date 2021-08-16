@@ -68,6 +68,10 @@ code {
 	color: #4d76ae;
 }
 
+.ident.associatedtype {
+    color: #ba5d00;
+}
+
 .attr {
     color: #999;
 }

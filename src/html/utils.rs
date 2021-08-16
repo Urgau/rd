@@ -28,8 +28,8 @@ pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
         ItemKind::Static => ("static", true),
         ItemKind::Macro => ("macro", true),
         //ItemKind::ProcMacro => ("proc.macro", true),
-        ItemKind::AssocConst => ("assoc.const", false),
-        ItemKind::AssocType => ("assoc.type", false),
+        ItemKind::AssocConst => ("associatedconst", false),
+        ItemKind::AssocType => ("associatedtype", false),
         _ => unimplemented!(),
     }
 }
@@ -53,8 +53,8 @@ pub(crate) fn item_kind(item: &Item) -> (&'static str, bool) {
         ItemEnum::Static(_) => ("static", true),
         ItemEnum::Macro(_) => ("macro", true),
         ItemEnum::ProcMacro(_) => ("proc.macro", true),
-        ItemEnum::AssocConst { .. } => ("assoc.const", false),
-        ItemEnum::AssocType { .. } => ("assoc.type", false),
+        ItemEnum::AssocConst { .. } => ("associatedconst", false),
+        ItemEnum::AssocType { .. } => ("associatedtype", false),
         _ => unimplemented!(),
     }
 }
@@ -227,6 +227,7 @@ pub(crate) fn href<'context, 'krate>(
     let to = global_context.krate.paths.get(id);
 
     if to.is_none() {
+        // TODO: Here we wrongly supposed that we are in the same "page"
         if let Some(item) = global_context.krate.index.get(id) {
             match &item.inner {
                 ItemEnum::Method { .. } => {
@@ -237,7 +238,23 @@ pub(crate) fn href<'context, 'krate>(
                         "method",
                     ))
                 }
-                _ => warn!("not handling this kind of items"),
+                ItemEnum::AssocType { .. } => {
+                    return Some((
+                        None,
+                        "".into(),
+                        Some(format!("associatedtype.{}", item.name.as_ref().unwrap())),
+                        "associatedtype",
+                    ))
+                }
+                ItemEnum::AssocConst { .. } => {
+                    return Some((
+                        None,
+                        "".into(),
+                        Some(format!("associatedconst.{}", item.name.as_ref().unwrap())),
+                        "associatedconst",
+                    ))
+                }
+                _ => warn!(?item, "not handling this kind of items"),
             }
         } else {
             error!(?id, "id not in paths or index");
