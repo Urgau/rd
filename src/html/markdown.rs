@@ -3,7 +3,7 @@
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
 
 use super::render::{GlobalContext, PageContext};
@@ -298,12 +298,17 @@ impl<'a, I: Iterator<Item = Event<'a>>> Iterator for SummaryLine<'a, I> {
 /// Format a litle bit diffrently the Codeblocks
 struct Headings<'a, 'vec, I: Iterator<Item = Event<'a>>> {
     inner: I,
+    buf: VecDeque<Event<'a>>,
     toc: Option<&'vec mut Vec<(u32, String, String)>>,
 }
 
 impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Headings<'a, 'vec, I> {
     fn new(iter: I, toc: Option<&'vec mut Vec<(u32, String, String)>>) -> Self {
-        Self { inner: iter, toc }
+        Self {
+            inner: iter,
+            buf: Default::default(),
+            toc,
+        }
     }
 }
 
@@ -311,8 +316,11 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
     type Item = Event<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let event = self.inner.next();
+        if let Some(event) = self.buf.pop_front() {
+            return Some(event);
+        }
 
+        let event = self.inner.next();
         let level = if let Some(Event::Start(Tag::Heading(level))) = event {
             level
         } else {
@@ -323,10 +331,12 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
         for event in &mut self.inner {
             match event {
                 Event::End(Tag::Heading(..)) => break,
+                Event::Start(Tag::Link(_, _, _)) | Event::End(Tag::Link(..)) => {}
                 Event::Text(ref s) => {
                     original_text.push_str(s);
+                    self.buf.push_back(event);
                 }
-                _ => {}
+                _ => self.buf.push_back(event),
             }
         }
 
@@ -340,17 +350,19 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
             }
         }
 
-        let html = format!(
-            "<h{} class=\"item-doc-heading rd-anchor\" id=\"{}\"><a href=\"#{}\">{}</a></h{}>",
-            level, id, id, original_text, level
-        )
-        .into();
+        let start_html = format!(
+            "<h{} class=\"item-doc-heading rd-anchor\" id=\"{}\"><a href=\"#{}\">",
+            level, id, id
+        );
 
+        let end_html = format!("</a></h{}>", level);
+
+        self.buf.push_back(Event::Html(end_html.into()));
         if let Some(ref mut toc) = self.toc {
             toc.push((level, original_text, id));
         }
 
-        Some(Event::Html(html))
+        Some(Event::Html(start_html.into()))
     }
 }
 
