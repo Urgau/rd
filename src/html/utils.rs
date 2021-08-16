@@ -128,8 +128,10 @@ pub(crate) fn id<'krate>(
                 pp::Token::Ponct(p) => name.push_str(p),
                 pp::Token::Ident(ident, _) => name.push_str(ident),
                 pp::Token::Kw(kw) => name.push_str(kw),
+                pp::Token::Primitive(primitive) => name.push_str(primitive),
                 pp::Token::Special(s) if *s == pp::SpecialToken::Space => name.push(' '),
-                _ => {}
+                pp::Token::Special(_) => {},
+                pp::Token::Attr(_) => {},
             }
         }
 
