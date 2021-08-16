@@ -19,6 +19,7 @@ pub enum Token<'token> {
     Ponct(&'static str),
     Special(SpecialToken),
     Attr(&'token str),
+    Primitive(&'token str),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -128,6 +129,7 @@ impl Display for Tokens<'_> {
                 Token::Kw(s) => s,
                 Token::Ponct(s) => s,
                 Token::Attr(s) => s,
+                Token::Primitive(s) => s,
                 Token::Special(special) => match special {
                     SpecialToken::NewLine => "\n",
                     SpecialToken::Space => " ",
@@ -1667,7 +1669,7 @@ fn with_type<'tcx>(
         }
         // Fixed-size numeric types (plus int/usize/float), char, arrays, slices, and tuples
         Type::Primitive(primitive) => {
-            tokens.try_push(Token::Ident(primitive, None))?;
+            tokens.try_push(Token::Primitive(primitive))?;
         }
         // `extern "ABI" fn`
         Type::FunctionPointer(fn_ptr) => {

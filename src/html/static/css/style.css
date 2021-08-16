@@ -72,6 +72,10 @@ code {
 	color: #4d76ae;
 }
 
+.rust .primitive, code > .primitive {
+	color: #2c8093;
+}
+
 .ident.associatedtype {
     color: #ba5d00;
 }

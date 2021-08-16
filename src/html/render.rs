@@ -1350,6 +1350,11 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                     writer.write_str(attr)?;
                     writer.write_str("</span>")?;
                 }
+                pp::Token::Primitive(primitive) => {
+                    writer.write_str("<span class=\"primitive\">")?;
+                    writer.write_str(primitive)?;
+                    writer.write_str("</span>")?;
+                }
                 pp::Token::Special(special) => match special {
                     pp::SpecialToken::NewLine => writer.write_str("<br>")?,
                     pp::SpecialToken::Space => writer.write_str("&nbsp;")?,
