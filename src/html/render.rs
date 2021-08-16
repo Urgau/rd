@@ -521,6 +521,21 @@ fn module_page<'context>(
                 toc_typedefs
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
+
+                enum Either<Left, Right> {
+                    Left(Left),
+                    Right(Right),
+                }
+
+                impl<Left: markup::Render, Right: markup::Render> markup::Render for Either<Left, Right> {
+                    fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
+                        match self {
+                            Either::Left(left) => markup::Render::render(left, writer),
+                            Either::Right(right) => markup::Render::render(right, writer),
+                        }
+                    }
+                }
+
                 module_page_content.typedefs.push((
                     ItemLink {
                         name,
@@ -529,11 +544,15 @@ fn module_page<'context>(
                         })?,
                         class: "typedef",
                     },
-                    TokensToHtml(
-                        global_context,
-                        &page_context,
-                        pp::Tokens::from_type(&typedef_.type_)?,
-                    ),
+                    if let Some(summary_line_doc) = summary_line_doc {
+                        Either::Left(summary_line_doc)
+                    } else {
+                        Either::Right(TokensToHtml(
+                            global_context,
+                            &page_context,
+                            pp::Tokens::from_type(&typedef_.type_)?,
+                        ))
+                    },
                 ));
             }
             ItemEnum::Constant(constant_) => {
