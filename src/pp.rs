@@ -686,7 +686,7 @@ impl Tokens<'_> {
                                     ItemEnum::AssocType { bounds, default } => {
                                         with_assoc_type(tokens, item, bounds, default)?
                                     }
-                                    ItemEnum::Method(method) => with_method(tokens, item, method)?,
+                                    ItemEnum::Method(method) => with_method(tokens, item, method, false)?,
                                     _ => {
                                         return Err(FromItemErrorKind::UnexpectedItemType(
                                             id.clone(),
@@ -768,7 +768,7 @@ impl Tokens<'_> {
             ItemEnum::Method(method) => {
                 let mut tokens = Vec::with_capacity(16);
 
-                with_method(&mut tokens, item, method)?;
+                with_method(&mut tokens, item, method, true)?;
 
                 tokens
             }
@@ -1042,6 +1042,7 @@ fn with_method<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     item: &'tokens Item,
     method: &'tokens Method,
+    standalone: bool,
 ) -> Result<(), FromItemErrorKind> {
     with_attrs(tokens, &item.attrs)?;
     with_visibility(tokens, &item.visibility)?;
@@ -1108,7 +1109,7 @@ fn with_method<'tokens>(
         with_type(tokens, output)?;
     }
 
-    if method.has_body {
+    if !standalone && method.has_body {
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         tokens.try_push(Token::Ponct("{"))?;
         tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1139,7 +1140,7 @@ fn with_method<'tokens>(
         with_where_predicate,
     )?;
 
-    if !method.has_body && method.generics.where_predicates.is_empty() {
+    if !standalone && !method.has_body && method.generics.where_predicates.is_empty() {
         tokens.try_push(Token::Ponct(";"))?;
     }
 
