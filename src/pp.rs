@@ -1803,8 +1803,18 @@ fn with_type<'tcx>(
                         todo!("QualifiedPath: trait_ not ResolvedPath");
                     }
                 }
+            } else if let Type::ResolvedPath { .. } = **self_type {
+                tokens.try_push(Token::Ponct("<"))?;
+                with_type(tokens, self_type)?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Kw("as"))?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                with_type(tokens, trait_)?;
+                tokens.try_push(Token::Ponct(">"))?;
+                tokens.try_push(Token::Ponct("::"))?;
+                tokens.try_push(Token::Ident(name, None))?;
             } else {
-                todo!("Type::QualifiedPath: not a Generic or QualifedPath");
+                todo!("Type::QualifiedPath: not a Generic, QualifedPath or ResolvedPath");
             }
         }
     }
