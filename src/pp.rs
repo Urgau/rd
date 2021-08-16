@@ -1109,15 +1109,6 @@ fn with_method<'tokens>(
         with_type(tokens, output)?;
     }
 
-    if !standalone && method.has_body {
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-        tokens.try_push(Token::Ponct("{"))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-        tokens.try_push(Token::Special(SpecialToken::Ignored))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-        tokens.try_push(Token::Ponct("}"))?;
-    }
-
     if method.decl.c_variadic {
         todo!("method c_variadic");
     }
@@ -1131,7 +1122,10 @@ fn with_method<'tokens>(
             Token::Special(SpecialToken::NewLine),
             Token::Special(SpecialToken::Tabulation),
         ]),
-        Option::<Token>::None,
+        Some([
+            Token::Ponct(","),
+            Token::Special(SpecialToken::NewLine),
+        ]),
         Some([
             Token::Ponct(","),
             Token::Special(SpecialToken::NewLine),
@@ -1139,9 +1133,20 @@ fn with_method<'tokens>(
         ]),
         with_where_predicate,
     )?;
-
-    if !standalone && !method.has_body && method.generics.where_predicates.is_empty() {
-        tokens.try_push(Token::Ponct(";"))?;
+    
+    if !standalone {
+        if method.has_body {
+            if method.generics.where_predicates.is_empty() {
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+            }
+            tokens.try_push(Token::Ponct("{"))?;
+            tokens.try_push(Token::Special(SpecialToken::Space))?;
+            tokens.try_push(Token::Special(SpecialToken::Ignored))?;
+            tokens.try_push(Token::Special(SpecialToken::Space))?;
+            tokens.try_push(Token::Ponct("}"))?;
+        } else {
+            tokens.try_push(Token::Ponct(";"))?;
+        }
     }
 
     Ok(())

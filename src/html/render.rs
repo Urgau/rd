@@ -1339,7 +1339,7 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                         _ => writer.write_str(ponct)?,
                     }
                     writer.write_str("</span>")?;
-                    if *ponct == ";" && in_where_clause {
+                    if (*ponct == ";" || *ponct == "}") && in_where_clause {
                         writer.write_str("</span>")?;
                         in_where_clause = false;
                     }
