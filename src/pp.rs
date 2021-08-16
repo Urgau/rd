@@ -217,7 +217,7 @@ impl Tokens<'_> {
                     }
                     _ => {}
                 }
-                    
+
                 tokens.try_push(Token::Ponct(";"))?;
 
                 tokens
@@ -695,7 +695,9 @@ impl Tokens<'_> {
                                     ItemEnum::AssocType { bounds, default } => {
                                         with_assoc_type(tokens, item, bounds, default, false)?
                                     }
-                                    ItemEnum::Method(method) => with_method(tokens, item, method, false)?,
+                                    ItemEnum::Method(method) => {
+                                        with_method(tokens, item, method, false)?
+                                    }
                                     _ => {
                                         return Err(FromItemErrorKind::UnexpectedItemType(
                                             id.clone(),
@@ -1121,9 +1123,16 @@ fn with_method<'tokens>(
         with(
             tokens,
             &method.decl.inputs,
-            Some([Token::Special(SpecialToken::NewLine), Token::Special(SpecialToken::Tabulation)]),
+            Some([
+                Token::Special(SpecialToken::NewLine),
+                Token::Special(SpecialToken::Tabulation),
+            ]),
             Some([Token::Special(SpecialToken::NewLine)]),
-            Some([Token::Ponct(","), Token::Special(SpecialToken::NewLine), Token::Special(SpecialToken::Tabulation)]),
+            Some([
+                Token::Ponct(","),
+                Token::Special(SpecialToken::NewLine),
+                Token::Special(SpecialToken::Tabulation),
+            ]),
             |tokens, (name, ty)| {
                 if name != "self" {
                     tokens.try_push(Token::Ident(name, None))?;
@@ -1165,7 +1174,7 @@ fn with_method<'tokens>(
         ]),
         with_where_predicate,
     )?;
-    
+
     if !standalone {
         if method.has_body {
             if method.generics.where_predicates.is_empty() {
