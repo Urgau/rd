@@ -204,12 +204,21 @@ impl Tokens<'_> {
                     Token::Kw("use"),
                     Token::Special(SpecialToken::Space),
                     Token::Ident(import.source.as_str(), import.id.as_ref()),
-                    Token::Special(SpecialToken::Space),
-                    Token::Kw("as"),
-                    Token::Special(SpecialToken::Space),
-                    Token::Ident(import.name.as_str(), Some(&item.id)),
-                    Token::Ponct(";"),
                 ]);
+
+                match import.source.rsplit_once("::") {
+                    Some((_, name)) if name != import.name => {
+                        tokens.extend_from_slice(&[
+                            Token::Special(SpecialToken::Space),
+                            Token::Kw("as"),
+                            Token::Special(SpecialToken::Space),
+                            Token::Ident(import.name.as_str(), Some(&item.id)),
+                        ]);
+                    }
+                    _ => {}
+                }
+                    
+                tokens.try_push(Token::Ponct(";"))?;
 
                 tokens
             }
@@ -1161,6 +1170,9 @@ fn with_method<'tokens>(
         if method.has_body {
             if method.generics.where_predicates.is_empty() {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
+            } else {
+                tokens.try_push(Token::Ponct(","))?;
+                tokens.try_push(Token::Special(SpecialToken::NewLine))?;
             }
             tokens.try_push(Token::Ponct("{"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
