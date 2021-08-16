@@ -68,6 +68,10 @@ code {
 	color: #4d76ae;
 }
 
+.attr {
+    color: #999;
+}
+
 .inline-code {
 	font-weight: 600;
 }

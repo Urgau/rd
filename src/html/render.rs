@@ -1344,12 +1344,17 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                         in_where_clause = false;
                     }
                 }
+                pp::Token::Attr(attr) => {
+                    writer.write_str("<span class=\"attr\">")?;
+                    writer.write_str(attr)?;
+                    writer.write_str("</span>")?;
+                }
                 pp::Token::Special(special) => match special {
                     pp::SpecialToken::NewLine => writer.write_str("<br>")?,
                     pp::SpecialToken::Space => writer.write_str("&nbsp;")?,
                     pp::SpecialToken::Tabulation => writer.write_str("&nbsp;&nbsp;&nbsp;&nbsp;")?,
+                    pp::SpecialToken::Omitted => writer.write_str("/* fields omitted */")?,
                 },
-                pp::Token::Plain(plain) => writer.write_str(plain)?,
             }
         }
         if in_where_clause {

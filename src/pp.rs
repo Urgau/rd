@@ -3,13 +3,22 @@
 use rustdoc_types::*;
 use std::{collections::HashMap, fmt::Display, ops::Deref};
 
+const ALLOWED_ATTRIBUTES: [&str; 6] = [
+    "must_use",
+    "export_name",
+    "link_section",
+    "no_mangle",
+    "repr",
+    "non_exhaustive",
+];
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token<'token> {
     Ident(&'token str, Option<&'token Id>),
     Kw(&'static str),
     Ponct(&'static str),
     Special(SpecialToken),
-    Plain(&'token str),
+    Attr(&'token str),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -17,6 +26,7 @@ pub enum SpecialToken {
     NewLine,
     Space,
     Tabulation,
+    Omitted,
 }
 
 #[allow(dead_code)]
@@ -116,11 +126,12 @@ impl Display for Tokens<'_> {
                 Token::Ident(s, _) => s,
                 Token::Kw(s) => s,
                 Token::Ponct(s) => s,
-                Token::Plain(s) => s,
+                Token::Attr(s) => s,
                 Token::Special(special) => match special {
                     SpecialToken::NewLine => "\n",
                     SpecialToken::Space => " ",
                     SpecialToken::Tabulation => "    ",
+                    SpecialToken::Omitted => "/* fields ommited */",
                 },
             })?;
         }
@@ -141,6 +152,7 @@ pub enum FromItemErrorKind {
     InvalidItem,
     ChildrenNotFound(Id),
     UnexpectedItemType(Id, ItemKind),
+    AttributeParsing,
     PusherError(PusherError),
 }
 
@@ -242,7 +254,7 @@ impl Tokens<'_> {
 
                 if union_.fields_stripped {
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Plain("/* fields omitted */"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Omitted))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                 } else {
                     let items = union_
@@ -326,7 +338,7 @@ impl Tokens<'_> {
 
                         if struct_.fields_stripped {
                             tokens.try_push(Token::Special(SpecialToken::Space))?;
-                            tokens.try_push(Token::Plain("/* fields omitted */"))?;
+                            tokens.try_push(Token::Special(SpecialToken::Omitted))?;
                             tokens.try_push(Token::Special(SpecialToken::Space))?;
                         } else {
                             // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
@@ -367,7 +379,7 @@ impl Tokens<'_> {
                     StructType::Tuple => {
                         tokens.try_push(Token::Ponct("("))?;
                         if struct_.fields_stripped {
-                            tokens.try_push(Token::Plain(" /* fields omitted */ "))?;
+                            tokens.try_push(Token::Ponct("_"))?;
                         } else {
                             // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
                             let items = struct_
@@ -459,7 +471,7 @@ impl Tokens<'_> {
 
                 if enum_.variants_stripped {
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Plain("/* fields omitted */"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Omitted))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                 } else {
                     // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
@@ -1253,17 +1265,32 @@ fn with_attrs<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     attrs: &'tokens [String],
 ) -> Result<(), FromItemErrorKind> {
-    with(
-        tokens,
-        attrs,
-        Option::<Token>::None,
-        Some(Token::Special(SpecialToken::NewLine)),
-        Some(Token::Special(SpecialToken::NewLine)),
-        |tokens, attr| {
-            tokens.try_push(Token::Plain(attr))?;
-            Ok(())
-        },
-    )
+    let mut printed = 0;
+
+    for attr in attrs {
+        let attr_name = attr
+            .get(
+                2..{
+                    attr[2..]
+                        .find(|c: char| !c.is_ascii_alphanumeric() && c != '_')
+                        .ok_or(FromItemErrorKind::AttributeParsing)?
+                        + 2
+                },
+            )
+            .ok_or(FromItemErrorKind::AttributeParsing)?;
+        if ALLOWED_ATTRIBUTES.contains(&attr_name) {
+            if printed != 0 {
+                tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+            }
+            tokens.try_push(Token::Attr(attr))?;
+            printed += 1;
+        }
+    }
+
+    if printed != 0 {
+        tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+    }
+    Ok(())
 }
 
 fn with_where_predicate<'tokens>(
@@ -1438,7 +1465,6 @@ fn with_type_binding<'tcx>(
         }
         TypeBindingKind::Constraint(constraint) => {
             eprintln!("don't really know how to handle TypeBindingKind::Constraint");
-            tokens.try_push(Token::Plain(" ⚠️  "))?;
             with(
                 tokens,
                 constraint,
