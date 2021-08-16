@@ -1084,21 +1084,39 @@ fn with_method<'tokens>(
     )?;
 
     tokens.try_push(Token::Ponct("("))?;
-    with(
-        tokens,
-        &method.decl.inputs,
-        Option::<Token>::None,
-        Option::<Token>::None,
-        Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
-        |tokens, (name, ty)| {
-            if name != "self" {
-                tokens.try_push(Token::Ident(name, None))?;
-                tokens.try_push(Token::Ponct(":"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-            }
-            with_type(tokens, ty)
-        },
-    )?;
+    if method.decl.inputs.len() <= 2 {
+        with(
+            tokens,
+            &method.decl.inputs,
+            Option::<Token>::None,
+            Option::<Token>::None,
+            Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+            |tokens, (name, ty)| {
+                if name != "self" {
+                    tokens.try_push(Token::Ident(name, None))?;
+                    tokens.try_push(Token::Ponct(":"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                }
+                with_type(tokens, ty)
+            },
+        )?;
+    } else {
+        with(
+            tokens,
+            &method.decl.inputs,
+            Some([Token::Special(SpecialToken::NewLine), Token::Special(SpecialToken::Tabulation)]),
+            Some([Token::Special(SpecialToken::NewLine)]),
+            Some([Token::Ponct(","), Token::Special(SpecialToken::NewLine), Token::Special(SpecialToken::Tabulation)]),
+            |tokens, (name, ty)| {
+                if name != "self" {
+                    tokens.try_push(Token::Ident(name, None))?;
+                    tokens.try_push(Token::Ponct(":"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                }
+                with_type(tokens, ty)
+            },
+        )?;
+    }
     tokens.try_push(Token::Ponct(")"))?;
 
     if let Some(output) = &method.decl.output {
@@ -1122,10 +1140,7 @@ fn with_method<'tokens>(
             Token::Special(SpecialToken::NewLine),
             Token::Special(SpecialToken::Tabulation),
         ]),
-        Some([
-            Token::Ponct(","),
-            Token::Special(SpecialToken::NewLine),
-        ]),
+        Option::<Token>::None,
         Some([
             Token::Ponct(","),
             Token::Special(SpecialToken::NewLine),
