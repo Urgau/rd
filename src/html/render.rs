@@ -1,4 +1,4 @@
-//! HTML renderer 
+//! HTML renderer
 
 use anyhow::{Context as _, Result};
 use rustdoc_types::*;
@@ -105,7 +105,10 @@ impl<'a> markup::Render for TocDestination<'a> {
 
 impl<'deprecation> DeprecationNotice<'deprecation> {
     fn from(deprecation: &'deprecation Option<Deprecation>) -> Option<Self> {
-        deprecation.as_ref().map(|deprecation| Self { since: &deprecation.since, note: &deprecation.note })
+        deprecation.as_ref().map(|deprecation| Self {
+            since: &deprecation.since,
+            note: &deprecation.note,
+        })
     }
 }
 
@@ -1133,7 +1136,11 @@ macro_rules! é {
 é!(Constant => constant_page "Constant");
 
 impl<'context, 'krate>
-    CodeEnchanted<TokensToHtml<'context, 'krate>, Markdown<'context, 'krate, 'context>, DeprecationNotice<'context>>
+    CodeEnchanted<
+        TokensToHtml<'context, 'krate>,
+        Markdown<'context, 'krate, 'context>,
+        DeprecationNotice<'context>,
+    >
 {
     fn from_item(
         global_context: &'context GlobalContext<'krate>,

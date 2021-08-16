@@ -1,4 +1,4 @@
-//! Markdown handling for HTML output 
+//! Markdown handling for HTML output
 
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
