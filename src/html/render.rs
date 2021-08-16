@@ -365,7 +365,8 @@ fn module_page<'context>(
             continue;
         }
 
-        let summary_line_doc = MarkdownSummaryLine::from_docs(&item.docs);
+        let summary_line_doc =
+            MarkdownSummaryLine::from_docs(global_context, &page_context, &item.docs, &item.links);
 
         match &item.inner {
             ItemEnum::Import(_) => {

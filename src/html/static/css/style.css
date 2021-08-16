@@ -13,7 +13,7 @@ code {
 	margin-top: 0.4rem;
 }
 
-.item-doc :not(pre) > code {
+.item-table code, .item-doc :not(pre) > code {
     background-color: #0001;
     border-radius: 3px;
     padding: 0.2em;
@@ -27,12 +27,16 @@ code {
 	justify-items: start;
 }
 
-.item-table a, .item-title a, .ident a {
-	color: inherit;
+.item-table a {
 	text-decoration: none;
 }
 
-.item-title a:hover, .ident a:hover  {
+.item-title a, .ident a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.item-table a:hover code, .item-title a:hover, .ident a:hover  {
 	text-decoration: underline;
 }
 
@@ -70,6 +74,10 @@ code {
 
 .ident.associatedtype {
     color: #ba5d00;
+}
+
+.ident.associatedconst {
+	color: #546e8a;
 }
 
 .attr {

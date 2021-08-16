@@ -70,7 +70,6 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
             let adapter = Adapter { f: writer };
 
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                //dbg!(broken_link.reference);
                 if let Some(id) = self.3.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(self.0, self.1, id)
@@ -153,7 +152,6 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
             let page_context = self.1;
             let ids = self.3;
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                //dbg!(broken_link.reference);
                 if let Some(id) = ids.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(gloabl_context, page_context, id)
@@ -198,20 +196,67 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
 }
 
 /// Render an summary line of the Markdown in html
-pub(crate) struct MarkdownSummaryLine<'content>(&'content String);
+pub(crate) struct MarkdownSummaryLine<'context, 'krate, 'content>(
+    &'context GlobalContext<'krate>,
+    &'context PageContext<'context>,
+    &'content String,
+    &'krate HashMap<String, Id>,
+);
 
-impl<'content> MarkdownSummaryLine<'content> {
+impl<'context, 'krate, 'content> MarkdownSummaryLine<'context, 'krate, 'content> {
     /// Create a [`MarkdownSummaryLine`] struct from some context and a content
-    pub(crate) fn from_docs(content: &'content Option<String>) -> Option<Self> {
-        content.as_ref().map(|content| Self(content))
+    pub(crate) fn from_docs(
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
+        content: &'content Option<String>,
+        links: &'krate HashMap<String, Id>,
+    ) -> Option<Self> {
+        content
+            .as_ref()
+            .map(|content| Self(global_context, page_context, content, links))
     }
 }
 
-impl<'content> markup::Render for MarkdownSummaryLine<'content> {
+impl<'context, 'krate, 'content> markup::Render
+    for MarkdownSummaryLine<'context, 'krate, 'content>
+{
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
-        if !self.0.is_empty() {
+        if !self.2.is_empty() {
             let adapter = Adapter { f: writer };
-            let parser = Parser::new_ext(self.0, summary_opts());
+
+            let mut replacer = |broken_link: BrokenLink<'_>| {
+                if let Some(id) = self.3.get(broken_link.reference) {
+                    if let Some((external_crate_url, relative, fragment, _type_of)) =
+                        href(self.0, self.1, id)
+                    {
+                        Some((
+                            {
+                                let mut href = String::new();
+
+                                if let Some(external_crate_url) = external_crate_url {
+                                    href.push_str(external_crate_url);
+                                }
+                                href.push_str(
+                                    relative.to_str().expect("cannot convert PathBuf to str"),
+                                );
+                                if let Some(fragment) = fragment {
+                                    href.push_str(&fragment);
+                                }
+
+                                CowStr::Boxed(href.into_boxed_str())
+                            },
+                            CowStr::Boxed(broken_link.reference.to_string().into_boxed_str()),
+                        ))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            };
+
+            let parser =
+                Parser::new_with_broken_link_callback(self.2, summary_opts(), Some(&mut replacer));
             let parser = SummaryLine::new(parser);
 
             html::write_html(adapter, parser).unwrap();
