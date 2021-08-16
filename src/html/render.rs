@@ -770,7 +770,7 @@ fn trait_page<'context>(
                     &page_context,
                     toc,
                     item,
-                    false,
+                    true,
                 )?);
             }
             ItemEnum::AssocConst { .. } => {
@@ -781,7 +781,7 @@ fn trait_page<'context>(
                         &page_context,
                         &mut toc_associated_consts,
                         item,
-                        false,
+                        true,
                     )?);
             }
             ItemEnum::AssocType { .. } => {
@@ -792,7 +792,7 @@ fn trait_page<'context>(
                         &page_context,
                         &mut toc_associated_types,
                         item,
-                        false,
+                        true,
                     )?);
             }
             _ => warn!("ignore {:?}", item.inner),
