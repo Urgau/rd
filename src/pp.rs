@@ -214,7 +214,15 @@ impl Tokens<'_> {
                             Token::Special(SpecialToken::Space),
                             Token::Kw("as"),
                             Token::Special(SpecialToken::Space),
-                            Token::Ident(import.name.as_str(), Some(&item.id)),
+                            Token::Ident(import.name.as_str(), None),
+                        ]);
+                    }
+                    None if import.source != import.name => {
+                        tokens.extend_from_slice(&[
+                            Token::Special(SpecialToken::Space),
+                            Token::Kw("as"),
+                            Token::Special(SpecialToken::Space),
+                            Token::Ident(import.name.as_str(), None),
                         ]);
                     }
                     _ => {}
