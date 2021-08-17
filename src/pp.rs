@@ -1431,10 +1431,24 @@ fn with_generic_bound<'tokens>(
             if let Some(modifier_str) = modifier_str {
                 tokens.try_push(Token::Kw(modifier_str))?;
             }
+
+            let pivot = generic_params.iter().enumerate()
+                    .find(|(_, param)| param.kind != GenericParamDefKind::Lifetime)
+                    .map(|(index, _)| index)
+                    .unwrap_or(generic_params.len());
+
+            with(
+                tokens,
+                &generic_params[..pivot],
+                Some([Token::Ponct("for"), Token::Ponct("<")]),
+                Some([Token::Ponct(">"), Token::Special(SpecialToken::Space)]),
+                Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+                with_generic_param_def,
+            )?;
             with_type(tokens, trait_)?;
             with(
                 tokens,
-                generic_params,
+                &generic_params[pivot..],
                 Option::<Token>::None,
                 Option::<Token>::None,
                 Some([
@@ -1865,8 +1879,18 @@ fn with_type<'tcx>(
                 tokens.try_push(Token::Ponct(">"))?;
                 tokens.try_push(Token::Ponct("::"))?;
                 tokens.try_push(Token::Ident(name, None))?;
+            } else if let Type::BorrowedRef { .. } = **self_type {
+                tokens.try_push(Token::Ponct("<"))?;
+                with_type(tokens, self_type)?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Kw("as"))?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                with_type(tokens, trait_)?;
+                tokens.try_push(Token::Ponct(">"))?;
+                tokens.try_push(Token::Ponct("::"))?;
+                tokens.try_push(Token::Ident(name, None))?;
             } else {
-                todo!("Type::QualifiedPath: not a Generic, QualifedPath or ResolvedPath");
+                todo!("Type::QualifiedPath: not a Generic, QualifedPath, ResolvedPath or a BorrowedRef");
             }
         }
     }
