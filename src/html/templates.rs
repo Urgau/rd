@@ -237,7 +237,7 @@ markup::define! {
         Deprecation: markup::Render,
         Extra: markup::Render,
     > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Vec<Extra>, id: Option<String>, open: bool, source_href: Option<String>) {
-        div[id=id, class="mt-2 mb-2"] {
+        div[id=id, class="mt-2 mb-2 rd-anchor"] {
             @if doc.is_some() || !extras.is_empty() {
                 details[open=open] {
                     summary {
