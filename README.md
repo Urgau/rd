@@ -47,10 +47,20 @@ ARGS:
     <input>    Rustdoc json input file to process
 ```
 
-```bash
-$ # Generating the json output format currently requires a nightly toolchain
+### Generating a rustdoc-json output
+
+Generating the json output format currently requires a nightly toolchain.
+
+```
 $ RUSTDOCFLAGS="-Z unstable-options --output-format json" cargo +nightly doc
-$ rd --output html/ my_crate.json
+```
+
+You should see in the `target/doc` directory a file called `MY_CRATE.json`, that's the json rustdoc output. This file will be used by `rd` to generate the documentation.
+
+### Generating the HTML output with rd
+
+```
+$ cargo run -- -v --output html/ --open my_crate.json
 ```
 
 #### License
