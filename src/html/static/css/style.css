@@ -31,12 +31,6 @@ code {
 	}
 }
 
-.item-table > div {
-	gap: 0.4rem;
-	display: grid;
-	grid-auto-flow: column;
-}
-
 .item-table a {
 	text-decoration: none;
 }

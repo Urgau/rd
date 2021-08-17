@@ -395,11 +395,18 @@ fn module_page<'context>(
 
         match &item.inner {
             ItemEnum::Import(_) => {
-                module_page_content.imports.push(TokensToHtml(
-                    global_context,
-                    &page_context,
-                    pp::Tokens::from_item(item, &global_context.krate.index)?,
-                ));
+                module_page_content.imports.push(ModuleSectionItem {
+                    name: TokensToHtml(
+                        global_context,
+                        &page_context,
+                        pp::Tokens::from_item(item, &global_context.krate.index)?,
+                    ),
+                    short_doc: Option::<String>::None,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
+                });
             }
             ItemEnum::Union(union_) => {
                 let name = item
@@ -541,11 +548,18 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::TraitAlias(_) => {
-                module_page_content.trait_alias.push(TokensToHtml(
-                    global_context,
-                    &page_context,
-                    pp::Tokens::from_item(item, &global_context.krate.index)?,
-                ));
+                module_page_content.trait_alias.push(ModuleSectionItem {
+                    name: TokensToHtml(
+                        global_context,
+                        &page_context,
+                        pp::Tokens::from_item(item, &global_context.krate.index)?,
+                    ),
+                    short_doc: Option::<String>::None,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
+                });
             }
             ItemEnum::Typedef(typedef_) => {
                 let name = item
