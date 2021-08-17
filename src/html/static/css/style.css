@@ -31,6 +31,10 @@ code {
 	text-decoration: none;
 }
 
+.item-title, .rd-search-item {
+	word-break: break-word;
+}
+
 .item-title a, .ident a {
 	text-decoration: none;
 	color: inherit;
