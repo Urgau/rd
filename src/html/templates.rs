@@ -84,8 +84,8 @@ markup::define! {
                     pre[id="item-definition", class="rd-anchor rust"] {
                         @item_definition
                     }
-                    @item_deprecation
                 }
+                @item_deprecation
                 @if item_doc.is_some() {
                     details[id="item-documentation", class="rd-anchor", open=""] {
                         summary {
