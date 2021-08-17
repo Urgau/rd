@@ -85,6 +85,38 @@ pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Res
     })
 }
 
+/// "Compute" a pretty-printed name for an [`Impl`]
+pub(crate) fn name_of(impl_: &Impl) -> Result<String> {
+    let mut name = String::new();
+
+    let name_type = match &impl_.trait_ {
+        Some(type_) => match type_ {
+            Type::ResolvedPath { id, .. } if !id.0.starts_with("0:") => {
+                if impl_.negative {
+                    name.push('!');
+                }
+                type_
+            }
+            _ => &impl_.for_,
+        },
+        None => &impl_.for_,
+    };
+
+    for token in pp::Tokens::from_type(name_type)?.iter() {
+        match token {
+            pp::Token::Ponct(p) => name.push_str(p),
+            pp::Token::Ident(ident, _) => name.push_str(ident),
+            pp::Token::Kw(kw) => name.push_str(kw),
+            pp::Token::Primitive(primitive) => name.push_str(primitive),
+            pp::Token::Special(s) if *s == pp::SpecialToken::Space => name.push(' '),
+            pp::Token::Special(_) => {},
+            pp::Token::Attr(_) => {},
+        }
+    }
+
+    Ok(name)
+}
+
 /// Compute an somewhat unique HTML-Id for a for a given [`Item`]
 pub(crate) fn id<'krate>(
     krate: &'krate Crate,
@@ -98,7 +130,7 @@ pub(crate) fn id<'krate>(
         assert!(is_file || !matches!(&item.inner, ItemEnum::Typedef(_)));
         Some((Cow::Borrowed(name), format!("{}.{}", item_kind_name, name)))
     } else if let ItemEnum::Impl(impl_) = &item.inner {
-        let mut name = String::new();
+        let name = name_of(impl_).ok()?;
         let mut id = String::new();
 
         for token in pp::Tokens::from_item(item, &krate.index).unwrap().iter() {
@@ -107,31 +139,6 @@ pub(crate) fn id<'krate>(
                 pp::Token::Ident(ident, _) => id.push_str(ident),
                 pp::Token::Kw(kw) => id.push_str(kw),
                 _ => {}
-            }
-        }
-
-        let name_type = match &impl_.trait_ {
-            Some(type_) => match type_ {
-                Type::ResolvedPath { id, .. } if !id.0.starts_with("0:") => {
-                    if impl_.negative {
-                        name.push('!');
-                    }
-                    type_
-                }
-                _ => &impl_.for_,
-            },
-            None => &impl_.for_,
-        };
-
-        for token in pp::Tokens::from_type(name_type).unwrap().iter() {
-            match token {
-                pp::Token::Ponct(p) => name.push_str(p),
-                pp::Token::Ident(ident, _) => name.push_str(ident),
-                pp::Token::Kw(kw) => name.push_str(kw),
-                pp::Token::Primitive(primitive) => name.push_str(primitive),
-                pp::Token::Special(s) if *s == pp::SpecialToken::Space => name.push(' '),
-                pp::Token::Special(_) => {},
-                pp::Token::Attr(_) => {},
             }
         }
 

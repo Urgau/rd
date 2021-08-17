@@ -3,6 +3,7 @@
 use anyhow::{Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
+use std::cmp::Ordering;
 use std::fs::{DirBuilder, File};
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
@@ -353,18 +354,28 @@ fn module_page<'context>(
         items: Default::default(),
     };
 
-    for id in &module.items {
+    let mut items = module.items.iter().filter_map(|id| {
         let item = global_context
             .krate
             .index
             .get(id)
-            .with_context(|| format!("Unable to find the item {:?}", id))?;
+            .with_context(|| format!("Unable to find the item {:?}", id)).ok()?;
 
         if !id.0.starts_with("0:") {
             warn!("ignoring for now `pub use`: {:?}", id);
-            continue;
+            return None;
         }
+        
+        Some(Ok(item))
+    }).collect::<Result<Vec<_>>>()?;
+    items.sort_by(|x_item, y_item| match (&x_item.inner, &y_item.inner) {
+        (ItemEnum::Module(_), ItemEnum::Module(_)) => x_item.name.cmp(&y_item.name),
+        (ItemEnum::Module(_), _) => Ordering::Less,
+        (_, ItemEnum::Module(_)) => Ordering::Greater,
+        _ => x_item.name.cmp(&y_item.name),
+    });
 
+    for item in items {
         let summary_line_doc =
             MarkdownSummaryLine::from_docs(global_context, &page_context, &item.docs, &item.links);
 
@@ -650,7 +661,7 @@ fn module_page<'context>(
                     summary_line_doc,
                 ));
             }
-            _ => todo!("don't know what to do"),
+            _ => unreachable!("module item shouldn't have a this type of item"),
         }
     }
 
@@ -744,13 +755,18 @@ fn trait_page<'context>(
         items: vec![],
     };
 
-    for id in &trait_.items {
+    let mut items = trait_.items.iter().map(|id| {
         let item = global_context
             .krate
             .index
             .get(id)
             .with_context(|| format!("Unable to find the item {:?}", id))?;
+        
+        Ok((item, item.name.as_ref().context("missing name for trait item")?))
+    }).collect::<Result<Vec<_>>>()?;
+    items.sort_by(|(_, x_name), (_, y_name)| x_name.cmp(y_name));
 
+    for (item, _name) in items {
         match &item.inner {
             ItemEnum::Method(method_) => {
                 let (toc, who) = if method_.has_body {
@@ -799,7 +815,7 @@ fn trait_page<'context>(
         }
     }
 
-    let impls = trait_
+    let mut impls = trait_
         .implementors
         .iter()
         .map(|id| {
@@ -809,8 +825,7 @@ fn trait_page<'context>(
                 .get(id)
                 .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-            Ok((
-                item,
+            let impl_ = 
                 match &item.inner {
                     ItemEnum::Impl(impl_) => impl_,
                     _ => {
@@ -818,12 +833,18 @@ fn trait_page<'context>(
                             "impl id is not impl in struct_union_content"
                         ))
                     }
-                },
+                };
+
+            Ok((
+                item,
+                impl_,
+                name_of(impl_)?,
             ))
         })
         .collect::<Result<Vec<_>>>()?;
+    impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
 
-    for (item, impl_) in &impls {
+    for (item, impl_, _name) in &impls {
         let (toc, who) = match type_id(&impl_.for_) {
             Ok(id) if !id.0.starts_with("0:") => (
                 &mut toc_implementation_foreign_types,
@@ -909,7 +930,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
         >,
     >,
 )> {
-    let impls = impls
+    let mut impls = impls
         .iter()
         .map(|id| {
             let item = global_context
@@ -918,8 +939,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .get(id)
                 .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-            Ok((
-                item,
+            let impl_ = 
                 match &item.inner {
                     ItemEnum::Impl(impl_) => impl_,
                     _ => {
@@ -927,10 +947,16 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                             "impl id is not impl in struct_union_content"
                         ))
                     }
-                },
+            };
+
+            Ok((
+                item,
+                impl_,
+                name_of(impl_)?,
             ))
         })
         .collect::<Result<Vec<_>>>()?;
+    impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
 
     let mut toc_methods = TocSection {
         name: METHODS,
@@ -978,8 +1004,8 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
         traits: TraitsWithItems {
             implementations: impls
                 .iter()
-                .filter(|(_item, impl_)| matches!(impl_.trait_, None))
-                .map(|(item, impl_)| {
+                .filter(|(_, impl_, _)| matches!(impl_.trait_, None))
+                .map(|(item, impl_, _)| {
                     CodeEnchantedWithExtras::from_items(
                         global_context,
                         page_context,
@@ -993,7 +1019,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .collect::<Result<Vec<_>>>()?,
             trait_implementations: impls
                 .iter()
-                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
+                .filter_map(|(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
                     (Some(Type::ResolvedPath { id, .. }), None) => {
                         match is_auto_trait(global_context.krate, id) {
                             Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
@@ -1014,7 +1040,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .collect::<Result<Vec<_>>>()?,
             auto_trait_implementations: impls
                 .iter()
-                .filter_map(|(item, impl_)| match (&impl_.trait_, &impl_.blanket_impl) {
+                .filter_map(|(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
                     (Some(Type::ResolvedPath { id, .. }), None) => {
                         match is_auto_trait(global_context.krate, id) {
                             Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
@@ -1035,8 +1061,8 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .collect::<Result<Vec<_>>>()?,
             blanket_implementations: impls
                 .iter()
-                .filter(|(_item, impl_)| matches!(impl_.blanket_impl, Some(_)))
-                .map(|(item, impl_)| {
+                .filter(|(_item, impl_, _)| matches!(impl_.blanket_impl, Some(_)))
+                .map(|(item, impl_, _)| {
                     CodeEnchantedWithExtras::from_items(
                         global_context,
                         page_context,
