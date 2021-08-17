@@ -170,17 +170,33 @@ markup::define! {
         }
     }
 
+    ModuleSectionItem<
+        Item: markup::Render,
+        ShortDoc: markup::Render,
+    > (name: Item, short_doc: ShortDoc, deprecated: bool, portability: Option<String>) {
+        div {
+            p {
+                @name
+                @if *deprecated {
+                    span[class="badge bg-warning text-dark ms-1"] { "Deprecated" }
+                }
+                @if portability.is_some() {
+                    span[class="badge bg-primary ms-1"] { @portability }
+                }
+            }
+        }
+        div { @short_doc }
+    }
+
     ModuleSection<
         'name,
-        Left: markup::Render,
-        Right: markup::Render,
-    > (name: &'name str, id: &'name str, items: &'name Vec<(Left, Right)>) {
+        Item: markup::Render,
+    > (name: &'name str, id: &'name str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
             h3[id=id, class="border-bottom pb-1 rd-anchor"] { @name }
             div[class = "item-table"] {
-                @for (left, right) in *items {
-                    div { @left }
-                    div { @right }
+                @for item in *items {
+                    @item
                 }
             }
         }
@@ -280,42 +296,30 @@ markup::define! {
 
     ModulePageContent<
         ImportItem: markup::Render,
-        ImportItemDoc: markup::Render,
         ModuleItem: markup::Render,
-        ModuleItemDoc: markup::Render,
         UnionItem: markup::Render,
-        UnionItemDoc: markup::Render,
         StructItem: markup::Render,
-        StructItemDoc: markup::Render,
         EnumItem: markup::Render,
-        EnumItemDoc: markup::Render,
         FunctionItem: markup::Render,
-        FunctionItemDoc: markup::Render,
         TraitItem: markup::Render,
-        TraitItemDoc: markup::Render,
         TraitAliasItem: markup::Render,
-        TraitAliasItemDoc: markup::Render,
         TypedefItem: markup::Render,
-        TypedefItemDoc: markup::Render,
         ConstantItem: markup::Render,
-        ConstantItemDoc: markup::Render,
         MacroItem: markup::Render,
-        MacroItemDoc: markup::Render,
         ProcMacroItem: markup::Render,
-        ProcMacroItemDoc: markup::Render,
     > (
-        imports: Vec<(ImportItem, ImportItemDoc)>,
-        modules: Vec<(ModuleItem, ModuleItemDoc)>,
-        unions: Vec<(UnionItem, UnionItemDoc)>,
-        structs: Vec<(StructItem, StructItemDoc)>,
-        enums: Vec<(EnumItem, EnumItemDoc)>,
-        functions: Vec<(FunctionItem, FunctionItemDoc)>,
-        traits: Vec<(TraitItem, TraitItemDoc)>,
-        trait_alias: Vec<(TraitAliasItem, TraitAliasItemDoc)>,
-        typedefs: Vec<(TypedefItem, TypedefItemDoc)>,
-        constants: Vec<(ConstantItem, ConstantItemDoc)>,
-        macros: Vec<(MacroItem, MacroItemDoc)>,
-        proc_macros: Vec<(ProcMacroItem, ProcMacroItemDoc)>,
+        imports: Vec<ImportItem>,
+        modules: Vec<ModuleItem>,
+        unions: Vec<UnionItem>,
+        structs: Vec<StructItem>,
+        enums: Vec<EnumItem>,
+        functions: Vec<FunctionItem>,
+        traits: Vec<TraitItem>,
+        trait_alias: Vec<TraitAliasItem>,
+        typedefs: Vec<TypedefItem>,
+        constants: Vec<ConstantItem>,
+        macros: Vec<MacroItem>,
+        proc_macros: Vec<ProcMacroItem>,
     ) {
         @ModuleSection { name: IMPORTS, id: IMPORTS_ID, items: imports }
         @ModuleSection { name: MACROS, id: MACROS_ID, items: macros }

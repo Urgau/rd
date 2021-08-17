@@ -386,13 +386,10 @@ fn module_page<'context>(
 
         match &item.inner {
             ItemEnum::Import(_) => {
-                module_page_content.imports.push((
-                    TokensToHtml(
-                        global_context,
-                        &page_context,
-                        pp::Tokens::from_item(item, &global_context.krate.index)?,
-                    ),
-                    Option::<String>::None,
+                module_page_content.imports.push(TokensToHtml(
+                    global_context,
+                    &page_context,
+                    pp::Tokens::from_item(item, &global_context.krate.index)?,
                 ));
             }
             ItemEnum::Union(union_) => {
@@ -408,16 +405,18 @@ fn module_page<'context>(
                 toc_unions
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.unions.push((
-                    ItemLink {
+                module_page_content.unions.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "union",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Struct(struct_) => {
                 let name = item
@@ -432,16 +431,18 @@ fn module_page<'context>(
                 toc_structs
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.structs.push((
-                    ItemLink {
+                module_page_content.structs.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "struct",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Enum(enum_) => {
                 let name = item
@@ -455,16 +456,18 @@ fn module_page<'context>(
                 toc_enums
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.enums.push((
-                    ItemLink {
+                module_page_content.enums.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "enum",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Function(function_) => {
                 let name = item
@@ -479,16 +482,18 @@ fn module_page<'context>(
                 toc_functions
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.functions.push((
-                    ItemLink {
+                module_page_content.functions.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "fn",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Trait(trait_) => {
                 let name = item
@@ -503,25 +508,24 @@ fn module_page<'context>(
                 toc_traits
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.traits.push((
-                    ItemLink {
+                module_page_content.traits.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "trait",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::TraitAlias(_) => {
-                module_page_content.trait_alias.push((
-                    TokensToHtml(
-                        global_context,
-                        &page_context,
-                        pp::Tokens::from_item(item, &global_context.krate.index)?,
-                    ),
-                    Option::<String>::None,
+                module_page_content.trait_alias.push(TokensToHtml(
+                    global_context,
+                    &page_context,
+                    pp::Tokens::from_item(item, &global_context.krate.index)?,
                 ));
             }
             ItemEnum::Typedef(typedef_) => {
@@ -552,15 +556,15 @@ fn module_page<'context>(
                     }
                 }
 
-                module_page_content.typedefs.push((
-                    ItemLink {
+                module_page_content.typedefs.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "typedef",
                     },
-                    if let Some(summary_line_doc) = summary_line_doc {
+                    short_doc: if let Some(summary_line_doc) = summary_line_doc {
                         Either::Left(summary_line_doc)
                     } else {
                         Either::Right(TokensToHtml(
@@ -569,7 +573,9 @@ fn module_page<'context>(
                             pp::Tokens::from_type(&typedef_.type_)?,
                         ))
                     },
-                ));
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Constant(constant_) => {
                 let name = item
@@ -584,16 +590,18 @@ fn module_page<'context>(
                 toc_constants
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.constants.push((
-                    ItemLink {
+                module_page_content.constants.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "constant",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Macro(macro_) => {
                 let name = item
@@ -608,16 +616,18 @@ fn module_page<'context>(
                 toc_macros
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.macros.push((
-                    ItemLink {
+                module_page_content.macros.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "macro",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::ProcMacro(proc_macro_) => {
                 let name = item
@@ -632,16 +642,18 @@ fn module_page<'context>(
                 toc_proc_macros
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.proc_macros.push((
-                    ItemLink {
+                module_page_content.proc_macros.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "proc_macro",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             ItemEnum::Module(module_) => {
                 let name = item
@@ -655,16 +667,18 @@ fn module_page<'context>(
                 toc_modules
                     .items
                     .push((Cow::Borrowed(name), TocDestination::File(filename)));
-                module_page_content.modules.push((
-                    ItemLink {
+                module_page_content.modules.push(ModuleSectionItem {
+                    name: ItemLink {
                         name,
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
                         class: "mod",
                     },
-                    summary_line_doc,
-                ));
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Option::<String>::None,
+                });
             }
             _ => unreachable!("module item shouldn't have a this type of item"),
         }
