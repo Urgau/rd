@@ -113,6 +113,15 @@ impl<'deprecation> DeprecationNotice<'deprecation> {
     }
 }
 
+impl PortabilityNotice {
+    fn from<T: AsRef<str>>(attrs: &[T]) -> Result<Option<Self>> {
+        Ok(Portability::from_attrs(attrs)?
+                .as_ref()
+                .map(Portability::render_long)
+                .map(|msg| Self { message: msg }))
+    }
+}
+
 /// Html rendering entry
 pub(crate) fn render<'krate>(
     opt: &super::super::Opt,
@@ -415,7 +424,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Struct(struct_) => {
@@ -441,7 +452,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Enum(enum_) => {
@@ -466,7 +479,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Function(function_) => {
@@ -492,7 +507,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Trait(trait_) => {
@@ -518,7 +535,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::TraitAlias(_) => {
@@ -574,7 +593,9 @@ fn module_page<'context>(
                         ))
                     },
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Constant(constant_) => {
@@ -600,7 +621,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Macro(macro_) => {
@@ -626,7 +649,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::ProcMacro(proc_macro_) => {
@@ -652,7 +677,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             ItemEnum::Module(module_) => {
@@ -677,7 +704,9 @@ fn module_page<'context>(
                     },
                     short_doc: summary_line_doc,
                     deprecated: item.deprecation.is_some(),
-                    portability: Option::<String>::None,
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
                 });
             }
             _ => unreachable!("module item shouldn't have a this type of item"),
@@ -694,6 +723,7 @@ fn module_page<'context>(
             item_name: module_name,
             item_path: page_context.item_path.display(&page_context),
             item_deprecation: DeprecationNotice::from(&item.deprecation),
+            item_portability: PortabilityNotice::from(&item.attrs)?,
             item_definition: Option::<String>::None,
             item_doc: MarkdownWithToc::from_docs(
                 global_context,
@@ -897,6 +927,7 @@ fn trait_page<'context>(
             item_name: name,
             item_definition: Some(definition),
             item_deprecation: DeprecationNotice::from(&item.deprecation),
+            item_portability: PortabilityNotice::from(&item.attrs)?,
             item_path: page_context.item_path.display(&page_context),
             item_doc: MarkdownWithToc::from_docs(
                 global_context,
@@ -1131,6 +1162,7 @@ macro_rules! ç {
                     item_type: $type,
                     item_name: name,
                     item_definition: Some(definition),
+                    item_portability: PortabilityNotice::from(&item.attrs)?,
                     item_deprecation: DeprecationNotice::from(&item.deprecation),
                     item_path: page_context.item_path.display(&page_context),
                     item_doc: MarkdownWithToc::from_docs(
@@ -1171,6 +1203,7 @@ macro_rules! é {
                     item_type: $type,
                     item_name: name,
                     item_definition: Some(definition),
+                    item_portability: PortabilityNotice::from(&item.attrs)?,
                     item_deprecation: DeprecationNotice::from(&item.deprecation),
                     item_path: page_context.item_path.display(&page_context),
                     item_doc: MarkdownWithToc::from_docs(

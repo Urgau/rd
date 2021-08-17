@@ -70,7 +70,24 @@ markup::define! {
         }
     }
 
-    ItemPage<'a, Definition: markup::Render, ItemPath: markup::Render, Deprecation: markup::Render, Content: markup::Render>(item_type: &'a str, item_name: &'a str, item_path: ItemPath, toc: &'a Vec<TocSection<'a>>, item_definition: Option<Definition>, item_deprecation: Option<Deprecation>, item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>, content: Option<Content>) {
+    ItemPage<
+        'a,
+        Definition: markup::Render,
+        ItemPath: markup::Render,
+        Deprecation: markup::Render,
+        Portability: markup::Render,
+        Content: markup::Render
+    > (
+        item_type: &'a str,
+        item_name: &'a str,
+        item_path: ItemPath,
+        toc: &'a Vec<TocSection<'a>>,
+        item_definition: Option<Definition>,
+        item_deprecation: Option<Deprecation>,
+        item_portability: Option<Portability>,
+        item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>,
+        content: Option<Content>
+    ) {
         div[class="rd-main"] {
             div#intro[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {
@@ -86,6 +103,7 @@ markup::define! {
                     }
                 }
                 @item_deprecation
+                @item_portability
                 @if item_doc.is_some() {
                     details[id="item-documentation", class="rd-anchor", open=""] {
                         summary {
@@ -167,6 +185,13 @@ markup::define! {
                 ": "
                 @note
             }
+        }
+    }
+
+    PortabilityNotice(message: String) {
+        div[class="alert alert-primary", role="alert"] {
+            i[class="bi bi-info-circle me-2"] {}
+            @message
         }
     }
 

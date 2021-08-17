@@ -312,3 +312,44 @@ pub(crate) fn href<'context, 'krate>(
         None
     }
 }
+
+#[allow(dead_code)]
+pub(crate) struct Portability<'a> {
+    original: &'a str,
+    inner: &'a str,
+}
+
+impl<'a> Portability<'a> {
+    pub(crate) fn from_attrs<T: AsRef<str>>(attrs: &'a [T]) -> Result<Option<Self>> {
+        let cfg = attrs
+            .iter()
+            .find(|attr| attr.as_ref().starts_with("#[cfg("));
+
+        if cfg.is_none() {
+            return Ok(None);
+        }
+        let cfg = cfg.unwrap().as_ref();
+
+        let cfg_without_attr_decoration = cfg
+            .get(2..cfg.len() - 1)
+            .context("invalid cfg attribute: no attr decoration ?")?;
+        let cfg_without_decoration = cfg_without_attr_decoration
+            .get(4..cfg_without_attr_decoration.len() - 1)
+            .context("invalid cfg attribute: no cfg itself ?")?;
+
+        Ok(Some(Self {
+            original: cfg,
+            inner: cfg_without_decoration,
+        }))
+    }
+
+    pub(crate) fn render_short(&self) -> String {
+        // TODO: Do real processing
+        self.inner.to_owned()
+    }
+
+    pub(crate) fn render_long(&self) -> String {
+        // TODO: Do real processing
+        format!("The portability is definied by: {}", self.inner)
+    }
+}
