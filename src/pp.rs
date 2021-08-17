@@ -1432,10 +1432,12 @@ fn with_generic_bound<'tokens>(
                 tokens.try_push(Token::Kw(modifier_str))?;
             }
 
-            let pivot = generic_params.iter().enumerate()
-                    .find(|(_, param)| param.kind != GenericParamDefKind::Lifetime)
-                    .map(|(index, _)| index)
-                    .unwrap_or(generic_params.len());
+            let pivot = generic_params
+                .iter()
+                .enumerate()
+                .find(|(_, param)| param.kind != GenericParamDefKind::Lifetime)
+                .map(|(index, _)| index)
+                .unwrap_or(generic_params.len());
 
             with(
                 tokens,

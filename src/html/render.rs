@@ -354,20 +354,25 @@ fn module_page<'context>(
         items: Default::default(),
     };
 
-    let mut items = module.items.iter().filter_map(|id| {
-        let item = global_context
-            .krate
-            .index
-            .get(id)
-            .with_context(|| format!("Unable to find the item {:?}", id)).ok()?;
+    let mut items = module
+        .items
+        .iter()
+        .filter_map(|id| {
+            let item = global_context
+                .krate
+                .index
+                .get(id)
+                .with_context(|| format!("Unable to find the item {:?}", id))
+                .ok()?;
 
-        if !id.0.starts_with("0:") {
-            warn!("ignoring for now `pub use`: {:?}", id);
-            return None;
-        }
-        
-        Some(Ok(item))
-    }).collect::<Result<Vec<_>>>()?;
+            if !id.0.starts_with("0:") {
+                warn!("ignoring for now `pub use`: {:?}", id);
+                return None;
+            }
+
+            Some(Ok(item))
+        })
+        .collect::<Result<Vec<_>>>()?;
     items.sort_by(|x_item, y_item| match (&x_item.inner, &y_item.inner) {
         (ItemEnum::Module(_), ItemEnum::Module(_)) => x_item.name.cmp(&y_item.name),
         (ItemEnum::Module(_), _) => Ordering::Less,
@@ -755,15 +760,22 @@ fn trait_page<'context>(
         items: vec![],
     };
 
-    let mut items = trait_.items.iter().map(|id| {
-        let item = global_context
-            .krate
-            .index
-            .get(id)
-            .with_context(|| format!("Unable to find the item {:?}", id))?;
-        
-        Ok((item, item.name.as_ref().context("missing name for trait item")?))
-    }).collect::<Result<Vec<_>>>()?;
+    let mut items = trait_
+        .items
+        .iter()
+        .map(|id| {
+            let item = global_context
+                .krate
+                .index
+                .get(id)
+                .with_context(|| format!("Unable to find the item {:?}", id))?;
+
+            Ok((
+                item,
+                item.name.as_ref().context("missing name for trait item")?,
+            ))
+        })
+        .collect::<Result<Vec<_>>>()?;
     items.sort_by(|(_, x_name), (_, y_name)| x_name.cmp(y_name));
 
     for (item, _name) in items {
@@ -825,21 +837,16 @@ fn trait_page<'context>(
                 .get(id)
                 .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-            let impl_ = 
-                match &item.inner {
-                    ItemEnum::Impl(impl_) => impl_,
-                    _ => {
-                        return Err(anyhow::anyhow!(
-                            "impl id is not impl in struct_union_content"
-                        ))
-                    }
-                };
+            let impl_ = match &item.inner {
+                ItemEnum::Impl(impl_) => impl_,
+                _ => {
+                    return Err(anyhow::anyhow!(
+                        "impl id is not impl in struct_union_content"
+                    ))
+                }
+            };
 
-            Ok((
-                item,
-                impl_,
-                name_of(impl_)?,
-            ))
+            Ok((item, impl_, name_of(impl_)?))
         })
         .collect::<Result<Vec<_>>>()?;
     impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
@@ -939,21 +946,16 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .get(id)
                 .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-            let impl_ = 
-                match &item.inner {
-                    ItemEnum::Impl(impl_) => impl_,
-                    _ => {
-                        return Err(anyhow::anyhow!(
-                            "impl id is not impl in struct_union_content"
-                        ))
-                    }
+            let impl_ = match &item.inner {
+                ItemEnum::Impl(impl_) => impl_,
+                _ => {
+                    return Err(anyhow::anyhow!(
+                        "impl id is not impl in struct_union_content"
+                    ))
+                }
             };
 
-            Ok((
-                item,
-                impl_,
-                name_of(impl_)?,
-            ))
+            Ok((item, impl_, name_of(impl_)?))
         })
         .collect::<Result<Vec<_>>>()?;
     impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
@@ -1019,45 +1021,49 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 .collect::<Result<Vec<_>>>()?,
             trait_implementations: impls
                 .iter()
-                .filter_map(|(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(Type::ResolvedPath { id, .. }), None) => {
-                        match is_auto_trait(global_context.krate, id) {
-                            Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                global_context,
-                                page_context,
-                                Some(&mut toc_traits),
-                                None,
-                                item,
-                                impl_,
-                                false,
-                            )),
-                            Err(e) => Some(Err(e)),
-                            _ => None,
+                .filter_map(
+                    |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
+                        (Some(Type::ResolvedPath { id, .. }), None) => {
+                            match is_auto_trait(global_context.krate, id) {
+                                Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                    global_context,
+                                    page_context,
+                                    Some(&mut toc_traits),
+                                    None,
+                                    item,
+                                    impl_,
+                                    false,
+                                )),
+                                Err(e) => Some(Err(e)),
+                                _ => None,
+                            }
                         }
-                    }
-                    _ => None,
-                })
+                        _ => None,
+                    },
+                )
                 .collect::<Result<Vec<_>>>()?,
             auto_trait_implementations: impls
                 .iter()
-                .filter_map(|(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
-                    (Some(Type::ResolvedPath { id, .. }), None) => {
-                        match is_auto_trait(global_context.krate, id) {
-                            Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
-                                global_context,
-                                page_context,
-                                Some(&mut toc_auto_traits),
-                                None,
-                                item,
-                                impl_,
-                                false,
-                            )),
-                            Err(e) => Some(Err(e)),
-                            _ => None,
+                .filter_map(
+                    |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
+                        (Some(Type::ResolvedPath { id, .. }), None) => {
+                            match is_auto_trait(global_context.krate, id) {
+                                Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                    global_context,
+                                    page_context,
+                                    Some(&mut toc_auto_traits),
+                                    None,
+                                    item,
+                                    impl_,
+                                    false,
+                                )),
+                                Err(e) => Some(Err(e)),
+                                _ => None,
+                            }
                         }
-                    }
-                    _ => None,
-                })
+                        _ => None,
+                    },
+                )
                 .collect::<Result<Vec<_>>>()?,
             blanket_implementations: impls
                 .iter()

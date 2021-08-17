@@ -109,8 +109,8 @@ pub(crate) fn name_of(impl_: &Impl) -> Result<String> {
             pp::Token::Kw(kw) => name.push_str(kw),
             pp::Token::Primitive(primitive) => name.push_str(primitive),
             pp::Token::Special(s) if *s == pp::SpecialToken::Space => name.push(' '),
-            pp::Token::Special(_) => {},
-            pp::Token::Attr(_) => {},
+            pp::Token::Special(_) => {}
+            pp::Token::Attr(_) => {}
         }
     }
 
