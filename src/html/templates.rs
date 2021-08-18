@@ -100,18 +100,20 @@ markup::define! {
                     @item_path
                 }
                 @if item_definition.is_some() {
-                    pre[id="item-definition", class="rd-anchor rust"] {
-                        @item_definition
+                    pre[id="item-definition", class="rd-anchor item-definition"] {
+                        code {
+                            @item_definition
+                        }
                     }
                 }
                 @item_deprecation
                 @item_portability
                 @if item_doc.is_some() {
-                    details[id="item-documentation", class="rd-anchor", open=""] {
+                    details[id="item-documentation", class="rd-anchor item-documentation", open=""] {
                         summary {
-                            "Expand description"
+                            "Documentation"
                         }
-                        div[class = "item-doc"] {
+                        div[class = "mt-2"] {
                             @item_doc
                         }
                     }
@@ -129,8 +131,6 @@ markup::define! {
                                 @if item_doc.4.borrow_mut().len() == 0 {
                                     a[href="#item-documentation", class="d-inline-flex align-items-center rounded"] { strong { "Documentation" } }
                                 } else {
-                                    //a[href="#item-documentation", class="d-inline-flex align-items-center rounded"] { strong { "Documentation" } }
-                                    //ul {
                                     a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
                                     ul[id="toc-documentation", class="collapse show"] {
                                         @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
@@ -149,8 +149,6 @@ markup::define! {
                         @for TocSection { name: section_name, id: section_id, items: section_items } in toc.iter() {
                             @if !section_items.is_empty() {
                                 li {
-                                    //a[href=format!("#{}", section_id), class="d-inline-flex align-items-center rounded"] { strong { @section_name } }
-                                    //ul {
                                     a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href=format!("#{}", section_id), "data-bs-toggle"="collapse", "data-bs-target"=format!("#toc-{}", section_id), "aria-expanded"="true", "aria-current"="true"] { strong { @section_name } }
                                     ul[id=format!("toc-{}", section_id), class="collapse show"] {
                                         @for (ref name, destination) in section_items {
@@ -241,6 +239,10 @@ markup::define! {
         }
     }
 
+    InlineCode<Code: markup::Render> (code: Code) {
+        code[class="inline-code"] { @code }
+    }
+
     InlineCodeWithSource<
         'source,
         Code: markup::Render,
@@ -250,7 +252,7 @@ markup::define! {
                 "[src]"
             }
         }
-        code[class="inline-code"] { @code }
+        @InlineCode { code }
     }
 
     CodeEnchanted<
@@ -265,7 +267,7 @@ markup::define! {
                         @InlineCodeWithSource { code, source_href }
                     }
                     @deprecation
-                    div[class="item-doc"] { @doc }
+                    div[class="mt-2"] { @doc }
                 }
             } else {
                 @InlineCodeWithSource { code, source_href }
@@ -287,7 +289,7 @@ markup::define! {
                         @InlineCodeWithSource { code, source_href }
                     }
                     @deprecation
-                    div[class="item-doc"] { @doc }
+                    div[class="mt-2"] { @doc }
                     div[style = "padding-left:1.5rem;"] {
                         @for extra in extras {
                             @extra
@@ -306,13 +308,17 @@ markup::define! {
         Field: markup::Render,
         FieldDoc: markup::Render,
         Traits: markup::Render
-    > (title: &'title str, fields: Vec<(Field, FieldDoc)>, traits: Traits) {
+    > (title: &'title str, fields: Vec<(Field, Option<FieldDoc>)>, traits: Traits) {
         @if !fields.is_empty() {
             section {
                 h2[class="border-bottom pb-1"] { @title }
-                @for (field, doc) in fields {
-                    code { @field }
-                    p { @doc }
+                @for (code, doc) in fields {
+                    div {
+                        @InlineCode { code }
+                        @if doc.is_some() {
+                            p[class="ps-5"] { @doc }
+                        }
+                    }
                 }
             }
         }

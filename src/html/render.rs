@@ -396,11 +396,13 @@ fn module_page<'context>(
         match &item.inner {
             ItemEnum::Import(_) => {
                 module_page_content.imports.push(ModuleSectionItem {
-                    name: TokensToHtml(
-                        global_context,
-                        &page_context,
-                        pp::Tokens::from_item(item, &global_context.krate.index)?,
-                    ),
+                    name: InlineCode {
+                        code: TokensToHtml(
+                            global_context,
+                            &page_context,
+                            pp::Tokens::from_item(item, &global_context.krate.index)?,
+                        ),
+                    },
                     short_doc: Option::<String>::None,
                     deprecated: item.deprecation.is_some(),
                     portability: Portability::from_attrs(&item.attrs)?
@@ -549,11 +551,13 @@ fn module_page<'context>(
             }
             ItemEnum::TraitAlias(_) => {
                 module_page_content.trait_alias.push(ModuleSectionItem {
-                    name: TokensToHtml(
-                        global_context,
-                        &page_context,
-                        pp::Tokens::from_item(item, &global_context.krate.index)?,
-                    ),
+                    name: InlineCode {
+                        code: TokensToHtml(
+                            global_context,
+                            &page_context,
+                            pp::Tokens::from_item(item, &global_context.krate.index)?,
+                        ),
+                    },
                     short_doc: Option::<String>::None,
                     deprecated: item.deprecation.is_some(),
                     portability: Portability::from_attrs(&item.attrs)?
@@ -600,11 +604,13 @@ fn module_page<'context>(
                     short_doc: if let Some(summary_line_doc) = summary_line_doc {
                         Either::Left(summary_line_doc)
                     } else {
-                        Either::Right(TokensToHtml(
-                            global_context,
-                            &page_context,
-                            pp::Tokens::from_type(&typedef_.type_)?,
-                        ))
+                        Either::Right(InlineCode {
+                            code: TokensToHtml(
+                                global_context,
+                                &page_context,
+                                pp::Tokens::from_type(&typedef_.type_)?,
+                            ),
+                        })
                     },
                     deprecated: item.deprecation.is_some(),
                     portability: Portability::from_attrs(&item.attrs)?
@@ -981,7 +987,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     StructUnionEnumContent<
         'title,
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
-        Option<Markdown<'context, 'krate, 'context>>,
+        Markdown<'context, 'krate, 'context>,
         TraitsWithItems<
             CodeEnchantedWithExtras<
                 TokensToHtml<'context, 'krate /*, 'tokens*/>,

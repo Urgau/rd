@@ -396,7 +396,7 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
         }
 
         let start_html = format!(
-            "<h{} class=\"item-doc-heading rd-anchor\" id=\"{}\"><a href=\"#{}\">",
+            "<h{} class=\"rd-anchor\" id=\"{}\"><a href=\"#{}\">",
             level, id, id
         );
 
@@ -472,7 +472,7 @@ impl<'a, I: Iterator<Item = Event<'a>>> Iterator for CodeBlocks<'a, I> {
         let stripped_code = lines.collect::<Vec<Cow<'_, str>>>().join("\n");
 
         let mut html = String::with_capacity(50 + stripped_code.len());
-        html.push_str("<pre class=\"rust\"><code>");
+        html.push_str("<pre><code class=\"language-rust\">");
         escape::escape_html(&mut html, &stripped_code).unwrap();
         html.push_str("</code></pre>");
 
