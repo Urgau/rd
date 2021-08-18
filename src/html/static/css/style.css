@@ -23,6 +23,14 @@ pre.item-definition,
     background-color: #2A2A2A;
 }
 
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
 .inline-code {
 	font-weight: 600;
 	color: inherit !important;
@@ -43,11 +51,6 @@ pre.item-definition,
 	word-break: break-word;
 }
 
-.item-title a, .ident a {
-	text-decoration: none;
-	color: inherit;
-}
-
 .item-table {
 	display: grid;
 	column-gap: 1.2rem;
@@ -58,14 +61,6 @@ pre.item-definition,
 	.item-table {
 		grid-template-columns: auto 1fr;
 	}
-}
-
-.item-table a {
-	text-decoration: none;
-}
-
-.item-table a:hover code, .item-title a:hover, .ident a:hover  {
-	text-decoration: underline;
 }
 
 .item-table .macro, .item-title .macro, .rd-search-item .macro, code .ident.macro {
@@ -227,7 +222,6 @@ pre.item-definition,
     padding: .1875rem .5rem;
 	margin-top: .125rem;
 	color: inherit;
-	text-decoration: none;
 }
 
 .rd-btn-toc {
@@ -288,24 +282,6 @@ pre.item-definition,
 .item-documentation h6 {
 	padding-bottom: .25rem;
     border-bottom: 1px solid #dee2e6;
-}
-
-.item-documentation h1 > a,
-.item-documentation h2 > a,
-.item-documentation h3 > a,
-.item-documentation h4 > a,
-.item-documentation h5 > a,
-.item-documentation h6 > a {
-	text-decoration: none;
-}
-
-.item-documentation h1 > a:hover,
-.item-documentation h2 > a:hover,
-.item-documentation h3 > a:hover,
-.item-documentation h4 > a:hover,
-.item-documentation h5 > a:hover,
-.item-documentation h6 > a:hover {
-	text-decoration: underline;
 }
 
 .rd-search-items {
