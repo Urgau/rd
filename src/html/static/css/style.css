@@ -1,4 +1,5 @@
-[data-bs-color-scheme="dark"] .item-doc pre, .rust {
+[data-bs-color-scheme="dark"] .item-doc pre,
+[data-bs-color-scheme="dark"] .rust {
 	background-color: #2A2A2A;
 }
 
@@ -96,6 +97,7 @@
 
 .inline-code {
 	font-weight: 600;
+	color: inherit !important;
 }
 
 .inline-code .where-clause {
