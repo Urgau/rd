@@ -22,9 +22,10 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 - [X] Improved markdown output (similar to rustdoc)
 - [X] Table of contents (markdown + items)
 - [X] Deprecation notice and attributes filtering
-- [ ] `doc(cfg)` parsing and pritting
+- [X] `cfg` and `doc` printting
+- [X] Themes (currently light and black)
 - [ ] Source code inclusion
-- [ ] Themes or options
+- [ ] Options/customization
 
 ## Usage
 

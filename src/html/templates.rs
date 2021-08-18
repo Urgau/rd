@@ -46,12 +46,13 @@ impl<'context, 'krate> BodyInformations<'krate> {
 markup::define! {
     Base<'a, Body: markup::Render>(infos: BodyInformations<'a>, main: Body) {
         @markup::doctype()
-        html[lang="en"] {
+        html[lang="en", "data-bs-color-scheme"="light"] {
             head {
                 title { @infos.page_title }
-                meta[charset = "utf-8"];
-                meta[name = "viewport", content = "width=device-width, initial-scale=1"];
-                link[href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css", rel="stylesheet", integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC", crossorigin="anonymous"];
+                meta[charset="utf-8"];
+                meta[name="viewport", content="width=device-width, initial-scale=1"];
+                meta[name="color-scheme", content="light dark"];
+                link[href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.0.0/dist/css/bootstrap-blackbox.min.css", rel="stylesheet", crossorigin="anonymous"];
                 link[href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css", rel="stylesheet", crossorigin="anonymous"];
                 link[href=format!("{}/{}", infos.root_path.display(), STYLE_CSS), rel="stylesheet"];
                 link[href=format!("{}/{}", infos.root_path.display(), RUST_SVG), rel="icon", type="image/svg+xml"];
@@ -64,6 +65,7 @@ markup::define! {
                 }
                 @Footer { year: 2021 }
                 script[src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js", integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/", crossorigin="anonymous"] {}
+                script[src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.0/dist/js/darkmode.min.js", crossorigin="anonymous"] {}
                 script[src=format!("{}/{}/{}", infos.root_path.display(), infos.krate_name, SEARCH_INDEX_JS)] {}
                 script[src=format!("{}/{}", infos.root_path.display(), SEARCH_JS)] {}
             }
@@ -129,7 +131,7 @@ markup::define! {
                                 } else {
                                     //a[href="#item-documentation", class="d-inline-flex align-items-center rounded"] { strong { "Documentation" } }
                                     //ul {
-                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
+                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
                                     ul[id="toc-documentation", class="collapse show"] {
                                         @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
                                             @if *level == 1 {
@@ -149,7 +151,7 @@ markup::define! {
                                 li {
                                     //a[href=format!("#{}", section_id), class="d-inline-flex align-items-center rounded"] { strong { @section_name } }
                                     //ul {
-                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded", href=format!("#{}", section_id), "data-bs-toggle"="collapse", "data-bs-target"=format!("#toc-{}", section_id), "aria-expanded"="true", "aria-current"="true"] { strong { @section_name } }
+                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href=format!("#{}", section_id), "data-bs-toggle"="collapse", "data-bs-target"=format!("#toc-{}", section_id), "aria-expanded"="true", "aria-current"="true"] { strong { @section_name } }
                                     ul[id=format!("toc-{}", section_id), class="collapse show"] {
                                         @for (ref name, destination) in section_items {
                                             li {
@@ -425,7 +427,7 @@ markup::define! {
 
                     ul[class="navbar-nav flex-row flex-wrap ms-md-auto"] {
                         li[class="nav-item col-6 col-md-auto"] {
-                            a[class="nav-link p-2", href="#themes", title="Unimplmented"] {
+                            a[class="nav-link p-2", href="#themes", title="Toggle themes", onclick="darkmode.toggleDarkMode()"] {
                                 i[class="bi bi-palette"] {}
                                 small[class="d-md-none ms-2"] { "Themes" }
                             }

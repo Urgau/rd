@@ -1,13 +1,7 @@
 .item-doc pre, .rust {
 	background-color: #00000011;
-	color: black;
 	padding: 1rem;
 }
-
-code {
-	color: unset !important;
-}
-
 
 .item-doc {
 	margin-top: 0.4rem;
@@ -113,7 +107,7 @@ code {
 
 .rd-navbar {
 	padding: .75rem 0;
-	background-color: #7952b3;
+	background-color: var(--bs-primary);
 }
 
 .rd-navbar .navbar-nav .nav-link:hover, .rd-navbar .navbar-nav .nav-link:focus {
@@ -128,22 +122,11 @@ code {
 	float: right;
 }
 
-/*@media (min-width: 768px) {
-	.rd-subnavbar {
-		position: -webkit-sticky;
-		position: sticky;
-	    top: 0;
-	}
-}*/
-
 .rd-subnavbar {
-    /*position: relative;*/
     position: -webkit-sticky;
 	position: sticky;
     top: 0;
-
     z-index: 1020;
-    background-color: rgba(255,255,255,0.95);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05),inset 0 -1px 0 rgba(0,0,0,0.15);
 }
 
@@ -158,9 +141,9 @@ code {
     padding-right: .25rem;
     padding-left: .25rem;
     font-size: .75rem;
-    color: #6c757d;
+    color: var(--bs-gray);
     content: "Ctrl + /";
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--bs-gray);
     border-radius: .125rem;
 }
 
@@ -198,16 +181,13 @@ code {
 }
 
 .rd-toc nav a:hover {
-	color: rgba(0,0,0,0.85);
 	background-color: rgba(121,82,179,0.1);
 }
 
 .rd-toc nav a {
-    /*color: inherit;*/
     padding: .1875rem .5rem;
 	margin-top: .125rem;
-	/*margin-left: 1.25rem;*/
-	color: rgba(0,0,0,0.65);
+	color: inherit;
 	text-decoration: none;
 }
 
@@ -325,19 +305,13 @@ code {
 }
 
 .rd-btn-toc::before {
-	width: 1.25em;
-	line-height: 0;
-	content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
 	transition: transform 0.35s ease;
 	transform-origin: .5em 50%;
+	padding-right: 3px;
 }
 
 .rd-btn-toc {
 	cursor: pointer;
-}
-
-#rd-docs-nav .active {
-	background-color: red;
 }
 
 .rd-anchor {
