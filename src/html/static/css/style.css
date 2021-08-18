@@ -1,5 +1,9 @@
+[data-bs-color-scheme="dark"] .item-doc pre, .rust {
+	background-color: #2A2A2A;
+}
+
 .item-doc pre, .rust {
-	background-color: #00000011;
+	background-color: #F5F5F5;
 	padding: 1rem;
 }
 
