@@ -11,8 +11,7 @@ document.onkeyup = (e) => {
   if (e.ctrlKey && e.key === "/") {
     rdSearchInput.focus();
   } else if (e.key == "Escape" && rdSearchInputFocused === true) {
-    rdSearchItemsClear("none");
-    rdSearchInput.value = "";
+    rdSearchInputValue("");
   }
 };
 
@@ -76,9 +75,27 @@ function rdSearchInputChange(e) {
 
       rdSearchItems.appendChild(block);
     }
+
+    var windowUrl = new URL(window.location);
+    windowUrl.searchParams.set('search', rdSearchInput.value);
+    rdHistoryReplace(windowUrl, "Result for " + rdSearchInput.value + " - Rust");
   } else {
     rdSearchItemsClear("none");
+
+    var windowUrl = new URL(window.location);
+    windowUrl.searchParams.delete('search');
+    rdHistoryReplace(windowUrl, originalWindowTitle);
   }
+}
+
+function rdHistoryReplace(url, title) {
+  window.history.replaceState({}, title, url);
+  document.title = title;
+}
+
+function rdSearchInputValue(input) {
+  rdSearchInput.value = input;
+  rdSearchInputChange(null);
 }
 
 function rdSearchItemsClear(display) {
@@ -86,4 +103,11 @@ function rdSearchItemsClear(display) {
   while (rdSearchItems.lastElementChild) {
     rdSearchItems.removeChild(rdSearchItems.lastElementChild);
   }
+}
+
+const originalWindowTitle = document.title;
+const windowSearchParams = new URLSearchParams(window.location.search);
+if (windowSearchParams.get("search") !== null) {
+  rdSearchInputValue(windowSearchParams.get("search"));
+  rdSearchInput.focus();
 }
