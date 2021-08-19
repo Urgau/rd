@@ -32,14 +32,21 @@ a:hover {
 }
 
 .inline-code {
+	color: inherit;
 	font-weight: 600;
-	color: inherit !important;
 }
 
 .inline-code .where-clause {
 	display: block;
 	font-size: 0.8em;
 	line-height: 1.5;
+}
+
+.item-title a,
+.inline-code a,
+.item-definition a,
+.rd-search-item a {
+	color: inherit;
 }
 
 .item-title {
@@ -210,7 +217,7 @@ a:hover {
     margin-top: .25rem;
 }
 
-.rd-toc nav a:not(:hover) {
+.rd-toc nav a {
     text-decoration: none;
 }
 
