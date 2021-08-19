@@ -33,7 +33,7 @@ function rdSearchInputChange(e) {
 
     let matches = 0;
     for (const item of INDEX) {
-      if (item.components.some((e) => e.lower_case_name.includes(inputValue)) === true) {
+      if (item.components.slice(-1).some((e) => e.lower_case_name.includes(inputValue)) === true) {
 
         var block = document.createElement("a");
         block.classList.add("rd-search-item");

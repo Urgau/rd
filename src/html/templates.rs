@@ -457,12 +457,12 @@ markup::define! {
     }
 
     Search<'a>(krate_name: &'a str) {
-        nav[class="rd-subnavbar py-2", "aria-label"="Secondary navigation"] {
+        nav[class="rd-subnavbar py-2 border-bottom shadow-sm", "aria-label"="Secondary navigation"] {
             div[class="container-xxl d-flex align-items-md-center"] {
                 form[class="rd-search position-relative", id="rd-search-form"] {
                     span[class="w-100", style="position: relative; display: inline-block; direction: ltr;"] {
                         input[type="search", class="form-control ds-input", id="rd-search-input", placeholder=format!("Search in {}...", krate_name), "aria-label"="Search docs for...", autocomplete="off", spellcheck="false", role="combobox", "aria-autocomplete"="list", "aria-expanded"="false", "aria-owns"="rd-search-menu", style="position: relative; vertical-align: top;", dir="auto"];
-                        span[class="ds-dropdown-menu", style="position: absolute; top: 100%; z-index: 100; display: none; left: 0px; right: auto;", role="listbox", id="rd-search-menu"] {
+                        span[class="ds-dropdown-menu", style="position: absolute; top: 100%; z-index: 100; display: none; left: 0px; right: 0px;", role="listbox", id="rd-search-menu"] {
                             div[class="rd-search-items", id="rd-search-items"] {}
                         }
                     }
