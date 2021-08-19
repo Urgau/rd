@@ -316,7 +316,7 @@ markup::define! {
                     div {
                         @InlineCode { code }
                         @if doc.is_some() {
-                            p[class="ps-5"] { @doc }
+                            div[class="ps-3"] { @doc }
                         }
                     }
                 }
