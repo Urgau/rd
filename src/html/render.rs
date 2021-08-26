@@ -18,11 +18,11 @@ use crate::pp;
 
 /// A context that is global for all the pages
 pub(crate) struct GlobalContext<'krate> {
+    pub(crate) opt: &'krate super::super::Opt,
     pub(crate) krate: &'krate Crate,
     pub(crate) krate_name: &'krate str,
     pub(crate) files: Arena<PathBuf>,
     pub(crate) item_paths: Arena<ItemPath>,
-    pub(crate) output_dir: &'krate PathBuf,
 }
 
 /// A context that is unique from each page
@@ -149,15 +149,15 @@ pub(crate) fn render<'krate>(
 
     if let ItemEnum::Module(krate_module) = &krate_item.inner {
         let mut global_context = GlobalContext {
+            opt,
             krate,
-            output_dir: &opt.output,
             files: Default::default(),
             item_paths: Default::default(),
             krate_name: krate_item.name.as_ref().context("expect a crate name")?,
         };
 
         let module_page_context = module_page(&global_context, None, krate_item, krate_module)?;
-        let module_index_path = global_context.output_dir.join(module_page_context.filepath);
+        let module_index_path = global_context.opt.output.join(module_page_context.filepath);
         let mut search = String::new();
 
         search.push_str("\n\nconst INDEX = [\n");
@@ -225,7 +225,7 @@ fn base_page<'context>(
     };
 
     if let ItemEnum::Module(_) = &item.inner {
-        let mut path = global_context.output_dir.to_path_buf();
+        let mut path = global_context.opt.output.to_path_buf();
         path.extend(parts);
         path.push(name);
 
@@ -246,7 +246,7 @@ fn base_page<'context>(
     debug!("creating the {} file {:?}", item_kind_name, filepath);
     trace!(?krate_path, "ID: {:?}", &item.id);
 
-    let path = global_context.output_dir.join(&filepath);
+    let path = global_context.opt.output.join(&filepath);
     let file =
         File::create(&path).with_context(|| format!("unable to create the {:?} file", path))?;
     let file = BufWriter::new(file);
