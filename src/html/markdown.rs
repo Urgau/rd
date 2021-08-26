@@ -43,7 +43,7 @@ fn summary_opts() -> Options {
 }
 
 /// Render the all Markdown in html
-pub(crate) struct Markdown<'context, 'krate, 'content>(
+pub(super) struct Markdown<'context, 'krate, 'content>(
     &'context GlobalContext<'krate>,
     &'context PageContext<'context>,
     &'content String,
@@ -52,7 +52,7 @@ pub(crate) struct Markdown<'context, 'krate, 'content>(
 
 impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
     /// Create a [`Markdown`] struct from some context and a content
-    pub(crate) fn from_docs(
+    pub(super) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
         content: &'content Option<String>,
@@ -122,7 +122,7 @@ pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
 
 impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
     /// Create a [`MarkdownWithToc`] struct from some context and a content
-    pub(crate) fn from_docs(
+    pub(super) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
         content: &'content Option<String>,
@@ -196,7 +196,7 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
 }
 
 /// Render an summary line of the Markdown in html
-pub(crate) struct MarkdownSummaryLine<'context, 'krate, 'content>(
+pub(super) struct MarkdownSummaryLine<'context, 'krate, 'content>(
     &'context GlobalContext<'krate>,
     &'context PageContext<'context>,
     &'content String,
@@ -205,7 +205,7 @@ pub(crate) struct MarkdownSummaryLine<'context, 'krate, 'content>(
 
 impl<'context, 'krate, 'content> MarkdownSummaryLine<'context, 'krate, 'content> {
     /// Create a [`MarkdownSummaryLine`] struct from some context and a content
-    pub(crate) fn from_docs(
+    pub(super) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
         content: &'content Option<String>,

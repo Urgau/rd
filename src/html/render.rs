@@ -17,22 +17,21 @@ use super::utils::*;
 use crate::pp;
 
 /// A context that is global for all the pages
-pub(crate) struct GlobalContext<'krate> {
-    pub(crate) opt: &'krate super::super::Opt,
-    pub(crate) krate: &'krate Crate,
-    pub(crate) krate_name: &'krate str,
-    pub(crate) files: Arena<PathBuf>,
-    pub(crate) item_paths: Arena<ItemPath>,
+pub(super) struct GlobalContext<'krate> {
+    pub(super) opt: &'krate super::super::Opt,
+    pub(super) krate: &'krate Crate,
+    pub(super) krate_name: &'krate str,
+    pub(super) files: Arena<PathBuf>,
+    pub(super) item_paths: Arena<ItemPath>,
 }
 
 /// A context that is unique from each page
-// TODO: Remove these pub(crate)
-pub(crate) struct PageContext<'context> {
+pub(super) struct PageContext<'context> {
     #[allow(dead_code)]
     item: &'context Item,
-    pub(crate) filepath: &'context PathBuf,
-    filename: PathBuf,
-    pub(crate) item_path: &'context ItemPath,
+    pub(super) filepath: &'context PathBuf,
+    pub(super) filename: PathBuf,
+    pub(super) item_path: &'context ItemPath,
 }
 
 /// Path to an item; slice of [`ItemPathComponent`]

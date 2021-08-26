@@ -223,7 +223,7 @@ pub(crate) fn top_of(base: &Path) -> PathBuf {
 }
 
 /// Compute a HTML-href for a given [`Id`] in the context of the current page
-pub(crate) fn href<'context, 'krate>(
+pub(super) fn href<'context, 'krate>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
     id: &'krate Id,

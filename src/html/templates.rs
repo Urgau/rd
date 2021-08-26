@@ -15,7 +15,7 @@ pub struct BodyInformations<'a> {
 }
 
 impl<'context, 'krate> BodyInformations<'krate> {
-    pub(crate) fn with(
+    pub(super) fn with(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
     ) -> Self {
