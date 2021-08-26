@@ -733,8 +733,6 @@ fn module_page<'context>(
     }
 
     let is_top_level = parent_item_path.is_none();
-    let mut doc_toc = Default::default();
-
     let page = Base {
         infos: BodyInformations::with(global_context, &page_context),
         main: ItemPage {
@@ -749,7 +747,6 @@ fn module_page<'context>(
                 &page_context,
                 &item.docs,
                 &item.links,
-                &mut doc_toc,
             ),
             toc: &vec![
                 toc_modules,
@@ -938,7 +935,6 @@ fn trait_page<'context>(
         )?);
     }
 
-    let mut doc_toc = Default::default();
     let page = Base {
         infos: BodyInformations::with(global_context, &page_context),
         main: ItemPage {
@@ -953,7 +949,6 @@ fn trait_page<'context>(
                 &page_context,
                 &item.docs,
                 &item.links,
-                &mut doc_toc,
             ),
             toc: &vec![
                 toc_associated_types,
@@ -962,7 +957,6 @@ fn trait_page<'context>(
                 toc_provided_methods,
                 toc_implementation_foreign_types,
                 toc_implementors,
-                //toc_auto_implementors,
             ],
             content: Some(trait_page_content),
         },
@@ -1174,7 +1168,6 @@ macro_rules! ç {
                 &inner.impls,
             )?;
 
-            let mut doc_toc = Default::default();
             let page = Base {
                 infos: BodyInformations::with(global_context, &page_context),
                 main: ItemPage {
@@ -1189,7 +1182,6 @@ macro_rules! ç {
                         &page_context,
                         &item.docs,
                         &item.links,
-                        &mut doc_toc,
                     ),
                     toc: &toc,
                     content: Some(content),
@@ -1215,7 +1207,6 @@ macro_rules! é {
             let (page_context, mut file, name) = base_page(global_context, Some(parent_item_path), item)?;
             let definition = item_definition(global_context, &page_context, item)?;
 
-            let mut doc_toc = Default::default();
             let page = Base {
                 infos: BodyInformations::with(global_context, &page_context),
                 main: ItemPage {
@@ -1230,7 +1221,6 @@ macro_rules! é {
                         &page_context,
                         &item.docs,
                         &item.links,
-                        &mut doc_toc,
                     ),
                     toc: /* TODO: Optional */ &vec![],
                     content: Option::<String>::None,

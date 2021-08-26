@@ -5,6 +5,7 @@ use rustdoc_types::Id;
 use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
+use std::cell::RefCell;
 
 use super::render::{GlobalContext, PageContext};
 use super::utils::*;
@@ -111,23 +112,22 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
 }
 
 /// Render the all Markdown in html
-pub struct MarkdownWithToc<'context, 'krate, 'content, 'vec>(
+pub struct MarkdownWithToc<'context, 'krate, 'content>(
     &'context GlobalContext<'krate>,
     &'context PageContext<'context>,
     &'content String,
     &'krate HashMap<String, Id>,
     // RefCell required here because of the immutable `&self` on `render`
-    pub(crate) std::cell::RefCell<&'vec mut Vec<(u32, String, String)>>,
+    pub(crate) RefCell<Vec<(u32, String, String)>>,
 );
 
-impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'content, 'vec> {
+impl<'context, 'krate, 'content> MarkdownWithToc<'context, 'krate, 'content> {
     /// Create a [`MarkdownWithToc`] struct from some context and a content
     pub(super) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
         content: &'content Option<String>,
         links: &'krate HashMap<String, Id>,
-        toc: &'vec mut Vec<(u32, String, String)>,
     ) -> Option<Self> {
         content.as_ref().map(move |content| {
             Self(
@@ -135,14 +135,14 @@ impl<'context, 'krate, 'content, 'vec> MarkdownWithToc<'context, 'krate, 'conten
                 page_context,
                 content,
                 links,
-                std::cell::RefCell::new(toc),
+                RefCell::new(Default::default()),
             )
         })
     }
 }
 
-impl<'context, 'krate, 'content, 'vec> markup::Render
-    for MarkdownWithToc<'context, 'krate, 'content, 'vec>
+impl<'context, 'krate, 'content> markup::Render
+    for MarkdownWithToc<'context, 'krate, 'content>
 {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
         if !self.2.is_empty() {
@@ -185,9 +185,8 @@ impl<'context, 'krate, 'content, 'vec> markup::Render
             let parser = Parser::new_with_broken_link_callback(self.2, opts(), Some(&mut replacer));
             let parser = CodeBlocks::new(parser);
 
-            let mut tmp = self.4.borrow_mut();
-
-            let parser = Headings::new(parser, Some(*tmp));
+            let mut toc_borrow = self.4.borrow_mut();
+            let parser = Headings::new(parser, Some(&mut toc_borrow));
 
             html::write_html(adapter, parser).unwrap();
         }

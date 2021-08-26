@@ -87,7 +87,7 @@ markup::define! {
         item_definition: Option<Definition>,
         item_deprecation: Option<Deprecation>,
         item_portability: Option<Portability>,
-        item_doc: Option<MarkdownWithToc<'a, 'a, 'a, 'a>>,
+        item_doc: Option<MarkdownWithToc<'a, 'a, 'a>>,
         content: Option<Content>
     ) {
         div[class="rd-main"] {
