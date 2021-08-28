@@ -916,10 +916,8 @@ impl Tokens<'_> {
 
                 tokens.try_push(Token::Kw("static"))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
-                if static_.mutable {
-                    tokens.try_push(Token::Kw("mut"))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                }
+                tokens.try_push(Token::Kw(if static_.mutable { "mut" } else { "const" }))?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
                 tokens.try_push(Token::Ponct(":"))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1800,10 +1798,8 @@ fn with_type<'tcx>(
         // `*mut u32`, `*u8`, etc.
         Type::RawPointer { mutable, type_ } => {
             tokens.try_push(Token::Kw("*"))?;
-            if *mutable {
-                tokens.try_push(Token::Kw("mut"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-            }
+            tokens.try_push(Token::Kw(if *mutable { "mut" } else { "const" }))?;
+            tokens.try_push(Token::Special(SpecialToken::Space))?;
             with_type(tokens, type_)?;
         }
         // `&'a mut String`, `&str`, etc.
