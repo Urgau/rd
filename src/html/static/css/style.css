@@ -187,8 +187,8 @@ a:hover {
 		right: 0;
 		z-index: 2;
 		height: calc(100vh - 7rem);
-		overflow-y: auto;
 		display: block !important;
+		padding-right: 5px;
 	}
 }
 
@@ -216,18 +216,19 @@ a:hover {
     margin-top: .25rem;
 }
 
-.rd-toc nav a {
-    text-decoration: none;
-}
-
 .rd-toc nav a:hover {
 	background-color: rgba(121,82,179,0.1);
 }
 
 .rd-toc nav a {
+	text-decoration: none;
     padding: .1875rem .5rem;
-	margin-top: .125rem;
 	color: inherit;
+	
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	max-width: 100%;
 }
 
 .rd-btn-toc {

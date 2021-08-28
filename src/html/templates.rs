@@ -91,7 +91,7 @@ markup::define! {
         content: Option<Content>
     ) {
         div[class="rd-main"] {
-            div#intro[class="rd-intro"] {
+            div[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {
                     span {
                         @item_type
@@ -129,14 +129,14 @@ markup::define! {
                         @if let Some(item_doc) = item_doc {
                             li {
                                 @if item_doc.4.borrow_mut().len() == 0 {
-                                    a[href="#item-documentation", class="d-inline-flex align-items-center rounded"] { strong { "Documentation" } }
+                                    a[href="#item-documentation", class="d-inline-block align-items-center rounded"] { strong { "Documentation" } }
                                 } else {
-                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
+                                    a[class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
                                     ul[id="toc-documentation", class="collapse show"] {
                                         @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
                                             @if *level == 1 {
                                                 li {
-                                                    a[href=format!("#{}", destination), class="d-inline-flex align-items-center rounded"] {
+                                                    a[href=format!("#{}", destination), class="d-inline-block align-items-center rounded"] {
                                                         @name
                                                     }
                                                 }
@@ -149,11 +149,11 @@ markup::define! {
                         @for TocSection { name: section_name, id: section_id, items: section_items } in toc.iter() {
                             @if !section_items.is_empty() {
                                 li {
-                                    a[class="rd-btn-toc d-inline-flex align-items-center rounded bi bi-caret-right-fill", href=format!("#{}", section_id), "data-bs-toggle"="collapse", "data-bs-target"=format!("#toc-{}", section_id), "aria-expanded"="true", "aria-current"="true"] { strong { @section_name } }
+                                    a[class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill", href=format!("#{}", section_id), "data-bs-toggle"="collapse", "data-bs-target"=format!("#toc-{}", section_id), "aria-expanded"="true", "aria-current"="true"] { strong { @section_name } }
                                     ul[id=format!("toc-{}", section_id), class="collapse show"] {
                                         @for (ref name, destination) in section_items {
                                             li {
-                                                a[href=destination, class="d-inline-flex align-items-center rounded"] {
+                                                a[href=destination, class="d-inline-block align-items-center rounded"] {
                                                     @name.deref()
                                                 }
                                             }
