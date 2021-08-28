@@ -1,3 +1,5 @@
+const MAX_SEARCH_ELEMENTS = 25;
+
 const rdSearchMenu = document.getElementById('rd-search-menu');
 const rdSearchInput = document.getElementById('rd-search-input');
 const rdSearchItems = document.getElementById('rd-search-items');
@@ -28,12 +30,25 @@ function rdSearchInputChange(e) {
   if (rdSearchInput.value !== "") {
     rdSearchItemsClear("block");
 
-    let inputValue = rdSearchInput.value.toLowerCase();
+    let inputValues = rdSearchInput.value.toLowerCase().split("::");    
+
+    // Original from https://stackoverflow.com/a/34152244 : CC BY-SA 4.0
+    function rdHasSubArray(master, sub) {
+        return sub.every((i => v => i = rdIncludesIndexOf(master, v, i) + 1)(0));
+    }
+
+    function rdIncludesIndexOf(array, who, starti) {
+      for (var i = starti; i < array.length; i++) {
+        if (array[i].lower_case_name.includes(who) === true) {
+          return (i);
+        }
+      }
+      return (-1);
+    }
 
     let matches = 0;
     for (const item of INDEX) {
-      if (item.components.slice(-1).some((e) => e.lower_case_name.includes(inputValue)) === true) {
-
+      if (rdHasSubArray(item.components, inputValues) === true) {
         var block = document.createElement("a");
         block.classList.add("rd-search-item");
         
@@ -60,9 +75,12 @@ function rdSearchInputChange(e) {
         }
 
         block.href = before + item.filepath;
+        rdSearchItems.appendChild(block);
 
         matches += 1;
-        rdSearchItems.appendChild(block);
+        if (matches == MAX_SEARCH_ELEMENTS) {
+          break;
+        }
       }
     }
 
