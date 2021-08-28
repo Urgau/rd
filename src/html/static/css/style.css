@@ -198,7 +198,7 @@ a:hover {
 
 .rd-content {
 	grid-area: content;
-	margin-top: 1rem;
+	overflow: auto;
 }
 
 .rd-toc {
