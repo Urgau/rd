@@ -536,6 +536,18 @@ impl Tokens<'_> {
                 with_attrs(&mut tokens, &item.attrs)?;
                 with_visibility(&mut tokens, &item.visibility)?;
 
+                let qualifiers = &function.header;
+                let qualifiers = qualifiers.iter().collect::<Vec<_>>();
+
+                with(
+                    &mut tokens,
+                    &qualifiers,
+                    Option::<Token>::None,
+                    Some(Token::Special(SpecialToken::Space)),
+                    Some(Token::Special(SpecialToken::Space)),
+                    with_qualifiers,
+                )?;
+
                 if !function
                     .abi
                     .strip_prefix('\"')
@@ -549,18 +561,6 @@ impl Tokens<'_> {
                     tokens.try_push(Token::Ident(&function.abi, None))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                 }
-
-                let qualifiers = &function.header;
-                let qualifiers = qualifiers.iter().collect::<Vec<_>>();
-
-                with(
-                    &mut tokens,
-                    &qualifiers,
-                    Option::<Token>::None,
-                    Some(Token::Special(SpecialToken::Space)),
-                    Some(Token::Special(SpecialToken::Space)),
-                    with_qualifiers,
-                )?;
 
                 tokens.try_push(Token::Kw("fn"))?;
                 if let Some(name) = &item.name {
@@ -1070,15 +1070,6 @@ fn with_method<'tokens>(
     with_attrs(tokens, &item.attrs)?;
     with_visibility(tokens, &item.visibility)?;
 
-    if method.abi.eq_ignore_ascii_case("rust") {
-        tokens.try_push(Token::Kw("extern"))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-        tokens.try_push(Token::Ponct("\""))?;
-        tokens.try_push(Token::Ident(&method.abi, None))?;
-        tokens.try_push(Token::Ponct("\""))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-    }
-
     let qualifiers = &method.header;
     let qualifiers = qualifiers.iter().collect::<Vec<_>>();
 
@@ -1090,6 +1081,15 @@ fn with_method<'tokens>(
         Some(Token::Special(SpecialToken::Space)),
         with_qualifiers,
     )?;
+
+    if method.abi.eq_ignore_ascii_case("rust") {
+        tokens.try_push(Token::Kw("extern"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+        tokens.try_push(Token::Ponct("\""))?;
+        tokens.try_push(Token::Ident(&method.abi, None))?;
+        tokens.try_push(Token::Ponct("\""))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+    }
 
     tokens.try_push(Token::Kw("fn"))?;
     if let Some(name) = &item.name {
@@ -1691,6 +1691,18 @@ fn with_type<'tcx>(
         }
         // `extern "ABI" fn`
         Type::FunctionPointer(fn_ptr) => {
+            let qualifiers = &fn_ptr.header;
+            let qualifiers = qualifiers.iter().collect::<Vec<_>>();
+
+            with(
+                tokens,
+                &qualifiers,
+                Option::<Token>::None,
+                Some(Token::Special(SpecialToken::Space)),
+                Some(Token::Special(SpecialToken::Space)),
+                with_qualifiers,
+            )?;
+
             if !fn_ptr
                 .abi
                 .strip_prefix('\"')
@@ -1704,18 +1716,6 @@ fn with_type<'tcx>(
                 tokens.try_push(Token::Ident(&fn_ptr.abi, None))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
             }
-
-            let qualifiers = &fn_ptr.header;
-            let qualifiers = qualifiers.iter().collect::<Vec<_>>();
-
-            with(
-                tokens,
-                &qualifiers,
-                Option::<Token>::None,
-                Some(Token::Special(SpecialToken::Space)),
-                Some(Token::Special(SpecialToken::Space)),
-                with_qualifiers,
-            )?;
 
             tokens.try_push(Token::Kw("fn"))?;
             with(
