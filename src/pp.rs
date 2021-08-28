@@ -306,8 +306,6 @@ impl Tokens<'_> {
                             Ok(())
                         })?;
                         tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                    } else {
-                        unreachable!("Union with 0 variants and non-stripped");
                     }
                 }
 
@@ -390,8 +388,6 @@ impl Tokens<'_> {
                                     Ok(())
                                 })?;
                                 tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                            } else {
-                                unreachable!("StructType::Plain with 0 fields and non-stripped");
                             }
                         }
 
@@ -521,8 +517,6 @@ impl Tokens<'_> {
                             Ok(())
                         })?;
                         tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                    } else {
-                        unreachable!("Enum with 0 variants and non-stripped");
                     }
                 }
 
