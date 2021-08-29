@@ -3,9 +3,9 @@
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
-use std::cell::RefCell;
 
 use super::render::{GlobalContext, PageContext};
 use super::utils::*;
@@ -141,9 +141,7 @@ impl<'context, 'krate, 'content> MarkdownWithToc<'context, 'krate, 'content> {
     }
 }
 
-impl<'context, 'krate, 'content> markup::Render
-    for MarkdownWithToc<'context, 'krate, 'content>
-{
+impl<'context, 'krate, 'content> markup::Render for MarkdownWithToc<'context, 'krate, 'content> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
         if !self.2.is_empty() {
             let adapter = Adapter { f: writer };

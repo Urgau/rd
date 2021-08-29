@@ -935,8 +935,12 @@ impl Tokens<'_> {
                 let mut tokens = Vec::with_capacity(12);
 
                 with_attrs(&mut tokens, &item.attrs)?;
-                // TODO: macro v1 vs macro v2
+
+                // TODO: Deferenchiate macro v1 vs macro v2, to be able
+                // to correctly print the visibility
                 //with_visibility(&mut tokens, &item.visibility)?;
+
+                // TODO: Break down the macro body in small tokens
                 tokens.try_push(Token::Ident(macro_, None))?;
 
                 tokens
