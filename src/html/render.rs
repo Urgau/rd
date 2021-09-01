@@ -159,28 +159,31 @@ pub(crate) fn render<'krate>(
         let module_index_path = global_context.opt.output.join(module_page_context.filepath);
         let mut search = String::new();
 
-        search.push_str("\n\nconst INDEX = [\n");
-        for item in global_context.item_paths.iter_mut() {
-            search.push_str("  { components: [ ");
-            for (index, c) in item.0.iter().enumerate() {
-                if index != 0 {
-                    search.push_str(", ");
+        search.push_str("\n\nconst INDEX = JSON.parse('[");
+        for (iitem, item) in global_context.item_paths.iter_mut().enumerate() {
+            if iitem != 0 {
+                search.push_str(",");
+            }
+            search.push_str("{\"components\":[");
+            for (icomponent, component) in item.0.iter().enumerate() {
+                if icomponent != 0 {
+                    search.push_str(",");
                 }
-                search.push_str("{ name: \"");
-                search.push_str(&c.name);
-                search.push_str("\", lower_case_name: \"");
-                search.push_str(&c.name.to_ascii_lowercase());
-                search.push_str("\", kind: \"");
-                search.push_str(c.kind);
-                search.push_str("\" }");
+                search.push_str("{\"name\":\"");
+                search.push_str(&component.name);
+                search.push_str("\",\"lower_case_name\":\"");
+                search.push_str(&component.name.to_ascii_lowercase());
+                search.push_str("\",\"kind\":\"");
+                search.push_str(&component.kind);
+                search.push_str("\"}");
             }
 
             let last = item.0.last().unwrap();
-            search.push_str(" ], filepath: \"");
+            search.push_str("],\"filepath\":\"");
             search.push_str(&format!("{}", last.filepath.display()));
-            search.push_str("\" },\n");
+            search.push_str("\"}");
         }
-        search.push_str("\n];\n");
+        search.push_str("]');\n");
 
         dump_to(
             format!(
