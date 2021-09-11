@@ -1442,6 +1442,10 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                     writer.write_str("</span>")?;
                 }
                 pp::Token::Ponct(ponct) => {
+                    if (*ponct == ";" || *ponct == "{") && in_where_clause {
+                        writer.write_str("</span>")?;
+                        in_where_clause = false;
+                    }
                     writer.write_str("<span class=\"ponct\">")?;
                     match *ponct {
                         ">" => writer.write_str("&gt;")?,
@@ -1450,10 +1454,6 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                         _ => writer.write_str(ponct)?,
                     }
                     writer.write_str("</span>")?;
-                    if (*ponct == ";" || *ponct == "}") && in_where_clause {
-                        writer.write_str("</span>")?;
-                        in_where_clause = false;
-                    }
                 }
                 pp::Token::Attr(attr) => {
                     writer.write_str("<span class=\"attr\">")?;

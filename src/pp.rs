@@ -652,7 +652,7 @@ impl Tokens<'_> {
                     &mut tokens,
                     &trait_.generics.params,
                     Some([Token::Ponct("<")]),
-                    Some(Token::Ponct(">")),
+                    Some([Token::Ponct(">")]),
                     Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
                     with_generic_param_def,
                 )?;
@@ -661,7 +661,7 @@ impl Tokens<'_> {
                     &mut tokens,
                     &trait_.bounds,
                     Some([Token::Ponct(":"), Token::Special(SpecialToken::Space)]),
-                    Some(Token::Special(SpecialToken::Space)), // TODO: remove ?
+                    Option::<Token>::None,
                     Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
                     with_generic_bound,
                 )?;
@@ -675,7 +675,7 @@ impl Tokens<'_> {
                         Token::Special(SpecialToken::NewLine),
                         Token::Special(SpecialToken::Tabulation),
                     ]),
-                    Some([Token::Ponct(",")]),
+                    Some([Token::Ponct(","), Token::Special(SpecialToken::NewLine)]),
                     Some([
                         Token::Ponct(","),
                         Token::Special(SpecialToken::NewLine),
@@ -684,7 +684,9 @@ impl Tokens<'_> {
                     with_where_predicate,
                 )?;
 
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                if trait_.generics.where_predicates.is_empty() {
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                }
                 tokens.try_push(Token::Ponct("{"))?;
 
                 NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
