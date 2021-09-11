@@ -1439,7 +1439,7 @@ fn with_generic_bound<'tokens>(
             let pivot = generic_params
                 .iter()
                 .enumerate()
-                .find(|(_, param)| param.kind != GenericParamDefKind::Lifetime)
+                .find(|(_, param)| !matches!(param.kind, GenericParamDefKind::Lifetime { .. }))
                 .map(|(index, _)| index)
                 .unwrap_or(generic_params.len());
 
@@ -1490,8 +1490,11 @@ fn with_generic_param_def<'tcx>(
     generic_param_def: &'tcx GenericParamDef,
 ) -> Result<(), FromItemErrorKind> {
     match &generic_param_def.kind {
-        GenericParamDefKind::Lifetime => {
+        GenericParamDefKind::Lifetime { outlives } => {
             tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
+            if !outlives.is_empty() {
+                unimplemented!("outlives");
+            }
         }
         GenericParamDefKind::Type { bounds, default } => {
             if !&generic_param_def.name.starts_with("impl") {
@@ -1574,6 +1577,9 @@ fn with_generic_arg<'tcx>(
         GenericArg::Type(type_) => {
             with_type(tokens, type_)?;
         }
+        GenericArg::Infer => {
+            tokens.try_push(Token::Kw("_"))?;
+        },
         GenericArg::Const(constant) => {
             tokens.try_push(Token::Kw("const"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
