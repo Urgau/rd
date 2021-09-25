@@ -27,10 +27,10 @@ pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
         ItemKind::Constant => ("constant", true),
         ItemKind::Static => ("static", true),
         ItemKind::Macro => ("macro", true),
-        //ItemKind::ProcMacro => ("proc.macro", true),
         ItemKind::AssocConst => ("associatedconst", false),
         ItemKind::AssocType => ("associatedtype", false),
-        _ => unimplemented!(),
+        ItemKind::Primitive => ("primitive", true),
+        _ => unimplemented!("item_kind2: {:?}", kind),
     }
 }
 
@@ -55,7 +55,7 @@ pub(crate) fn item_kind(item: &Item) -> (&'static str, bool) {
         ItemEnum::ProcMacro(_) => ("proc.macro", true),
         ItemEnum::AssocConst { .. } => ("associatedconst", false),
         ItemEnum::AssocType { .. } => ("associatedtype", false),
-        _ => unimplemented!(),
+        _ => unimplemented!("item_kind: {:?}", item),
     }
 }
 
