@@ -1581,7 +1581,7 @@ fn with_generic_arg<'tcx>(
         }
         GenericArg::Infer => {
             tokens.try_push(Token::Kw("_"))?;
-        },
+        }
         GenericArg::Const(constant) => {
             tokens.try_push(Token::Kw("const"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1836,75 +1836,61 @@ fn with_type<'tcx>(
             name,
             self_type,
             trait_,
-        } => {
-            if let Type::Generic(ref generic) = **self_type {
-                match &**trait_ {
-                    Type::ResolvedPath { args, .. } if args.is_some() => {
-                        tokens.try_push(Token::Ponct("<"))?;
-                        tokens.try_push(Token::Ident(generic, None))?;
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        tokens.try_push(Token::Kw("as"))?;
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        with_type(tokens, trait_)?;
-                        tokens.try_push(Token::Ponct(">"))?;
-                        tokens.try_push(Token::Ponct("::"))?;
-                        tokens.try_push(Token::Ident(name, None))?;
-                    }
-                    Type::ResolvedPath { .. } => {
-                        tokens.try_push(Token::Ident(generic, None))?;
-                        tokens.try_push(Token::Ponct("::"))?;
-                        tokens.try_push(Token::Ident(name, None))?;
-                    }
-                    _ => {
-                        todo!("QualifiedPath: trait_ not ResolvedPath");
-                    }
+        } => match **self_type {
+            Type::ResolvedPath { .. }
+            | Type::Primitive(_)
+            | Type::FunctionPointer(_)
+            | Type::Tuple(_)
+            | Type::Slice(_)
+            | Type::Array { .. }
+            | Type::ImplTrait(_)
+            | Type::Never
+            | Type::Infer
+            | Type::RawPointer { .. }
+            | Type::BorrowedRef { .. }
+            | Type::Generic(_) => match &**trait_ {
+                Type::ResolvedPath { args, .. } if args.is_some() => {
+                    tokens.try_push(Token::Ponct("<"))?;
+                    with_type(tokens, self_type)?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    tokens.try_push(Token::Kw("as"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    with_type(tokens, trait_)?;
+                    tokens.try_push(Token::Ponct(">"))?;
+                    tokens.try_push(Token::Ponct("::"))?;
+                    tokens.try_push(Token::Ident(name, None))?;
                 }
-            } else if let Type::QualifiedPath { .. } = **self_type {
-                match &**trait_ {
-                    Type::ResolvedPath { args, .. } if args.is_some() => {
-                        tokens.try_push(Token::Ponct("<"))?;
-                        with_type(tokens, self_type)?;
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        tokens.try_push(Token::Kw("as"))?;
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        with_type(tokens, trait_)?;
-                        tokens.try_push(Token::Ponct(">"))?;
-                        tokens.try_push(Token::Ponct("::"))?;
-                        tokens.try_push(Token::Ident(name, None))?;
-                    }
-                    Type::ResolvedPath { .. } => {
-                        with_type(tokens, self_type)?;
-                        tokens.try_push(Token::Ponct("::"))?;
-                        tokens.try_push(Token::Ident(name, None))?;
-                    }
-                    _ => {
-                        todo!("QualifiedPath: trait_ not ResolvedPath");
-                    }
+                Type::ResolvedPath { .. } => {
+                    with_type(tokens, self_type)?;
+                    tokens.try_push(Token::Ponct("::"))?;
+                    tokens.try_push(Token::Ident(name, None))?;
                 }
-            } else if let Type::ResolvedPath { .. } = **self_type {
-                tokens.try_push(Token::Ponct("<"))?;
-                with_type(tokens, self_type)?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-                tokens.try_push(Token::Kw("as"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-                with_type(tokens, trait_)?;
-                tokens.try_push(Token::Ponct(">"))?;
-                tokens.try_push(Token::Ponct("::"))?;
-                tokens.try_push(Token::Ident(name, None))?;
-            } else if let Type::BorrowedRef { .. } = **self_type {
-                tokens.try_push(Token::Ponct("<"))?;
-                with_type(tokens, self_type)?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-                tokens.try_push(Token::Kw("as"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-                with_type(tokens, trait_)?;
-                tokens.try_push(Token::Ponct(">"))?;
-                tokens.try_push(Token::Ponct("::"))?;
-                tokens.try_push(Token::Ident(name, None))?;
-            } else {
-                todo!("Type::QualifiedPath: not a Generic, QualifedPath, ResolvedPath or a BorrowedRef");
-            }
-        }
+                _ => {
+                    todo!("QualifiedPath: trait_ not ResolvedPath");
+                }
+            },
+            Type::QualifiedPath { .. } => match &**trait_ {
+                Type::ResolvedPath { args, .. } if args.is_some() => {
+                    tokens.try_push(Token::Ponct("<"))?;
+                    with_type(tokens, self_type)?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    tokens.try_push(Token::Kw("as"))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    with_type(tokens, trait_)?;
+                    tokens.try_push(Token::Ponct(">"))?;
+                    tokens.try_push(Token::Ponct("::"))?;
+                    tokens.try_push(Token::Ident(name, None))?;
+                }
+                Type::ResolvedPath { .. } => {
+                    with_type(tokens, self_type)?;
+                    tokens.try_push(Token::Ponct("::"))?;
+                    tokens.try_push(Token::Ident(name, None))?;
+                }
+                _ => {
+                    todo!("QualifiedPath: trait_ not ResolvedPath");
+                }
+            },
+        },
     }
     Ok(())
 }
