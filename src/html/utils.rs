@@ -266,7 +266,7 @@ pub(super) fn href<'context, 'krate>(
                 _ => warn!(?item, "not handling this kind of items"),
             }
         } else {
-            error!(?id, "id not in paths or index");
+            warn!(?id, "not in paths or index (maybe a leaked private type from a reexport)");
         }
         return None;
     }
