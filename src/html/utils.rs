@@ -344,12 +344,10 @@ impl<'a> Portability<'a> {
     }
 
     pub(crate) fn render_short(&self) -> String {
-        // TODO: Do real processing
         self.inner.to_owned()
     }
 
     pub(crate) fn render_long(&self) -> String {
-        // TODO: Do real processing
-        format!("The portability is definied by: {}", self.inner)
+        format!("The portability is definied by: {}", self.original)
     }
 }
