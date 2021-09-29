@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
-use tracing::{error, trace, warn};
+use tracing::{trace, warn};
 
 use super::render::{GlobalContext, PageContext};
 use crate::pp;
