@@ -653,6 +653,34 @@ fn module_page<'context>(
                         .map(Portability::render_short),
                 });
             }
+            ItemEnum::Static(static_) => {
+                let name = item
+                    .name
+                    .as_ref()
+                    .context("unable to get the name of constant")?;
+
+                let page_context =
+                    static_page(global_context, page_context.item_path, item, static_)?;
+                let filename = filenames.alloc(page_context.filename);
+
+                toc_constants
+                    .items
+                    .push((Cow::Borrowed(name), TocDestination::File(filename)));
+                module_page_content.constants.push(ModuleSectionItem {
+                    name: ItemLink {
+                        name,
+                        link: filename.to_str().with_context(|| {
+                            format!("unable to convert PathBuf {:?} to str", filename)
+                        })?,
+                        class: "static",
+                    },
+                    short_doc: summary_line_doc,
+                    deprecated: item.deprecation.is_some(),
+                    portability: Portability::from_attrs(&item.attrs)?
+                        .as_ref()
+                        .map(Portability::render_short),
+                });
+            }
             ItemEnum::Macro(macro_) => {
                 let name = item
                     .name
@@ -1266,6 +1294,7 @@ macro_rules! é {
 é!(ProcMacro => proc_macro_page "Proc-Macro");
 é!(Function => function_page "Function");
 é!(Constant => constant_page "Constant");
+é!(Static => static_page "Static");
 
 impl<'context, 'krate>
     CodeEnchanted<
