@@ -1494,9 +1494,22 @@ fn with_generic_param_def<'tcx>(
     match &generic_param_def.kind {
         GenericParamDefKind::Lifetime { outlives } => {
             tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
-            if !outlives.is_empty() {
-                unimplemented!("outlives");
-            }
+
+            with(
+                tokens,
+                outlives.as_slice(),
+                Some([Token::Ponct(":"), Token::Special(SpecialToken::Space)]),
+                Option::<Token>::None,
+                Some([
+                    Token::Special(SpecialToken::Space),
+                    Token::Ponct("+"),
+                    Token::Special(SpecialToken::Space),
+                ]),
+                |tokens, outlive| {
+                    tokens.try_push(Token::Ident(outlive, None))?;
+                    Ok(())
+                },
+            )?;
         }
         GenericParamDefKind::Type { bounds, default } => {
             if !&generic_param_def.name.starts_with("impl") {
