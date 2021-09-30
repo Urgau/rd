@@ -84,6 +84,11 @@ pub struct TocSection<'toc> {
     pub(super) items: Vec<(Cow<'toc, str>, TocDestination<'toc>)>,
 }
 
+enum TocSupplier<Supply> {
+    Top(Supply),
+    Sub(Supply, Supply, Supply),
+}
+
 pub enum TocDestination<'a> {
     Id(String),
     File(&'a PathBuf),
@@ -930,8 +935,7 @@ fn trait_page<'context>(
         who.push(CodeEnchantedWithExtras::from_items(
             global_context,
             &page_context,
-            Some(toc),
-            None,
+            TocSupplier::Top(toc),
             item,
             impl_,
             false,
@@ -1026,6 +1030,16 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
         id: METHODS_ID,
         items: vec![],
     };
+    let mut toc_assoc_types = TocSection {
+        name: ASSOCIATED_TYPES,
+        id: ASSOCIATED_TYPES_ID,
+        items: vec![],
+    };
+    let mut toc_assoc_consts = TocSection {
+        name: ASSOCIATED_CONSTS,
+        id: ASSOCIATED_CONSTS_ID,
+        items: vec![],
+    };
     let mut toc_traits = TocSection {
         name: TRAIT_IMPLEMENTATIONS,
         id: TRAIT_IMPLEMENTATIONS_ID,
@@ -1072,8 +1086,11 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                     CodeEnchantedWithExtras::from_items(
                         global_context,
                         page_context,
-                        None,
-                        Some(&mut toc_methods),
+                        TocSupplier::Sub(
+                            &mut toc_methods,
+                            &mut toc_assoc_types,
+                            &mut toc_assoc_consts,
+                        ),
                         item,
                         impl_,
                         true,
@@ -1089,8 +1106,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                                 Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
                                     page_context,
-                                    Some(&mut toc_traits),
-                                    None,
+                                    TocSupplier::Top(&mut toc_traits),
                                     item,
                                     impl_,
                                     false,
@@ -1112,8 +1128,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                                 Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
                                     page_context,
-                                    Some(&mut toc_auto_traits),
-                                    None,
+                                    TocSupplier::Top(&mut toc_auto_traits),
                                     item,
                                     impl_,
                                     false,
@@ -1133,8 +1148,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                     CodeEnchantedWithExtras::from_items(
                         global_context,
                         page_context,
-                        Some(&mut toc_blanket_traits),
-                        None,
+                        TocSupplier::Top(&mut toc_blanket_traits),
                         item,
                         impl_,
                         false,
@@ -1145,7 +1159,14 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     };
 
     Ok((
-        vec![toc_methods, toc_traits, toc_auto_traits, toc_blanket_traits],
+        vec![
+            toc_methods,
+            toc_assoc_types,
+            toc_assoc_consts,
+            toc_traits,
+            toc_auto_traits,
+            toc_blanket_traits,
+        ],
         content,
     ))
 }
@@ -1318,13 +1339,12 @@ impl<'context, 'krate>
     fn from_items(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
-        toc_top_section: Option<&mut TocSection<'context>>,
-        toc_sub_section: Option<&mut TocSection<'context>>,
+        mut toc_section: TocSupplier<&mut TocSection<'context>>,
         item: &'krate Item,
         impl_: &'krate Impl,
         open: bool,
     ) -> Result<Self> {
-        let id = if let Some(toc_top_section) = toc_top_section {
+        let id = if let TocSupplier::Top(toc_top_section) = &mut toc_section {
             if let Some((name, id)) = id(global_context.krate, item) {
                 toc_top_section
                     .items
@@ -1336,8 +1356,6 @@ impl<'context, 'krate>
         } else {
             None
         };
-
-        let mut toc_sub_section = toc_sub_section;
 
         Ok(CodeEnchantedWithExtras {
             code: TokensToHtml(
@@ -1360,11 +1378,18 @@ impl<'context, 'krate>
                         .get(id)
                         .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-                    if let Some(toc_sub_section) = &mut toc_sub_section {
+                    if let TocSupplier::Sub(toc_methods, toc_assoc_types, toc_assoc_consts) =
+                        &mut toc_section
+                    {
                         CodeEnchanted::from_item(
                             global_context,
                             page_context,
-                            toc_sub_section,
+                            match item.inner {
+                                ItemEnum::Method(_) => toc_methods,
+                                ItemEnum::AssocConst { .. } => toc_assoc_consts,
+                                ItemEnum::AssocType { .. } => toc_assoc_types,
+                                _ => unreachable!("cannot be anything else"),
+                            },
                             item,
                             open,
                         )
