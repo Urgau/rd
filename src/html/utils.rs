@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context as _, Result};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
-use tracing::{trace, warn};
+use tracing::{debug, trace, warn};
 
 use super::render::{GlobalContext, PageContext};
 use crate::pp;
@@ -266,7 +266,10 @@ pub(super) fn href<'context, 'krate>(
                 _ => warn!(?item, "not handling this kind of items"),
             }
         } else {
-            warn!(?id, "not in paths or index (maybe a leaked private type from a reexport)");
+            debug!(
+                ?id,
+                "not in paths or index (maybe a leaked private type from a reexport)"
+            );
         }
         return None;
     }

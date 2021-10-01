@@ -167,19 +167,19 @@ pub(crate) fn render<'krate>(
         search.push_str("\n\nconst INDEX = JSON.parse('[");
         for (iitem, item) in global_context.item_paths.iter_mut().enumerate() {
             if iitem != 0 {
-                search.push_str(",");
+                search.push(',');
             }
             search.push_str("{\"components\":[");
             for (icomponent, component) in item.0.iter().enumerate() {
                 if icomponent != 0 {
-                    search.push_str(",");
+                    search.push(',');
                 }
                 search.push_str("{\"name\":\"");
                 search.push_str(&component.name);
                 search.push_str("\",\"lower_case_name\":\"");
                 search.push_str(&component.name.to_ascii_lowercase());
                 search.push_str("\",\"kind\":\"");
-                search.push_str(&component.kind);
+                search.push_str(component.kind);
                 search.push_str("\"}");
             }
 
