@@ -203,10 +203,10 @@ markup::define! {
             p {
                 @name
                 @if *deprecated {
-                    span[class="badge bg-warning text-dark ms-1"] { "Deprecated" }
+                    span[class="badge bg-warning text-wrap text-dark ms-1"] { "Deprecated" }
                 }
                 @if portability.is_some() {
-                    span[class="badge bg-primary ms-1"] { @portability }
+                    span[class="badge bg-primary text-wrap ms-1"] { @portability }
                 }
             }
         }
