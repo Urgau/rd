@@ -197,7 +197,9 @@ a:hover {
 }
 
 .rd-intro {
+    min-width: 0;
 	grid-area: intro;
+    word-break: break-word;
 }
 
 .rd-content {
