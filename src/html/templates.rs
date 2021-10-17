@@ -188,17 +188,21 @@ markup::define! {
         }
     }
 
-    PortabilityNotice(message: String) {
+    PortabilityNotice<
+        'portability
+    > (message: &'portability str, portability: &'portability str) {
         div[class="alert alert-primary", role="alert"] {
             i[class="bi bi-info-circle me-2"] {}
             @message
+            code { @portability }
         }
     }
 
     ModuleSectionItem<
         Item: markup::Render,
         ShortDoc: markup::Render,
-    > (name: Item, short_doc: ShortDoc, deprecated: bool, portability: Option<String>) {
+        Portability: markup::Render,
+    > (name: Item, short_doc: ShortDoc, deprecated: bool, portability: Option<Portability>) {
         div {
             p {
                 @name

@@ -317,7 +317,6 @@ pub(super) fn href<'context, 'krate>(
     }
 }
 
-#[allow(dead_code)]
 pub(crate) struct Portability<'a> {
     original: &'a str,
     inner: &'a str,
@@ -347,11 +346,11 @@ impl<'a> Portability<'a> {
         }))
     }
 
-    pub(crate) fn render_short(&self) -> String {
-        self.inner.to_owned()
+    pub(crate) fn render_short(&self) -> &'a str {
+        self.inner
     }
 
-    pub(crate) fn render_long(&self) -> String {
-        format!("The portability is definied by: {}", self.original)
+    pub(crate) fn render_long(&self) -> (&'static str, &'a str) {
+        ("The portability is definied by: ", self.original)
     }
 }

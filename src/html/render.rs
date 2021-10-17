@@ -118,12 +118,15 @@ impl<'deprecation> DeprecationNotice<'deprecation> {
     }
 }
 
-impl PortabilityNotice {
-    fn from<T: AsRef<str>>(attrs: &[T]) -> Result<Option<Self>> {
+impl<'portability> PortabilityNotice<'portability> {
+    fn from<T: AsRef<str>>(attrs: &'portability [T]) -> Result<Option<Self>> {
         Ok(Portability::from_attrs(attrs)?
             .as_ref()
             .map(Portability::render_long)
-            .map(|msg| Self { message: msg }))
+            .map(|(message, portability)| Self {
+                message,
+                portability,
+            }))
     }
 }
 
