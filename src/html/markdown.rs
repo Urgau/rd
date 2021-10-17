@@ -7,6 +7,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
 
+use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
 use super::utils::*;
 
@@ -47,6 +48,7 @@ fn summary_opts() -> Options {
 pub(super) struct Markdown<'context, 'krate, 'content>(
     &'context GlobalContext<'krate>,
     &'context PageContext<'context>,
+    Option<&'context HtmlId>,
     &'content String,
     &'krate HashMap<String, Id>,
 );
@@ -56,22 +58,23 @@ impl<'context, 'krate, 'content> Markdown<'context, 'krate, 'content> {
     pub(super) fn from_docs(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
+        parent_id: Option<&'context HtmlId>,
         content: &'content Option<String>,
         links: &'krate HashMap<String, Id>,
     ) -> Option<Self> {
         content
             .as_ref()
-            .map(|content| Self(global_context, page_context, content, links))
+            .map(|content| Self(global_context, page_context, parent_id, content, links))
     }
 }
 
 impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, 'content> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
-        if !self.2.is_empty() {
+        if !self.3.is_empty() {
             let adapter = Adapter { f: writer };
 
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                if let Some(id) = self.3.get(broken_link.reference) {
+                if let Some(id) = self.4.get(broken_link.reference) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(self.0, self.1, id)
                     {
@@ -101,9 +104,9 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
                 }
             };
 
-            let parser = Parser::new_with_broken_link_callback(self.2, opts(), Some(&mut replacer));
+            let parser = Parser::new_with_broken_link_callback(self.3, opts(), Some(&mut replacer));
             let parser = CodeBlocks::new(parser);
-            let parser = Headings::new(parser, None);
+            let parser = Headings::new(parser, self.2, self.1, None);
 
             html::write_html(adapter, parser).unwrap();
         }
@@ -118,7 +121,7 @@ pub struct MarkdownWithToc<'context, 'krate, 'content>(
     &'content String,
     &'krate HashMap<String, Id>,
     // RefCell required here because of the immutable `&self` on `render`
-    pub(crate) RefCell<Vec<(u32, String, String)>>,
+    pub(crate) RefCell<Vec<(u32, String, &'context HtmlId)>>,
 );
 
 impl<'context, 'krate, 'content> MarkdownWithToc<'context, 'krate, 'content> {
@@ -184,7 +187,7 @@ impl<'context, 'krate, 'content> markup::Render for MarkdownWithToc<'context, 'k
             let parser = CodeBlocks::new(parser);
 
             let mut toc_borrow = self.4.borrow_mut();
-            let parser = Headings::new(parser, Some(&mut toc_borrow));
+            let parser = Headings::new(parser, None, page_context, Some(&mut toc_borrow));
 
             html::write_html(adapter, parser).unwrap();
         }
@@ -343,23 +346,32 @@ impl<'a, I: Iterator<Item = Event<'a>>> Iterator for SummaryLine<'a, I> {
 }
 
 /// Format a litle bit diffrently the Codeblocks
-struct Headings<'a, 'vec, I: Iterator<Item = Event<'a>>> {
+struct Headings<'a, 'toc, 'context, I: Iterator<Item = Event<'a>>> {
     inner: I,
     buf: VecDeque<Event<'a>>,
-    toc: Option<&'vec mut Vec<(u32, String, String)>>,
+    parent_id: Option<&'context HtmlId>,
+    page_context: &'context PageContext<'context>,
+    toc: Option<&'toc mut Vec<(u32, String, &'context HtmlId)>>,
 }
 
-impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Headings<'a, 'vec, I> {
-    fn new(iter: I, toc: Option<&'vec mut Vec<(u32, String, String)>>) -> Self {
+impl<'a, 'toc, 'context, I: Iterator<Item = Event<'a>>> Headings<'a, 'toc, 'context, I> {
+    fn new(
+        iter: I,
+        parent_id: Option<&'context HtmlId>,
+        page_context: &'context PageContext<'context>,
+        toc: Option<&'toc mut Vec<(u32, String, &'context HtmlId)>>,
+    ) -> Self {
         Self {
             inner: iter,
             buf: Default::default(),
+            parent_id,
+            page_context,
             toc,
         }
     }
 }
 
-impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I> {
+impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'toc, 'vec, I> {
     type Item = Event<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -388,13 +400,17 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
         }
 
         let mut id = String::new();
-
         for c in original_text.trim().chars() {
             if c.is_alphanumeric() {
                 id.push(c.to_ascii_lowercase());
             } else if c.is_whitespace() {
                 id.push('-');
             }
+        }
+
+        let mut id = HtmlId::new(id);
+        if let Some(parent_id) = self.parent_id {
+            id = parent_id + id;
         }
 
         let start_html = format!(
@@ -406,7 +422,8 @@ impl<'a, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 'vec, I>
 
         self.buf.push_back(Event::Html(end_html.into()));
         if let Some(ref mut toc) = self.toc {
-            toc.push((level, original_text, id));
+            let id = self.page_context.ids.alloc(id);
+            toc.push((level, original_text, &*id));
         }
 
         Some(Event::Html(start_html.into()))

@@ -5,3 +5,4 @@ mod markdown;
 pub(crate) mod render;
 mod templates;
 mod utils;
+mod id;

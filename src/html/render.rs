@@ -11,6 +11,7 @@ use tracing::{debug, info, trace, warn};
 use typed_arena::Arena;
 
 use super::constants::*;
+use super::id::Id as HtmlId;
 use super::markdown::{Markdown, MarkdownSummaryLine, MarkdownWithToc};
 use super::templates::*;
 use super::utils::*;
@@ -32,6 +33,7 @@ pub(super) struct PageContext<'context> {
     pub(super) filepath: &'context PathBuf,
     pub(super) filename: PathBuf,
     pub(super) item_path: &'context ItemPath,
+    pub(super) ids: Arena<HtmlId>,
 }
 
 /// Path to an item; slice of [`ItemPathComponent`]
@@ -90,7 +92,7 @@ enum TocSupplier<Supply> {
 }
 
 pub enum TocDestination<'a> {
-    Id(String),
+    Id(&'a HtmlId),
     File(&'a PathBuf),
 }
 
@@ -98,8 +100,7 @@ impl<'a> markup::Render for TocDestination<'a> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
         match self {
             TocDestination::Id(id) => {
-                writer.write_char('#')?;
-                writer.write_str(id)
+                write!(writer, "{}", id.with_pound())
             }
             TocDestination::File(path) => {
                 write!(writer, "{}", path.display())
@@ -276,6 +277,7 @@ fn base_page<'context>(
 
                 ItemPath(path)
             }),
+            ids: Default::default(),
         },
         file,
         name,
@@ -892,7 +894,8 @@ fn trait_page<'context>(
                 who.push(CodeEnchanted::from_item(
                     global_context,
                     &page_context,
-                    toc,
+                    None,
+                    Some(toc),
                     item,
                     true,
                 )?);
@@ -903,7 +906,8 @@ fn trait_page<'context>(
                     .push(CodeEnchanted::from_item(
                         global_context,
                         &page_context,
-                        &mut toc_associated_consts,
+                        None,
+                        Some(&mut toc_associated_consts),
                         item,
                         true,
                     )?);
@@ -914,7 +918,8 @@ fn trait_page<'context>(
                     .push(CodeEnchanted::from_item(
                         global_context,
                         &page_context,
-                        &mut toc_associated_types,
+                        None,
+                        Some(&mut toc_associated_types),
                         item,
                         true,
                     )?);
@@ -1021,10 +1026,12 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                 TokensToHtml<'context, 'krate /*, 'tokens*/>,
                 Markdown<'context, 'krate, 'context>,
                 DeprecationNotice<'context>,
+                &'context HtmlId,
                 CodeEnchanted<
                     TokensToHtml<'context, 'krate /*, 'tokens*/>,
                     Markdown<'context, 'krate, 'context>,
                     DeprecationNotice<'context>,
+                    &'context HtmlId,
                 >,
             >,
         >,
@@ -1102,7 +1109,13 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                         page_context,
                         pp::Tokens::from_item(item, &global_context.krate.index)?,
                     ),
-                    Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+                    Markdown::from_docs(
+                        global_context,
+                        page_context,
+                        None,
+                        &item.docs,
+                        &item.links,
+                    ),
                 ))
             })
             .collect::<Result<Vec<_>>>()?,
@@ -1301,20 +1314,27 @@ impl<'context, 'krate>
         TokensToHtml<'context, 'krate>,
         Markdown<'context, 'krate, 'context>,
         DeprecationNotice<'context>,
+        &'context HtmlId,
     >
 {
     fn from_item(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
-        toc_section: &mut TocSection<'context>,
+        parent_id: Option<&HtmlId>,
+        toc_section: Option<&mut TocSection<'context>>,
         item: &'krate Item,
         open: bool,
     ) -> Result<Self> {
-        let id = if let Some((name, id)) = id(global_context.krate, item) {
-            toc_section
-                .items
-                .push((name, TocDestination::Id(id.clone())));
-            Some(id)
+        let id = if let Some((name, mut id)) = id(global_context.krate, item) {
+            if let Some(parent_id) = parent_id {
+                id = parent_id + id;
+            }
+            let id = page_context.ids.alloc(id);
+
+            if let Some(toc_section) = toc_section {
+                toc_section.items.push((name, TocDestination::Id(id)));
+            }
+            Some(&*id)
         } else {
             None
         };
@@ -1325,29 +1345,10 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+            doc: Markdown::from_docs(global_context, page_context, id, &item.docs, &item.links),
             deprecation: DeprecationNotice::from(&item.deprecation),
             id,
             open,
-            source_href: Option::<String>::None,
-        })
-    }
-
-    fn from_item_without_id(
-        global_context: &'context GlobalContext<'krate>,
-        page_context: &'context PageContext<'context>,
-        item: &'krate Item,
-    ) -> Result<Self> {
-        Ok(Self {
-            code: TokensToHtml(
-                global_context,
-                page_context,
-                pp::Tokens::from_item(item, &global_context.krate.index)?,
-            ),
-            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
-            deprecation: DeprecationNotice::from(&item.deprecation),
-            open: false,
-            id: Option::<String>::None,
             source_href: Option::<String>::None,
         })
     }
@@ -1358,10 +1359,12 @@ impl<'context, 'krate>
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
         Markdown<'context, 'krate, 'context>,
         DeprecationNotice<'context>,
+        &'context HtmlId,
         CodeEnchanted<
             TokensToHtml<'context, 'krate /*, 'tokens*/>,
             Markdown<'context, 'krate, 'context>,
             DeprecationNotice<'context>,
+            &'context HtmlId,
         >,
     >
 {
@@ -1373,12 +1376,12 @@ impl<'context, 'krate>
         impl_: &'krate Impl,
         open: bool,
     ) -> Result<Self> {
-        let id = if let TocSupplier::Top(toc_top_section) = &mut toc_section {
+        let parent_id = if let TocSupplier::Top(toc_top_section) = &mut toc_section {
             if let Some((name, id)) = id(global_context.krate, item) {
-                toc_top_section
-                    .items
-                    .push((name, TocDestination::Id(id.clone())));
-                Some(id)
+                let id = page_context.ids.alloc(id);
+
+                toc_top_section.items.push((name, TocDestination::Id(id)));
+                Some(&*id)
             } else {
                 None
             }
@@ -1392,9 +1395,17 @@ impl<'context, 'krate>
                 page_context,
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
             ),
-            doc: Markdown::from_docs(global_context, page_context, &item.docs, &item.links),
+            doc: Markdown::from_docs(
+                global_context,
+                page_context,
+                match toc_section {
+                    TocSupplier::Top(_) => parent_id,
+                    _ => None,
+                },
+                &item.docs,
+                &item.links,
+            ),
             deprecation: DeprecationNotice::from(&item.deprecation),
-            id,
             open,
             source_href: Option::<String>::None,
             extras: impl_
@@ -1407,26 +1418,28 @@ impl<'context, 'krate>
                         .get(id)
                         .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-                    if let TocSupplier::Sub(toc_methods, toc_assoc_types, toc_assoc_consts) =
-                        &mut toc_section
-                    {
-                        CodeEnchanted::from_item(
-                            global_context,
-                            page_context,
-                            match item.inner {
+                    CodeEnchanted::from_item(
+                        global_context,
+                        page_context,
+                        parent_id,
+                        if let TocSupplier::Sub(toc_methods, toc_assoc_types, toc_assoc_consts) =
+                            &mut toc_section
+                        {
+                            Some(match item.inner {
                                 ItemEnum::Method(_) => toc_methods,
                                 ItemEnum::AssocConst { .. } => toc_assoc_consts,
                                 ItemEnum::AssocType { .. } => toc_assoc_types,
                                 _ => unreachable!("cannot be anything else"),
-                            },
-                            item,
-                            open,
-                        )
-                    } else {
-                        CodeEnchanted::from_item_without_id(global_context, page_context, item)
-                    }
+                            })
+                        } else {
+                            None
+                        },
+                        item,
+                        open,
+                    )
                 })
                 .collect::<Result<Vec<_>>>()?,
+            id: parent_id,
         })
     }
 }

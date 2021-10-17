@@ -136,7 +136,7 @@ markup::define! {
                                         @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
                                             @if *level == 1 {
                                                 li {
-                                                    a[href=format!("#{}", destination), class="d-inline-block align-items-center rounded"] {
+                                                    a[href=destination.with_pound(), class="d-inline-block align-items-center rounded"] {
                                                         @name
                                                     }
                                                 }
@@ -259,7 +259,8 @@ markup::define! {
         Code: markup::Render,
         Documentation: markup::Render,
         Deprecation: markup::Render,
-    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, id: Option<String>, open: bool, source_href: Option<String>) {
+        Id: markup::Render,
+    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, id: Option<Id>, open: bool, source_href: Option<String>) {
         div[id=id, class="mt-2 mb-2 rd-anchor"] {
             @if doc.is_some() {
                 details[open=open] {
@@ -280,8 +281,9 @@ markup::define! {
         Code: markup::Render,
         Documentation: markup::Render,
         Deprecation: markup::Render,
+        Id: markup::Render,
         Extra: markup::Render,
-    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Vec<Extra>, id: Option<String>, open: bool, source_href: Option<String>) {
+    > (code: Code, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Vec<Extra>, id: Option<Id>, open: bool, source_href: Option<String>) {
         div[id=id, class="mt-2 mb-2 rd-anchor"] {
             @if doc.is_some() || !extras.is_empty() {
                 details[open=open] {

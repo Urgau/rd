@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use tracing::{debug, trace, warn};
 
 use super::render::{GlobalContext, PageContext};
+use super::id::Id as HtmlId;
 use crate::pp;
 
 pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
@@ -121,14 +122,14 @@ pub(crate) fn name_of(impl_: &Impl) -> Result<String> {
 pub(crate) fn id<'krate>(
     krate: &'krate Crate,
     item: &'krate Item,
-) -> Option<(Cow<'krate, str>, String)> {
+) -> Option<(Cow<'krate, str>, HtmlId)> {
     if let Some(name) = &item.name {
         let (item_kind_name, is_file) = item_kind(item);
 
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
         assert!(is_file || !matches!(&item.inner, ItemEnum::Typedef(_)));
-        Some((Cow::Borrowed(name), format!("{}.{}", item_kind_name, name)))
+        Some((Cow::Borrowed(name), HtmlId::new(format!("{}.{}", item_kind_name, name))))
     } else if let ItemEnum::Impl(impl_) = &item.inner {
         let name = name_of(impl_).ok()?;
         let mut id = String::new();
@@ -142,7 +143,7 @@ pub(crate) fn id<'krate>(
             }
         }
 
-        Some((Cow::Owned(name), id))
+        Some((Cow::Owned(name), HtmlId::new(id)))
     } else {
         None
     }
