@@ -267,7 +267,7 @@ markup::define! {
                         @InlineCodeWithSource { code, source_href }
                     }
                     @deprecation
-                    div[class="mt-2"] { @doc }
+                    div[class="mt-2 item-documentation"] { @doc }
                 }
             } else {
                 @InlineCodeWithSource { code, source_href }
@@ -289,7 +289,7 @@ markup::define! {
                         @InlineCodeWithSource { code, source_href }
                     }
                     @deprecation
-                    div[class="mt-2"] { @doc }
+                    div[class="mt-2 item-documentation"] { @doc }
                     div[style = "padding-left:1.5rem;"] {
                         @for extra in extras {
                             @extra
