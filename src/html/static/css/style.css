@@ -82,7 +82,7 @@ a:hover {
 	color: #7c5af3;
 }
 
-.item-table .typedef, .item-title .typedef, .rd-search-item .typedef, code .ident.typedef {
+.item-table .type, .item-title .type, .rd-search-item .type, code .ident.type {
 	color: #ba5d00;
 }
 
