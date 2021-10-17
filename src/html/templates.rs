@@ -52,7 +52,7 @@ markup::define! {
                 meta[charset="utf-8"];
                 meta[name="viewport", content="width=device-width, initial-scale=1"];
                 meta[name="color-scheme", content="light dark"];
-                link[href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.0.0/dist/css/bootstrap-blackbox.min.css", integrity="sha384-aE3VFDFEZhkX77UGT8Vlt+IytNYNaL8BQXE2CpEfa64eadN+ccYuLmmBa+AcaDC+", rel="stylesheet", crossorigin="anonymous"];
+                link[href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-blackbox.min.css", integrity="sha384-nXtYGwAUBOgb4M8Eo9xOK3Er3bVPQo1HguUNWf/RheIagsbCaP3ZaYqVeUqHEr20", rel="stylesheet", crossorigin="anonymous"];
                 link[href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css", integrity="sha384-tKLJeE1ALTUwtXlaGjJYM3sejfssWdAaWR2s97axw4xkiAdMzQjtOjgcyw0Y50KU", rel="stylesheet", crossorigin="anonymous"];
                 link[href=format!("{}/{}", infos.root_path.display(), STYLE_CSS), rel="stylesheet"];
                 link[href=format!("{}/{}", infos.root_path.display(), RUST_SVG), rel="icon", type="image/svg+xml"];
@@ -65,7 +65,7 @@ markup::define! {
                 }
                 @Footer { year: 2021 }
                 script[src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js", integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/", crossorigin="anonymous"] {}
-                script[src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.0/dist/js/darkmode.min.js", integrity="sha384-HThLYPzwvDQUSPlEHv2I1dHBLQN8MPEnL1L5Pwr7eXWlMV95LvYLFNRqH1FOHhmB", crossorigin="anonymous"] {}
+                script[src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js", integrity="sha384-A4SLs39X/aUfwRclRaXvNeXNBTLZdnZdHhhteqbYFS2jZTRD79tKeFeBn7SGXNpi", crossorigin="anonymous"] {}
                 script[src=format!("{}/{}/{}", infos.root_path.display(), infos.krate_name, SEARCH_INDEX_JS)] {}
                 script[src=format!("{}/{}", infos.root_path.display(), SEARCH_JS)] {}
             }
