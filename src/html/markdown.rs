@@ -279,24 +279,29 @@ impl<'a, I: Iterator<Item = Event<'a>>> SummaryLine<'a, I> {
     }
 }
 
-fn check_if_allowed_tag(t: &Tag<'_>) -> bool {
-    matches!(
-        t,
-        Tag::Paragraph | Tag::Item | Tag::Emphasis | Tag::Strong | Tag::Link(..) | Tag::BlockQuote
-    )
-}
-
-fn is_forbidden_tag(t: &Tag<'_>) -> bool {
-    matches!(
-        t,
-        Tag::CodeBlock(_) | Tag::Table(_) | Tag::TableHead | Tag::TableRow | Tag::TableCell
-    )
-}
-
 impl<'a, I: Iterator<Item = Event<'a>>> Iterator for SummaryLine<'a, I> {
     type Item = Event<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        fn check_if_allowed_tag(t: &Tag<'_>) -> bool {
+            matches!(
+                t,
+                Tag::Paragraph
+                    | Tag::Item
+                    | Tag::Emphasis
+                    | Tag::Strong
+                    | Tag::Link(..)
+                    | Tag::BlockQuote
+            )
+        }
+
+        fn is_forbidden_tag(t: &Tag<'_>) -> bool {
+            matches!(
+                t,
+                Tag::CodeBlock(_) | Tag::Table(_) | Tag::TableHead | Tag::TableRow | Tag::TableCell
+            )
+        }
+
         if self.started && self.depth == 0 {
             return None;
         }
