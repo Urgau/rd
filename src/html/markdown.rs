@@ -414,8 +414,8 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
         }
 
         let start_html = format!(
-            "<h{} class=\"rd-anchor\" id=\"{}\"><a href=\"#{}\">",
-            level, id, id
+            "<h{} class=\"rd-anchor\" id=\"{}\"><a href=\"{}\">",
+            level, id, id.with_pound()
         );
 
         let end_html = format!("</a></h{}>", level);
