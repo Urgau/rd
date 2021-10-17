@@ -889,7 +889,8 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::OpaqueTy(_) => todo!(),
+            ItemEnum::PrimitiveType(_) => todo!("ItemEnum::PrimitiveType"),
+            ItemEnum::OpaqueTy(_) => todo!("ItemEnum::OpaqueTy"),
             ItemEnum::Constant(constant) => {
                 let mut tokens = Vec::with_capacity(16);
 
@@ -932,7 +933,7 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::ForeignType => todo!(),
+            ItemEnum::ForeignType => todo!("ItemEnum::ForeignType"),
             ItemEnum::Macro(macro_) => {
                 let mut tokens = Vec::with_capacity(12);
 
@@ -1710,7 +1711,11 @@ fn with_type<'tcx>(
         }
         // Fixed-size numeric types (plus int/usize/float), char, arrays, slices, and tuples
         Type::Primitive(primitive) => {
-            tokens.try_push(Token::Primitive(primitive))?;
+            if primitive == "never" {
+                tokens.try_push(Token::Ident("!", None))?;
+            } else {
+                tokens.try_push(Token::Primitive(primitive))?;
+            }
         }
         // `extern "ABI" fn`
         Type::FunctionPointer(fn_ptr) => {
@@ -1812,10 +1817,6 @@ fn with_type<'tcx>(
                 &with_generic_bound,
             )?;
         }
-        // `!`
-        Type::Never => {
-            tokens.try_push(Token::Ident("!", None))?;
-        }
         // `_`
         Type::Infer => {
             tokens.try_push(Token::Ident("_", None))?;
@@ -1857,7 +1858,6 @@ fn with_type<'tcx>(
             | Type::Slice(_)
             | Type::Array { .. }
             | Type::ImplTrait(_)
-            | Type::Never
             | Type::Infer
             | Type::RawPointer { .. }
             | Type::BorrowedRef { .. }
