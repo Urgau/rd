@@ -133,7 +133,7 @@ markup::define! {
                                 } else {
                                     a[class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill", href="#item-documentation", "data-bs-toggle"="collapse", "data-bs-target"="#toc-documentation", "aria-expanded"="true", "aria-current"="true"] { strong { "Documentation" } }
                                     ul[id="toc-documentation", class="collapse show"] {
-                                        @for (level, ref name, ref destination) in item_doc.4.borrow_mut().iter() {
+                                        @for (level, ref name, destination) in item_doc.4.borrow_mut().iter() {
                                             @if *level == 1 {
                                                 li {
                                                     a[href=destination.with_pound(), class="d-inline-block align-items-center rounded"] {
