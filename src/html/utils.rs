@@ -134,11 +134,24 @@ pub(crate) fn id<'krate>(
         let name = name_of(impl_).ok()?;
         let mut id = String::new();
 
+        let mut should_insert_tiret = false;
         for token in pp::Tokens::from_item(item, &krate.index).unwrap().iter() {
             match token {
-                pp::Token::Ponct(_) => id.push('-'),
-                pp::Token::Ident(ident, _) => id.push_str(ident),
-                pp::Token::Kw(kw) => id.push_str(kw),
+                pp::Token::Ponct(_) | pp::Token::Special(pp::SpecialToken::Space) => should_insert_tiret = true,
+                pp::Token::Ident(ident, _) => {
+                    if should_insert_tiret {
+                        id.push('-');
+                        should_insert_tiret = false;
+                    }
+                    id.push_str(ident)
+                },
+                pp::Token::Kw(kw) => {
+                    if should_insert_tiret {
+                        id.push('-');
+                        should_insert_tiret = false;
+                    }
+                    id.push_str(kw)
+                },
                 _ => {}
             }
         }
