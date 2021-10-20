@@ -5,6 +5,8 @@ pub const RUST_SVG: &str = "rust.svg";
 pub const SEARCH_JS: &str = "search.js";
 pub const SEARCH_INDEX_JS: &str = "search-index.js";
 
+pub const VARIANTS: &str = "Variants";
+pub const VARIANTS_ID: &str = "variants";
 pub const ASSOCIATED_TYPES: &str = "Associated Types";
 pub const ASSOCIATED_TYPES_ID: &str = "associated-types";
 pub const ASSOCIATED_CONSTS: &str = "Associated Consts";

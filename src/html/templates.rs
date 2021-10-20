@@ -311,15 +311,16 @@ markup::define! {
 
     StructUnionEnumContent<
         'title,
-        Field: markup::Render,
-        FieldDoc: markup::Render,
+        Variant: markup::Render,
+        VariantId: markup::Render,
+        VariantDoc: markup::Render,
         Traits: markup::Render
-    > (title: &'title str, fields: Vec<(Field, Option<FieldDoc>)>, traits: Traits) {
-        @if !fields.is_empty() {
+    > (title: &'title str, variants: Vec<(Variant, VariantId, Option<VariantDoc>)>, traits: Traits) {
+        @if !variants.is_empty() {
             section {
                 h2[class="border-bottom pb-1"] { @title }
-                @for (code, doc) in fields {
-                    div {
+                @for (code, id, doc) in variants {
+                    div[id=id, class="rd-anchor"] {
                         @InlineCode { code }
                         @if doc.is_some() {
                             div[class="ps-3"] { @doc }

@@ -1016,13 +1016,14 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
     title: &'title str,
-    fields: &[Id],
+    variants: &[Id],
     impls: &[Id],
 ) -> Result<(
     Vec<TocSection<'context>>,
     StructUnionEnumContent<
         'title,
         TokensToHtml<'context, 'krate /*, 'tokens*/>,
+        &'context HtmlId,
         Markdown<'context, 'krate, 'context>,
         TraitsWithItems<
             CodeEnchantedWithExtras<
@@ -1063,6 +1064,11 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
         .collect::<Result<Vec<_>>>()?;
     impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
 
+    let mut toc_variants = TocSection {
+        name: VARIANTS,
+        id: VARIANTS_ID,
+        items: vec![],
+    };
     let mut toc_methods = TocSection {
         name: METHODS,
         id: METHODS_ID,
@@ -1097,7 +1103,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     // TODO: Move all the filtering logic directly in the map above
     let content = StructUnionEnumContent {
         title,
-        fields: fields
+        variants: variants
             .iter()
             .map(|id| {
                 let item = global_context
@@ -1106,12 +1112,21 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                     .get(id)
                     .with_context(|| format!("Unable to find the item {:?}", id))?;
 
+                let item_name = item.name.as_ref().expect("expect variant/field to have a name");
+                let html_id = page_context.ids.alloc(HtmlId::new(format!("variant.{}", item_name)));
+
+                toc_variants.items.push((
+                    item_name.into(),
+                    TocDestination::Id(html_id),
+                ));
+
                 Ok((
                     TokensToHtml(
                         global_context,
                         page_context,
                         pp::Tokens::from_item(item, &global_context.krate.index)?,
                     ),
+                    &*html_id,
                     Markdown::from_docs(
                         global_context,
                         page_context,
@@ -1204,6 +1219,7 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
 
     Ok((
         vec![
+            toc_variants,
             toc_methods,
             toc_assoc_types,
             toc_assoc_consts,
