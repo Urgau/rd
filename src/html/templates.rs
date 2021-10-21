@@ -308,24 +308,55 @@ markup::define! {
             }
         }
     }
+    
+    VariantEnchanted<
+        Code: markup::Render,
+        Id: markup::Render,
+        Documentation: markup::Render,
+        Deprecation: markup::Render,
+    > (code: Code, id: Id, doc: Option<Documentation>, deprecation: Option<Deprecation>) {
+        div[id=id, class="rd-anchor"] {
+            @InlineCode { code }
+            @deprecation
+            @if doc.is_some() {
+                div[class="item-documentation"] { @doc }
+            }
+        }
+    }
+    
+    VariantEnchantedWithExtras<
+        Name: markup::Render,
+        Id: markup::Render,
+        Documentation: markup::Render,
+        Deprecation: markup::Render,
+        Extra: markup::Render,
+    > (name: Name, id: Id, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Option<Vec<Extra>>) {
+        div[id=id, class="mt-2 mb-2 rd-anchor"] {
+            @InlineCode { code: name }
+            @deprecation
+            @if let Some(extras) = extras {
+                div[style = "padding-left:1.5rem;"] {
+                    @for extra in extras {
+                        @extra
+                    }
+                }
+            }
+            @if doc.is_some() {
+                div[class="mt-2 item-documentation"] { @doc }
+            }
+        }
+    }
 
     StructUnionEnumContent<
         'title,
         Variant: markup::Render,
-        VariantId: markup::Render,
-        VariantDoc: markup::Render,
         Traits: markup::Render
-    > (title: &'title str, variants: Vec<(Variant, VariantId, Option<VariantDoc>)>, traits: Traits) {
+    > (title: &'title str, variants: Vec<Variant>, traits: Traits) {
         @if !variants.is_empty() {
             section {
-                h2[class="border-bottom pb-1"] { @title }
-                @for (code, id, doc) in variants {
-                    div[id=id, class="rd-anchor"] {
-                        @InlineCode { code }
-                        @if doc.is_some() {
-                            div[class="ps-3"] { @doc }
-                        }
-                    }
+                h2[class="border-bottom pb-1 rd-anchor", id=VARIANTS_ID] { @title }
+                @for variant in variants {
+                    @variant
                 }
             }
         }

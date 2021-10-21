@@ -1022,9 +1022,18 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
     Vec<TocSection<'context>>,
     StructUnionEnumContent<
         'title,
-        TokensToHtml<'context, 'krate /*, 'tokens*/>,
-        &'context HtmlId,
-        Markdown<'context, 'krate, 'context>,
+        VariantEnchantedWithExtras<
+            &'krate str,
+            &'context HtmlId,
+            Markdown<'context, 'krate, 'context>,
+            DeprecationNotice<'context>,
+            VariantEnchanted<
+                TokensToHtml<'context, 'krate /*, 'tokens*/>,
+                &'context HtmlId,
+                Markdown<'context, 'krate, 'context>,
+                DeprecationNotice<'context>,
+            >,
+        >,
         TraitsWithItems<
             CodeEnchantedWithExtras<
                 TokensToHtml<'context, 'krate /*, 'tokens*/>,
@@ -1112,29 +1121,12 @@ fn struct_union_enum_content<'context, 'krate, 'title>(
                     .get(id)
                     .with_context(|| format!("Unable to find the item {:?}", id))?;
 
-                let item_name = item.name.as_ref().expect("expect variant/field to have a name");
-                let html_id = page_context.ids.alloc(HtmlId::new(format!("variant.{}", item_name)));
-
-                toc_variants.items.push((
-                    item_name.into(),
-                    TocDestination::Id(html_id),
-                ));
-
-                Ok((
-                    TokensToHtml(
-                        global_context,
-                        page_context,
-                        pp::Tokens::from_item(item, &global_context.krate.index)?,
-                    ),
-                    &*html_id,
-                    Markdown::from_docs(
-                        global_context,
-                        page_context,
-                        None,
-                        &item.docs,
-                        &item.links,
-                    ),
-                ))
+                VariantEnchantedWithExtras::from_variant(
+                    global_context,
+                    page_context,
+                    &mut toc_variants,
+                    item,
+                )
             })
             .collect::<Result<Vec<_>>>()?,
         traits: TraitsWithItems {
@@ -1459,6 +1451,146 @@ impl<'context, 'krate>
                 })
                 .collect::<Result<Vec<_>>>()?,
             id: parent_id,
+        })
+    }
+}
+
+impl<'context, 'krate>
+    VariantEnchanted<
+        TokensToHtml<'context, 'krate /*, 'tokens*/>,
+        &'context HtmlId,
+        Markdown<'context, 'krate, 'context>,
+        DeprecationNotice<'context>,
+    >
+{
+    fn from_type(
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
+        parent_id: &HtmlId,
+        type_: &'krate Type,
+        pos: usize,
+    ) -> Result<Self> {
+        let id = HtmlId::new(format!("field.{}", pos));
+        let id = page_context.ids.alloc(parent_id + id);
+
+        Ok(Self {
+            code: TokensToHtml(global_context, page_context, pp::Tokens::from_type(type_)?),
+            id,
+            doc: None,
+            deprecation: None,
+        })
+    }
+
+    fn from_item(
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
+        parent_id: &'context HtmlId,
+        item: &'krate Item,
+    ) -> Result<Self> {
+        let (_, id) = id(global_context.krate, item).context("TODO")?;
+        let id = page_context.ids.alloc(parent_id + id);
+
+        Ok(Self {
+            code: TokensToHtml(
+                global_context,
+                page_context,
+                pp::Tokens::from_item(item, &global_context.krate.index)?,
+            ),
+            id,
+            doc: Markdown::from_docs(
+                global_context,
+                page_context,
+                Some(parent_id),
+                &item.docs,
+                &item.links,
+            ),
+            deprecation: DeprecationNotice::from(&item.deprecation),
+        })
+    }
+}
+
+impl<'context, 'krate>
+    VariantEnchantedWithExtras<
+        &'krate str,
+        &'context HtmlId,
+        Markdown<'context, 'krate, 'context>,
+        DeprecationNotice<'context>,
+        VariantEnchanted<
+            TokensToHtml<'context, 'krate /*, 'tokens*/>,
+            &'context HtmlId,
+            Markdown<'context, 'krate, 'context>,
+            DeprecationNotice<'context>,
+        >,
+    >
+{
+    fn from_variant(
+        global_context: &'context GlobalContext<'krate>,
+        page_context: &'context PageContext<'context>,
+        toc_section: &mut TocSection<'context>,
+        item: &'krate Item,
+    ) -> Result<Self> {
+        let (name, parent_id) = if let Some((name, id)) = id(global_context.krate, item) {
+            let id = page_context.ids.alloc(id);
+            let borrow_name = match name {
+                Cow::Borrowed(n) => n,
+                Cow::Owned(_) => unreachable!(),
+            };
+            toc_section.items.push((name, TocDestination::Id(id)));
+            (borrow_name, &*id)
+        } else {
+            unreachable!()
+        };
+
+        Ok(VariantEnchantedWithExtras {
+            name: &name,
+            id: &*parent_id,
+            doc: Markdown::from_docs(
+                global_context,
+                page_context,
+                Some(parent_id),
+                &item.docs,
+                &item.links,
+            ),
+            deprecation: DeprecationNotice::from(&item.deprecation),
+            extras: match &item.inner {
+                ItemEnum::Variant(v) => match v {
+                    Variant::Struct(ids) => Some(
+                        ids.iter()
+                            .map(|id| {
+                                let item =
+                                    global_context.krate.index.get(id).with_context(|| {
+                                        format!("Unable to find the item {:?}", id)
+                                    })?;
+
+                                VariantEnchanted::from_item(
+                                    global_context,
+                                    page_context,
+                                    parent_id,
+                                    item,
+                                )
+                            })
+                            .collect::<Result<Vec<_>>>()?,
+                    ),
+                    Variant::Tuple(types) => Some(
+                        types
+                            .iter()
+                            .enumerate()
+                            .map(|(pos, type_)| {
+                                VariantEnchanted::from_type(
+                                    global_context,
+                                    page_context,
+                                    parent_id,
+                                    type_,
+                                    pos,
+                                )
+                            })
+                            .collect::<Result<Vec<_>>>()?,
+                    ),
+                    Variant::Plain => None,
+                },
+                ItemEnum::StructField(_) => None,
+                _ => unreachable!(),
+            },
         })
     }
 }
