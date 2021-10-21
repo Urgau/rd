@@ -35,7 +35,7 @@ impl Add for Id {
     type Output = Id;
 
     fn add(self, other: Self) -> Self {
-        Self(format!("{}:{}", self.0, other.0))
+        Self(format!("{}.{}", self.0, other.0))
     }
 }
 
@@ -43,7 +43,7 @@ impl Add<Id> for &Id {
     type Output = Id;
 
     fn add(self, other: Id) -> Self::Output {
-        Id::new(format!("{}:{}", self.0, other.0))
+        Id::new(format!("{}.{}", self.0, other.0))
     }
 }
 
