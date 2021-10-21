@@ -23,7 +23,7 @@ pub(super) struct GlobalContext<'krate> {
     pub(super) krate: &'krate Crate,
     pub(super) krate_name: &'krate str,
     pub(super) files: Arena<PathBuf>,
-    pub(super) item_paths: Arena<ItemPath>,
+    pub(super) paths: Arena<ItemPath>,
 }
 
 /// A context that is unique from each page
@@ -160,7 +160,7 @@ pub(crate) fn render<'krate>(
             opt,
             krate,
             files: Default::default(),
-            item_paths: Default::default(),
+            paths: Default::default(),
             krate_name: krate_item.name.as_ref().context("expect a crate name")?,
         };
 
@@ -169,7 +169,7 @@ pub(crate) fn render<'krate>(
         let mut search = String::new();
 
         search.push_str("\n\nconst INDEX = JSON.parse('[");
-        for (iitem, item) in global_context.item_paths.iter_mut().enumerate() {
+        for (iitem, item) in global_context.paths.iter_mut().enumerate() {
             if iitem != 0 {
                 search.push(',');
             }
@@ -267,7 +267,7 @@ fn base_page<'context>(
             item,
             filepath,
             filename,
-            item_path: global_context.item_paths.alloc({
+            item_path: global_context.paths.alloc({
                 let mut path = vec![];
                 if let Some(pip) = parent_item_path {
                     path.extend_from_slice(pip.0.as_slice());
