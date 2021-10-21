@@ -391,7 +391,7 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
             match event {
                 Event::End(Tag::Heading(..)) => break,
                 Event::Start(Tag::Link(_, _, _)) | Event::End(Tag::Link(..)) => {}
-                Event::Text(ref s) => {
+                Event::Text(ref s) | Event::Code(ref s) => {
                     original_text.push_str(s);
                     self.buf.push_back(event);
                 }
