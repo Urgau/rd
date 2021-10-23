@@ -200,9 +200,9 @@ markup::define! {
 
     ModuleSectionItem<
         Item: markup::Render,
-        ShortDoc: markup::Render,
+        Summary: markup::Render,
         Portability: markup::Render,
-    > (name: Item, short_doc: ShortDoc, deprecated: bool, portability: Option<Portability>) {
+    > (name: Item, summary: Summary, deprecated: bool, portability: Option<Portability>) {
         div {
             p {
                 @name
@@ -214,7 +214,7 @@ markup::define! {
                 }
             }
         }
-        div { @short_doc }
+        div { @summary }
     }
 
     ModuleSection<
