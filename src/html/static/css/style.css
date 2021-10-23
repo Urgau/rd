@@ -206,6 +206,10 @@ a:hover {
 	grid-area: content;
 }
 
+.rd-content summary {
+    list-style-position: outside;
+}
+
 .rd-toc {
 	grid-area: toc;
 	overflow: auto;
