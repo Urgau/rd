@@ -210,6 +210,10 @@ a:hover {
     list-style-position: outside;
 }
 
+.rd-content > section {
+    margin: 1rem 0 1rem 0;
+}
+
 .rd-toc {
 	grid-area: toc;
 	overflow: auto;

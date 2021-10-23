@@ -222,10 +222,12 @@ markup::define! {
         Item: markup::Render,
     > (name: &'name str, id: &'name str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
-            h3[id=id, class="border-bottom pb-1 rd-anchor"] { @name }
-            div[class = "item-table"] {
-                @for item in *items {
-                    @item
+            section {
+                h3[id=id, class="border-bottom rd-anchor"] { @name }
+                div[class = "item-table"] {
+                    @for item in *items {
+                        @item
+                    }
                 }
             }
         }
@@ -236,9 +238,11 @@ markup::define! {
         Item: markup::Render,
     > (name: &'name str, id: &'name str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
-            h3[id=id, class="border-bottom pb-1 mt-2 rd-anchor"] { @name }
-            @for item in *items {
-                @item
+            section {
+                h3[id=id, class="border-bottom rd-anchor"] { @name }
+                @for item in *items {
+                    @item
+                }
             }
         }
     }
@@ -360,9 +364,7 @@ markup::define! {
                 }
             }
         }
-        section {
-            @traits
-        }
+        @traits
     }
 
     ModulePageContent<
