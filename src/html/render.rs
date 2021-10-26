@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 use std::fs::{DirBuilder, File};
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use tracing::{debug, info, trace, warn};
+use log::{debug, info, trace, warn};
 use typed_arena::Arena;
 
 use super::constants::*;
@@ -255,7 +255,7 @@ fn base_page<'context>(
 
     info!("generating {} {}", item_kind_name, name);
     debug!("creating the {} file {:?}", item_kind_name, filepath);
-    trace!(?krate_path, "ID: {:?}", &item.id);
+    trace!("ID: {:?} -- krate_path {:?}", &item.id, &krate_path);
 
     let path = global_context.opt.output.join(&filepath);
     let file =

@@ -1,11 +1,10 @@
 use anyhow::{Context as _, Result};
+use log::{info, LevelFilter};
 use rustdoc_types::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use tracing::{info, Level};
-use tracing_subscriber::FmtSubscriber;
 
 mod html;
 mod pp;
@@ -34,16 +33,14 @@ pub(crate) struct Opt {
 fn main() -> Result<()> {
     let opt = Opt::from_args();
 
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(match opt.verbose {
-            0 => Level::INFO,
-            1 => Level::DEBUG,
-            _ => Level::TRACE,
+    env_logger::builder()
+        .filter_level(match opt.verbose {
+            0 => LevelFilter::Info,
+            1 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
         })
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
-        .context("setting default subscriber failed")?;
+        .try_init()
+        .context("setting env logger failed")?;
 
     info!("opening input file: {:?}", &opt.input);
     let reader = File::open(&opt.input).context("The file provided doesn't exists")?;

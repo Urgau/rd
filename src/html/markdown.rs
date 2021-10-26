@@ -6,6 +6,7 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
+use log::warn;
 
 use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
@@ -658,7 +659,7 @@ impl LangString {
                             None
                         }
                     {
-                        tracing::warn!("unknow attribute `{}`. Did you mean `{}`?", x, flag);
+                        warn!("unknow attribute `{}`. Did you mean `{}`?", x, flag);
                     }
                     seen_other_tags = true;
                 }

@@ -1,13 +1,13 @@
 //! Collections of utilities functions for the html generation
 
 use anyhow::{anyhow, Context as _, Result};
+use log::{debug, trace, warn};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::path::{Path, PathBuf};
-use tracing::{debug, trace, warn};
 
-use super::render::{GlobalContext, PageContext};
 use super::id::Id as HtmlId;
+use super::render::{GlobalContext, PageContext};
 use crate::pp;
 
 pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
@@ -129,7 +129,10 @@ pub(crate) fn id<'krate>(
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
         assert!(is_file || !matches!(&item.inner, ItemEnum::Typedef(_)));
-        Some((Cow::Borrowed(name), HtmlId::new(format!("{}.{}", item_kind_name, name))))
+        Some((
+            Cow::Borrowed(name),
+            HtmlId::new(format!("{}.{}", item_kind_name, name)),
+        ))
     } else if let ItemEnum::Impl(impl_) = &item.inner {
         let name = name_of(impl_).ok()?;
         let mut id = String::new();
@@ -137,21 +140,23 @@ pub(crate) fn id<'krate>(
         let mut should_insert_tiret = false;
         for token in pp::Tokens::from_item(item, &krate.index).unwrap().iter() {
             match token {
-                pp::Token::Ponct(_) | pp::Token::Special(pp::SpecialToken::Space) => should_insert_tiret = true,
+                pp::Token::Ponct(_) | pp::Token::Special(pp::SpecialToken::Space) => {
+                    should_insert_tiret = true
+                }
                 pp::Token::Ident(ident, _) => {
                     if should_insert_tiret {
                         id.push('-');
                         should_insert_tiret = false;
                     }
                     id.push_str(ident)
-                },
+                }
                 pp::Token::Kw(kw) => {
                     if should_insert_tiret {
                         id.push('-');
                         should_insert_tiret = false;
                     }
                     id.push_str(kw)
-                },
+                }
                 _ => {}
             }
         }
@@ -277,12 +282,12 @@ pub(super) fn href<'context, 'krate>(
                         "associatedconst",
                     ))
                 }
-                _ => warn!(?item, "not handling this kind of items"),
+                _ => warn!("item={:?} not handling this kind of items", item),
             }
         } else {
             debug!(
-                ?id,
-                "not in paths or index (maybe a leaked private type from a reexport)"
+                "id={:?} not in paths or index (maybe a leaked private type from a reexport)",
+                id
             );
         }
         return None;
@@ -325,7 +330,7 @@ pub(super) fn href<'context, 'krate>(
 
         Some((external_crate_url, path, None, to_kind))
     } else {
-        trace!(?to_kind, "not is_always_file");
+        trace!("to_kind={:?} is not is_always_file", to_kind);
         None
     }
 }
