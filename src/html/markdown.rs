@@ -1,12 +1,12 @@
 //! Markdown handling for HTML output
 
+use log::warn;
 use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
 use std::{fmt, io, str};
-use log::warn;
 
 use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
@@ -75,7 +75,7 @@ impl<'context, 'krate, 'content> markup::Render for Markdown<'context, 'krate, '
             let adapter = Adapter { f: writer };
 
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                if let Some(id) = self.4.get(broken_link.reference) {
+                if let Some(id) = self.4.get(broken_link.reference.as_ref()) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(self.0, self.1, id)
                     {
@@ -154,7 +154,7 @@ impl<'context, 'krate, 'content> markup::Render for MarkdownWithToc<'context, 'k
             let page_context = self.1;
             let ids = self.3;
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                if let Some(id) = ids.get(broken_link.reference) {
+                if let Some(id) = ids.get(broken_link.reference.as_ref()) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(gloabl_context, page_context, id)
                     {
@@ -226,7 +226,7 @@ impl<'context, 'krate, 'content> markup::Render
             let adapter = Adapter { f: writer };
 
             let mut replacer = |broken_link: BrokenLink<'_>| {
-                if let Some(id) = self.3.get(broken_link.reference) {
+                if let Some(id) = self.3.get(broken_link.reference.as_ref()) {
                     if let Some((external_crate_url, relative, fragment, _type_of)) =
                         href(self.0, self.1, id)
                     {
@@ -381,7 +381,7 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
         }
 
         let event = self.inner.next();
-        let level = if let Some(Event::Start(Tag::Heading(level))) = event {
+        let level = if let Some(Event::Start(Tag::Heading(level, ..))) = event {
             level
         } else {
             return event;
@@ -416,7 +416,9 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
 
         let start_html = format!(
             "<h{} class=\"rd-anchor\" id=\"{}\"><a href=\"{}\">",
-            level, id, id.with_pound()
+            level,
+            id,
+            id.with_pound()
         );
 
         let end_html = format!("</a></h{}>", level);
@@ -424,7 +426,7 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
         self.buf.push_back(Event::Html(end_html.into()));
         if let Some(ref mut toc) = self.toc {
             let id = self.page_context.ids.alloc(id);
-            toc.push((level, original_text, &*id));
+            toc.push((level as u32, original_text, &*id));
         }
 
         Some(Event::Html(start_html.into()))

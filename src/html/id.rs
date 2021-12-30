@@ -16,14 +16,14 @@ impl Id {
         impl<'a> Display for Pound<'a> {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 f.write_str("#")?;
-                f.write_str(&self.0.0)
+                f.write_str(&self.0 .0)
             }
         }
 
         impl<'a> Render for Pound<'a> {
             fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
                 writer.write_str("#")?;
-                writer.write_str(&self.0.0)
+                writer.write_str(&self.0 .0)
             }
         }
 

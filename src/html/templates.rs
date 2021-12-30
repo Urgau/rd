@@ -312,7 +312,7 @@ markup::define! {
             }
         }
     }
-    
+
     VariantEnchanted<
         Code: markup::Render,
         Id: markup::Render,
@@ -327,7 +327,7 @@ markup::define! {
             }
         }
     }
-    
+
     VariantEnchantedWithExtras<
         Name: markup::Render,
         Id: markup::Render,

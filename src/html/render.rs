@@ -1,13 +1,13 @@
 //! HTML renderer
 
 use anyhow::{Context as _, Result};
+use log::{debug, info, trace, warn};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::fs::{DirBuilder, File};
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
-use log::{debug, info, trace, warn};
 use typed_arena::Arena;
 
 use super::constants::*;
