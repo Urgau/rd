@@ -10,8 +10,8 @@ use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
 use crate::pp;
 
-pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
-    match kind {
+pub(crate) fn prefix_item_kind(kind: &ItemKind) -> Option<(&'static str, bool)> {
+    Some(match kind {
         ItemKind::Module => ("mod", true),
         ItemKind::Import => ("import", true),
         ItemKind::Union => ("union", true),
@@ -31,12 +31,17 @@ pub(crate) fn item_kind2(kind: &ItemKind) -> (&'static str, bool) {
         ItemKind::AssocConst => ("associatedconst", false),
         ItemKind::AssocType => ("associatedtype", false),
         ItemKind::Primitive => ("primitive", true),
-        _ => unimplemented!("item_kind2: {:?}", kind),
-    }
+        ItemKind::ForeignType => return None, // TODO: not sure how to handle it
+        ItemKind::ExternCrate
+        | ItemKind::OpaqueTy
+        | ItemKind::ProcAttribute
+        | ItemKind::ProcDerive
+        | ItemKind::Keyword => unreachable!(),
+    })
 }
 
-pub(crate) fn item_kind(item: &Item) -> (&'static str, bool) {
-    match &item.inner {
+pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
+    Some(match &item.inner {
         ItemEnum::Module(_) => ("mod", true),
         ItemEnum::Import(_) => ("import", true),
         ItemEnum::Union(_) => ("union", true),
@@ -56,8 +61,11 @@ pub(crate) fn item_kind(item: &Item) -> (&'static str, bool) {
         ItemEnum::ProcMacro(_) => ("proc.macro", true),
         ItemEnum::AssocConst { .. } => ("associatedconst", false),
         ItemEnum::AssocType { .. } => ("associatedtype", false),
-        _ => unimplemented!("item_kind: {:?}", item),
-    }
+        ItemEnum::ForeignType => return None, // TODO: not sure how to handle this
+        ItemEnum::ExternCrate { .. } |
+        ItemEnum::OpaqueTy(_) |
+        ItemEnum::PrimitiveType(_) => unreachable!(),
+    })
 }
 
 /// Try to get the [`Id`] of any [`Type`]
@@ -124,7 +132,7 @@ pub(crate) fn id<'krate>(
     item: &'krate Item,
 ) -> Option<(Cow<'krate, str>, HtmlId)> {
     if let Some(name) = &item.name {
-        let (item_kind_name, is_file) = item_kind(item);
+        let (item_kind_name, is_file) = prefix_item(item)?;
 
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
@@ -294,7 +302,7 @@ pub(super) fn href<'context, 'krate>(
     }
 
     let to = to.unwrap();
-    let (to_kind, to_always_file) = item_kind2(&to.kind);
+    let (to_kind, to_always_file) = prefix_item_kind(&to.kind)?;
 
     if to_always_file {
         let parts = &to.path[..(to.path.len()

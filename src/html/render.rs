@@ -228,7 +228,8 @@ fn base_page<'context>(
         .with_context(|| format!("unable to find the path of for the {:?}", &item.id))?;
     let parts = &krate_path.path[..(krate_path.path.len() - 1)];
 
-    let (item_kind_name, _item_kind_file) = item_kind(item);
+    let (item_kind_name, _item_kind_file) =
+        prefix_item(item).context("unable to get of this item")?;
     let filename: PathBuf = if matches!(krate_path.kind, ItemKind::Module) {
         format!("{}/index.html", name).into()
     } else {
