@@ -62,9 +62,9 @@ pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
         ItemEnum::AssocConst { .. } => ("associatedconst", false),
         ItemEnum::AssocType { .. } => ("associatedtype", false),
         ItemEnum::ForeignType => return None, // TODO: not sure how to handle this
-        ItemEnum::ExternCrate { .. } |
-        ItemEnum::OpaqueTy(_) |
-        ItemEnum::PrimitiveType(_) => unreachable!(),
+        ItemEnum::ExternCrate { .. } | ItemEnum::OpaqueTy(_) | ItemEnum::PrimitiveType(_) => {
+            unreachable!()
+        }
     })
 }
 
