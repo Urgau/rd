@@ -395,9 +395,9 @@ markup::define! {
         proc_macros: Vec<ProcMacroItem>,
     ) {
         @ModuleSection { name: IMPORTS, id: IMPORTS_ID, items: imports }
+        @ModuleSection { name: MODULES, id: MODULES_ID, items: modules }
         @ModuleSection { name: MACROS, id: MACROS_ID, items: macros }
         @ModuleSection { name: PROC_MACROS, id: PROC_MACROS_ID, items: proc_macros }
-        @ModuleSection { name: MODULES, id: MODULES_ID, items: modules }
         @ModuleSection { name: UNIONS, id: UNIONS_ID, items: unions }
         @ModuleSection { name: STRUCTS, id: STRUCTS_ID, items: structs }
         @ModuleSection { name: ENUMS, id: ENUMS_ID, items: enums }
