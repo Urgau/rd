@@ -312,13 +312,13 @@ markup::define! {
     }
 
     VariantEnchanted<
-        Code: markup::Render,
         Id: markup::Render,
+        Definition: markup::Render,
         Documentation: markup::Render,
         Deprecation: markup::Render,
-    > (code: Code, id: Id, doc: Option<Documentation>, deprecation: Option<Deprecation>) {
+    > (id: Id, def: Definition, doc: Option<Documentation>, deprecation: Option<Deprecation>) {
         div[id=id, class="rd-anchor"] {
-            @InlineCode { code }
+            @InlineCode { code: def }
             @deprecation
             @if doc.is_some() {
                 div[class="item-documentation"] { @doc }
@@ -327,14 +327,14 @@ markup::define! {
     }
 
     VariantEnchantedWithExtras<
-        Name: markup::Render,
         Id: markup::Render,
+        Definition: markup::Render,
         Documentation: markup::Render,
         Deprecation: markup::Render,
         Extra: markup::Render,
-    > (name: Name, id: Id, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Option<Vec<Extra>>) {
+    > (id: Id, def: Definition, doc: Option<Documentation>, deprecation: Option<Deprecation>, extras: Option<Vec<Extra>>) {
         div[id=id, class="mt-2 mb-2 rd-anchor"] {
-            @InlineCode { code: name }
+            @InlineCode { code: def }
             @deprecation
             @if let Some(extras) = extras {
                 div[style = "padding-left:1.5rem;"] {

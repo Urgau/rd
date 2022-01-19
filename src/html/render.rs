@@ -1405,8 +1405,8 @@ impl<'context, 'krate>
 
 impl<'context, 'krate>
     VariantEnchanted<
-        TokensToHtml<'context, 'krate /*, 'tokens*/>,
         &'context HtmlId,
+        TokensToHtml<'context, 'krate /*, 'tokens*/>,
         Markdown<'context, 'krate, 'context>,
         DeprecationNotice<'context>,
     >
@@ -1422,7 +1422,7 @@ impl<'context, 'krate>
         let id = page_context.ids.alloc(parent_id + id);
 
         Ok(Self {
-            code: TokensToHtml(global_context, page_context, pp::Tokens::from_type(type_)?),
+            def: TokensToHtml(global_context, page_context, pp::Tokens::from_type(type_)?),
             id,
             doc: None,
             deprecation: None,
@@ -1439,7 +1439,7 @@ impl<'context, 'krate>
         let id = page_context.ids.alloc(parent_id + id);
 
         Ok(Self {
-            code: TokensToHtml(
+            def: TokensToHtml(
                 global_context,
                 page_context,
                 pp::Tokens::from_item(item, &global_context.krate.index)?,
@@ -1459,13 +1459,13 @@ impl<'context, 'krate>
 
 impl<'context, 'krate>
     VariantEnchantedWithExtras<
-        &'krate str,
         &'context HtmlId,
+        TokensToHtml<'context, 'krate>,
         Markdown<'context, 'krate, 'context>,
         DeprecationNotice<'context>,
         VariantEnchanted<
-            TokensToHtml<'context, 'krate /*, 'tokens*/>,
             &'context HtmlId,
+            TokensToHtml<'context, 'krate /*, 'tokens*/>,
             Markdown<'context, 'krate, 'context>,
             DeprecationNotice<'context>,
         >,
@@ -1477,21 +1477,21 @@ impl<'context, 'krate>
         toc_section: &mut TocSection<'context>,
         item: &'krate Item,
     ) -> Result<Self> {
-        let (name, parent_id) = if let Some((name, id)) = id(global_context.krate, item) {
+        let parent_id = if let Some((name, id)) = id(global_context.krate, item) {
             let id = page_context.ids.alloc(id);
-            let borrow_name = match name {
-                Cow::Borrowed(n) => n,
-                Cow::Owned(_) => unreachable!(),
-            };
             toc_section.items.push((name, TocDestination::Id(id)));
-            (borrow_name, &*id)
+            &*id
         } else {
             unreachable!()
         };
 
         Ok(VariantEnchantedWithExtras {
-            name: &name,
             id: &*parent_id,
+            def: TokensToHtml(
+                global_context,
+                page_context,
+                pp::Tokens::from_item(item, &global_context.krate.index)?,
+            ),
             doc: Markdown::from_docs(
                 global_context,
                 page_context,
