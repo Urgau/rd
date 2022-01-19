@@ -1666,7 +1666,12 @@ impl<'context, 'krate /*, 'tokens */> markup::Render
                     pp::SpecialToken::NewLine => writer.write_str("<br>")?,
                     pp::SpecialToken::Space => writer.write_str("&nbsp;")?,
                     pp::SpecialToken::Tabulation => writer.write_str("&nbsp;&nbsp;&nbsp;&nbsp;")?,
-                    pp::SpecialToken::Omitted => writer.write_str("/* fields omitted */")?,
+                    pp::SpecialToken::Hidden { all: true } => {
+                        writer.write_str("/* fields hidden */")?
+                    }
+                    pp::SpecialToken::Hidden { all: false } => {
+                        writer.write_str("/* some fields hidden */")?
+                    }
                     pp::SpecialToken::Ignored => writer.write_str("...")?,
                 },
             }

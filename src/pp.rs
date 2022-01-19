@@ -1,7 +1,11 @@
 //! Pretty-printer for rustdoc-json output
 
 use rustdoc_types::*;
-use std::{collections::{HashMap, TryReserveError}, fmt::Display, ops::Deref};
+use std::{
+    collections::{HashMap, TryReserveError},
+    fmt::Display,
+    ops::Deref,
+};
 
 const ALLOWED_ATTRIBUTES: [&str; 6] = [
     "must_use",
@@ -27,7 +31,7 @@ pub enum SpecialToken {
     NewLine,
     Space,
     Tabulation,
-    Omitted,
+    Hidden { all: bool },
     Ignored,
 }
 
@@ -142,7 +146,8 @@ impl Display for Tokens<'_> {
                     SpecialToken::NewLine => "\n",
                     SpecialToken::Space => " ",
                     SpecialToken::Tabulation => "    ",
-                    SpecialToken::Omitted => "/* fields ommited */",
+                    SpecialToken::Hidden { all: true } => "/* fields hidden */",
+                    SpecialToken::Hidden { all: false } => "/* some fields hidden */",
                     SpecialToken::Ignored => "...",
                 },
             })?;
@@ -281,40 +286,42 @@ impl Tokens<'_> {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("{"))?;
 
-                if union_.fields_stripped {
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Special(SpecialToken::Omitted))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                } else {
-                    let items = union_
-                        .fields
-                        .iter()
-                        .map(|id| match index.get(id) {
-                            Some(item) => match &item.inner {
-                                ItemEnum::StructField(struct_field) => Ok((item, struct_field)),
-                                _ => Err(FromItemErrorKind::UnexpectedItemType(
-                                    id.clone(),
-                                    ItemKind::StructField,
-                                )),
-                            },
-                            None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
-                        })
-                        .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
+                let items = union_
+                    .fields
+                    .iter()
+                    .map(|id| match index.get(id) {
+                        Some(item) => match &item.inner {
+                            ItemEnum::StructField(struct_field) => Ok((item, struct_field)),
+                            _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                id.clone(),
+                                ItemKind::StructField,
+                            )),
+                        },
+                        None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
+                    })
+                    .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                    if !items.is_empty() {
-                        NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
-                            tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                            for (i, (item, struct_field)) in items.iter().enumerate() {
-                                if i != 0 {
-                                    tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                                }
-                                with_struct_field(tokens, item, struct_field)?;
-                                tokens.try_push(Token::Ponct(","))?;
-                            }
-                            Ok(())
-                        })?;
+                if !items.is_empty() {
+                    NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
                         tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                    }
+                        for (i, (item, struct_field)) in items.iter().enumerate() {
+                            if i != 0 {
+                                tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                            }
+                            with_struct_field(tokens, item, struct_field)?;
+                            tokens.try_push(Token::Ponct(","))?;
+                        }
+                        if union_.fields_stripped {
+                            tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                            tokens.try_push(Token::Special(SpecialToken::Hidden { all: false }))?;
+                        }
+                        Ok(())
+                    })?;
+                    tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                } else if union_.fields_stripped {
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    tokens.try_push(Token::Special(SpecialToken::Hidden { all: true }))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
                 }
 
                 tokens.try_push(Token::Ponct("}"))?;
@@ -363,40 +370,41 @@ impl Tokens<'_> {
                         tokens.try_push(Token::Special(SpecialToken::Space))?;
                         tokens.try_push(Token::Ponct("{"))?;
 
-                        if struct_.fields_stripped {
-                            tokens.try_push(Token::Special(SpecialToken::Space))?;
-                            tokens.try_push(Token::Special(SpecialToken::Omitted))?;
-                            tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        } else {
-                            // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
-                            let items = struct_
-                                .fields
-                                .iter()
-                                .map(|id| match index.get(id) {
-                                    Some(item) => match &item.inner {
-                                        ItemEnum::StructField(struct_field) => {
-                                            Ok((item, struct_field))
-                                        }
-                                        _ => Err(FromItemErrorKind::UnexpectedItemType(
-                                            id.clone(),
-                                            ItemKind::StructField,
-                                        )),
-                                    },
-                                    None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
-                                })
-                                .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
+                        let items = struct_
+                            .fields
+                            .iter()
+                            .map(|id| match index.get(id) {
+                                Some(item) => match &item.inner {
+                                    ItemEnum::StructField(struct_field) => Ok((item, struct_field)),
+                                    _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                        id.clone(),
+                                        ItemKind::StructField,
+                                    )),
+                                },
+                                None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
+                            })
+                            .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                            if !items.is_empty() {
-                                NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
-                                    for (item, struct_field) in &items {
-                                        tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                                        with_struct_field(tokens, item, struct_field)?;
-                                        tokens.try_push(Token::Ponct(","))?;
-                                    }
-                                    Ok(())
-                                })?;
-                                tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                            }
+                        if !items.is_empty() {
+                            NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
+                                for (item, struct_field) in &items {
+                                    tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                                    with_struct_field(tokens, item, struct_field)?;
+                                    tokens.try_push(Token::Ponct(","))?;
+                                }
+                                if struct_.fields_stripped {
+                                    tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                                    tokens.try_push(Token::Special(SpecialToken::Hidden {
+                                        all: false,
+                                    }))?;
+                                }
+                                Ok(())
+                            })?;
+                            tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                        } else if struct_.fields_stripped {
+                            tokens.try_push(Token::Special(SpecialToken::Space))?;
+                            tokens.try_push(Token::Special(SpecialToken::Hidden { all: true }))?;
+                            tokens.try_push(Token::Special(SpecialToken::Space))?;
                         }
 
                         tokens.try_push(Token::Ponct("}"))?;
@@ -494,38 +502,39 @@ impl Tokens<'_> {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("{"))?;
 
-                if enum_.variants_stripped {
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Special(SpecialToken::Omitted))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                } else {
-                    // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
-                    let items = enum_
-                        .variants
-                        .iter()
-                        .map(|id| match index.get(id) {
-                            Some(item) => match &item.inner {
-                                ItemEnum::Variant(variant_field) => Ok((item, variant_field)),
-                                _ => Err(FromItemErrorKind::UnexpectedItemType(
-                                    id.clone(),
-                                    ItemKind::Variant,
-                                )),
-                            },
-                            None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
-                        })
-                        .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
+                let items = enum_
+                    .variants
+                    .iter()
+                    .map(|id| match index.get(id) {
+                        Some(item) => match &item.inner {
+                            ItemEnum::Variant(variant_field) => Ok((item, variant_field)),
+                            _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                id.clone(),
+                                ItemKind::Variant,
+                            )),
+                        },
+                        None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
+                    })
+                    .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
 
-                    if !items.is_empty() {
-                        NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
-                            for (item, enum_variant) in &items {
-                                tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                                with_enum_variant(tokens, index, item, enum_variant)?;
-                                tokens.try_push(Token::Ponct(","))?;
-                            }
-                            Ok(())
-                        })?;
-                        tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                    }
+                if !items.is_empty() {
+                    NewLineTabulationPusher::tabulation(&mut tokens, |tokens| {
+                        for (item, enum_variant) in &items {
+                            tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                            with_enum_variant(tokens, index, item, enum_variant)?;
+                            tokens.try_push(Token::Ponct(","))?;
+                        }
+                        if enum_.variants_stripped {
+                            tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                            tokens.try_push(Token::Special(SpecialToken::Hidden { all: false }))?;
+                        }
+                        Ok(())
+                    })?;
+                    tokens.try_push(Token::Special(SpecialToken::NewLine))?;
+                } else if enum_.variants_stripped {
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    tokens.try_push(Token::Special(SpecialToken::Hidden { all: true }))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
                 }
 
                 tokens.try_push(Token::Ponct("}"))?;
