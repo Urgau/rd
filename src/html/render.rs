@@ -990,45 +990,13 @@ fn trait_page<'context>(
 }
 
 /// Function for generating the content of an struct, union or enum
-#[allow(clippy::type_complexity)]
-fn struct_union_enum_content<'context, 'krate, 'title>(
+fn struct_union_enum_content<'context, 'krate>(
     global_context: &'context GlobalContext<'krate>,
     page_context: &'context PageContext<'context>,
-    title: &'title str,
+    title: &'static str,
     variants: &[Id],
     impls: &[Id],
-) -> Result<(
-    Vec<TocSection<'context>>,
-    StructUnionEnumContent<
-        'title,
-        VariantEnchantedWithExtras<
-            &'krate str,
-            &'context HtmlId,
-            Markdown<'context, 'krate, 'context>,
-            DeprecationNotice<'context>,
-            VariantEnchanted<
-                TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                &'context HtmlId,
-                Markdown<'context, 'krate, 'context>,
-                DeprecationNotice<'context>,
-            >,
-        >,
-        TraitsWithItems<
-            CodeEnchantedWithExtras<
-                TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                Markdown<'context, 'krate, 'context>,
-                DeprecationNotice<'context>,
-                &'context HtmlId,
-                CodeEnchanted<
-                    TokensToHtml<'context, 'krate /*, 'tokens*/>,
-                    Markdown<'context, 'krate, 'context>,
-                    DeprecationNotice<'context>,
-                    &'context HtmlId,
-                >,
-            >,
-        >,
-    >,
-)> {
+) -> Result<(Vec<TocSection<'context>>, impl markup::Render + 'context)> {
     let mut impls = impls
         .iter()
         .map(|id| {
@@ -1244,6 +1212,7 @@ macro_rules! ç {
             };
 
             writeln!(file, "{}", page)?;
+            drop(page);
 
             Ok(page_context)
         }
