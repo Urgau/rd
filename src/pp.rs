@@ -828,7 +828,11 @@ impl Tokens<'_> {
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                 }
 
-                with_type(&mut tokens, &impl_.for_)?;
+                if let Some(blanket) = &impl_.blanket_impl {
+                    with_type(&mut tokens, blanket)?;
+                } else {
+                    with_type(&mut tokens, &impl_.for_)?;
+                }
 
                 with(
                     &mut tokens,
