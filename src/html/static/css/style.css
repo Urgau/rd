@@ -54,10 +54,6 @@ a:hover {
 	border-bottom: 1px dashed;
 }
 
-.item-title, .rd-search-item {
-	word-break: break-word;
-}
-
 .item-table {
 	display: grid;
 	column-gap: 1.2rem;
@@ -171,6 +167,7 @@ a:hover {
 
 .rd-main {
 	margin-top: 2rem;
+    overflow-wrap: anywhere;
 }
 
 @media (max-width: 768px) {
@@ -204,7 +201,6 @@ a:hover {
 .rd-intro {
     min-width: 0;
 	grid-area: intro;
-    word-break: break-word;
 }
 
 .rd-content {

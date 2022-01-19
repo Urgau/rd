@@ -62,7 +62,7 @@ impl<'context> markup::Render for ItemPathDisplay<'context> {
     fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
         for (index, item_path_component) in self.0 .0.iter().enumerate() {
             if index != 0 {
-                writer.write_str("::")?;
+                writer.write_str("::<wbr>")?;
             }
             writer.write_str("<a class=\"")?;
             writer.write_str(item_path_component.kind)?;

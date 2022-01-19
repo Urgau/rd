@@ -93,9 +93,7 @@ markup::define! {
         div[class="rd-main"] {
             div[class="rd-intro"] {
                 h1[id="item-title", class="rd-anchor item-title"] {
-                    span {
-                        @item_type
-                    }
+                    @item_type
                     " "
                     @item_path
                 }
