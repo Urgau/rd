@@ -1,7 +1,7 @@
 //! Pretty-printer for rustdoc-json output
 
 use rustdoc_types::*;
-use std::{collections::HashMap, fmt::Display, ops::Deref};
+use std::{collections::{HashMap, TryReserveError}, fmt::Display, ops::Deref};
 
 const ALLOWED_ATTRIBUTES: [&str; 6] = [
     "must_use",
@@ -37,6 +37,12 @@ pub enum PusherError {
     AllocationFailed,
 }
 
+impl From<TryReserveError> for PusherError {
+    fn from(_: TryReserveError) -> Self {
+        Self::AllocationFailed
+    }
+}
+
 trait Pusher<T> {
     fn try_push(&mut self, t: T) -> Result<(), PusherError>;
     fn try_extend_from_slice(&mut self, t: &[T]) -> Result<(), PusherError>;
@@ -45,12 +51,14 @@ trait Pusher<T> {
 impl<'token> Pusher<Token<'token>> for Vec<Token<'token>> {
     #[inline]
     fn try_push(&mut self, t: Token<'token>) -> Result<(), PusherError> {
+        self.try_reserve(1)?;
         self.push(t);
         Ok(())
     }
 
     #[inline]
     fn try_extend_from_slice(&mut self, t: &[Token<'token>]) -> Result<(), PusherError> {
+        self.try_reserve(t.len())?;
         self.extend_from_slice(t);
         Ok(())
     }
