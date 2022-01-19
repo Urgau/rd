@@ -64,15 +64,15 @@ a:hover {
 	justify-items: start;
 }
 
+/* FIXME: Maybe remove the p so that this hack can be removed */
+.item-table > div > p {
+    margin: 0;
+}
+
 @media (min-width: 375px) {
 	.item-table {
 		grid-template-columns: fit-content(50%) 1fr;
 	}
-
-    /* FIXME: Remove the p inside the div so that this hack can be removed */
-    .item-table > div:nth-last-child(-n+2) > p {
-        margin-bottom: 0;
-    }
 }
 
 .item-table .macro, .item-title .macro, .rd-search-item .macro, code .ident.macro {
