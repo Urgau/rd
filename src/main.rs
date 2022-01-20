@@ -42,6 +42,9 @@ fn main() -> Result<()> {
         .try_init()
         .context("setting env logger failed")?;
 
+    info!("creating the output directory: {:?}", &opt.output);
+    let _ = std::fs::create_dir(&opt.output);
+
     info!("opening input file: {:?}", &opt.input);
     let reader = File::open(&opt.input).context("The file provided doesn't exists")?;
     let bufreader = BufReader::new(reader);
