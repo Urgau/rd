@@ -595,6 +595,7 @@ impl Tokens<'_> {
                 )?;
 
                 tokens.try_push(Token::Ponct("("))?;
+
                 with(
                     &mut tokens,
                     &function.decl.inputs,
@@ -608,6 +609,17 @@ impl Tokens<'_> {
                         with_type(tokens, ty)
                     },
                 )?;
+
+                if function.decl.c_variadic {
+                    if function.decl.inputs.len() >= 1 {
+                        tokens.try_extend_from_slice(&[
+                            Token::Ponct(","),
+                            Token::Special(SpecialToken::Space),
+                        ])?;
+                    }
+                    tokens.try_push(Token::Kw("..."))?;
+                }
+
                 tokens.try_push(Token::Ponct(")"))?;
 
                 if let Some(output) = &function.decl.output {
@@ -616,10 +628,6 @@ impl Tokens<'_> {
                     tokens.try_push(Token::Ponct(">"))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                     with_type(&mut tokens, output)?;
-                }
-
-                if function.decl.c_variadic {
-                    todo!("method c_variadic");
                 }
 
                 with(
@@ -1133,6 +1141,7 @@ fn with_method<'tokens>(
     )?;
 
     tokens.try_push(Token::Ponct("("))?;
+
     if method.decl.inputs.len() <= 2 {
         with(
             tokens,
@@ -1173,6 +1182,17 @@ fn with_method<'tokens>(
             },
         )?;
     }
+
+    if method.decl.c_variadic {
+        if method.decl.inputs.len() >= 1 {
+            tokens.try_extend_from_slice(&[
+                Token::Ponct(","),
+                Token::Special(SpecialToken::Space),
+            ])?;
+        }
+        tokens.try_push(Token::Kw("..."))?;
+    }
+
     tokens.try_push(Token::Ponct(")"))?;
 
     if let Some(output) = &method.decl.output {
@@ -1181,10 +1201,6 @@ fn with_method<'tokens>(
         tokens.try_push(Token::Ponct(">"))?;
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         with_type(tokens, output)?;
-    }
-
-    if method.decl.c_variadic {
-        todo!("method c_variadic");
     }
 
     with(
