@@ -208,7 +208,11 @@ markup::define! {
                     span[class="badge bg-warning text-wrap text-dark ms-1"] { "Deprecated" }
                 }
                 @if portability.is_some() {
-                    span[class="badge bg-primary text-wrap ms-1"] { @portability }
+                    " "
+                    span[role="tooltip", class="rd-tooltip"] {
+                        i[class="bi bi-gear"] {}
+                        span[class="rd-tooltip-data"] { @portability }
+                    }
                 }
             }
         }

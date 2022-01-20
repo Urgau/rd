@@ -23,6 +23,40 @@ pre.item-definition,
     background-color: #2A2A2A;
 }
 
+.rd-tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.rd-tooltip .rd-tooltip-data {
+    opacity: 0;
+	visibility: hidden;
+    transition: opacity 0.15s ease-in-out;
+	background-color: var(--bs-dark);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 400;
+	text-align: center;
+	border-radius: 6px;
+	padding: 5px;
+    max-width: 60vw;
+	width: max-content;
+
+	/* Position the tooltip */
+	position: absolute;
+	z-index: 1000;
+}
+
+[data-bs-color-scheme="dark"] .rd-tooltip .rd-tooltip-data {
+    background-color: var(--bs-dark-alt);
+}
+
+.rd-tooltip:hover .rd-tooltip-data {
+	visibility: visible;
+    opacity: 1;
+}
+
 a {
 	text-decoration: none;
 }
