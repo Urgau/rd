@@ -602,7 +602,7 @@ fn module_page<'context>(
                         link: filename.to_str().with_context(|| {
                             format!("unable to convert PathBuf {:?} to str", filename)
                         })?,
-                        class: "typedef",
+                        class: "type",
                     },
                     summary: if let Some(summary_line_doc) = summary {
                         Either::Left(summary_line_doc)
