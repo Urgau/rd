@@ -9,8 +9,13 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 
 ## Demos
 
- - [regex](http://urgau.rf.gd/rd/regex/index.html) ([docs.rs](https://docs.rs/regex/1.5.4/regex/))
- - [anyhow](http://urgau.rf.gd/rd/anyhow/index.html) ([docs.rs](https://docs.rs/anyhow/1.0.43/anyhow/))
+ - [nix](https://urgau.github.io/rd/nix/) ([docs.rs](https://docs.rs/nix/0.23.1/nix/))
+ - [libc](https://urgau.github.io/rd/libc/) ([docs.rs](https://docs.rs/libc/))
+ - [regex](https://urgau.github.io/rd/regex/) ([docs.rs](https://docs.rs/regex/1.5.4/regex/))
+ - [memchr](https://urgau.github.io/rd/memchr/) ([docs.rs](https://docs.rs/memchr/2.4.1/memchr/))
+ - [curl](https://urgau.github.io/rd/curl/) ([docs.rs](https://docs.rs/curl/0.4.42/nix/))
+ - [curl-sys](https://urgau.github.io/rd/curl-sys/) ([docs.rs](https://docs.rs/curl-sys/0.4.52+curl-7.81.0/curl_sys/index.html))
+ - [openssl-sys](https://urgau.github.io/rd/openssl-sys/) ([docs.rs](https://docs.rs/openssl-sys/))
 
 ## Features
 
@@ -24,6 +29,8 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 - [X] Deprecation notice and attributes filtering
 - [X] `cfg` and `doc` printting
 - [X] Themes (currently light and black)
+- [ ] Generation of the global index.html
+- [ ] Handling of re-export(s)
 - [ ] Source code inclusion
 - [ ] Options/customization
 
@@ -31,9 +38,10 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 
 ```bash
 rd 0.1.0
+Commande-line options
 
 USAGE:
-    rd [FLAGS] [OPTIONS] <input>
+    rd [FLAGS] <FILE>... --output <output>
 
 FLAGS:
     -h, --help       Prints help information
@@ -42,10 +50,10 @@ FLAGS:
     -v, --verbose    Verbose mode (-v, -vv, -vvv, etc.)
 
 OPTIONS:
-    -o, --output <output>    Output directory of html files [default: .]
+    -o, --output <output>    Output directory of html files
 
 ARGS:
-    <input>    Rustdoc json input file to process
+    <FILE>...    Rustdoc json input file to process
 ```
 
 ### Generating a rustdoc-json output

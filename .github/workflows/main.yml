@@ -95,7 +95,8 @@ jobs:
             regex/target/doc/regex.json
             regex/target/doc/memchr.json
             curl/target/doc/curl.json
-            curl/target/doc/curl-sys.json
+            curl/target/doc/curl_sys.json
+            curl/target/doc/openssl_sys.json
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
