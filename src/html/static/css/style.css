@@ -129,12 +129,12 @@ a:hover {
 	color: #9a6e31;
 }
 
-.item-table .method, .rd-search-item .method, code .ident.method {
-	color: #9a6e31;
+.item-table .constant, .item-title .constant, .rd-search-item .constant, code .ident.constant {
+    color: #546e8a;
 }
 
-.item-table .constant, .rd-search-item .constant, code .ident.constant {
-    color: #546e8a;
+.item-table .method, .rd-search-item .method, code .ident.method {
+	color: #9a6e31;
 }
 
 .item-table .mod, .rd-search-item .mod:last-of-type, .item-title a.mod:last-of-type {
