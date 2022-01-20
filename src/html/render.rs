@@ -130,17 +130,18 @@ impl<'portability> PortabilityNotice<'portability> {
     }
 }
 
-/// Html rendering entry
-pub(crate) fn render<'krate>(
+fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
+    let mut file = File::create(path)?;
+    std::io::Write::write_all(&mut file, buf)?;
+    Ok(())
+}
+
+pub(crate) fn render_global(
     opt: &super::super::Opt,
-    krate: &'krate Crate,
-    krate_item: &'krate Item,
+    _outputs: &[PathBuf],
 ) -> Result<PathBuf> {
-    fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()> {
-        let mut file = File::create(path)?;
-        std::io::Write::write_all(&mut file, buf)?;
-        Ok(())
-    }
+
+    // TODO: Do a global index with the outputs links
 
     dump_to(
         format!("{}/{}", &opt.output.display(), STYLE_CSS),
@@ -155,6 +156,15 @@ pub(crate) fn render<'krate>(
         include_bytes!("static/js/search.js"),
     )?;
 
+    Ok(opt.output.clone())
+}
+
+/// Html rendering entry
+pub(crate) fn render<'krate>(
+    opt: &super::super::Opt,
+    krate: &'krate Crate,
+    krate_item: &'krate Item,
+) -> Result<PathBuf> {
     if let ItemEnum::Module(krate_module) = &krate_item.inner {
         let mut global_context = GlobalContext {
             opt,

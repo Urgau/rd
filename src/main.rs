@@ -21,13 +21,13 @@ pub(crate) struct Opt {
     #[structopt(long)]
     open: bool,
 
-    /// Rustdoc json input file to process
-    #[structopt(parse(from_os_str))]
-    input: PathBuf,
-
     /// Output directory of html files
-    #[structopt(short, long, parse(from_os_str), default_value = ".")]
+    #[structopt(short, long, parse(from_os_str))]
     output: PathBuf,
+
+    /// Rustdoc json input file to process
+    #[structopt(name = "FILE", required = true, parse(from_os_str))]
+    files: Vec<PathBuf>,
 }
 
 fn main() -> Result<()> {
@@ -45,23 +45,35 @@ fn main() -> Result<()> {
     info!("creating the output directory: {:?}", &opt.output);
     let _ = std::fs::create_dir(&opt.output);
 
-    info!("opening input file: {:?}", &opt.input);
-    let reader = File::open(&opt.input).context("The file provided doesn't exists")?;
-    let bufreader = BufReader::new(reader);
+    let outputs = opt
+        .files
+        .iter()
+        .map(|file| {
+            info!("opening input file: {:?}", &file);
+            let reader = File::open(&file).context("The file provided doesn't exists")?;
+            let bufreader = BufReader::new(reader);
 
-    info!("starting deserialize of the file");
-    let krate: Crate = serde_json::from_reader(bufreader)
-        .context("Unable to deseriliaze the content of the file")?;
+            info!("starting deserialize of the file");
+            let krate: Crate = serde_json::from_reader(bufreader)
+                .context("Unable to deseriliaze the content of the file")?;
 
-    let krate_item = krate
-        .index
-        .get(&krate.root)
-        .context("Unable to find the crate item")?;
+            let krate_item = krate
+                .index
+                .get(&krate.root)
+                .context("Unable to find the crate item")?;
 
-    let krate_index_path = html::render::render(&opt, &krate, krate_item)?;
+            html::render::render(&opt, &krate, krate_item)
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    let global_index = html::render::render_global(&opt, &outputs)
+        .context("Unable to write the global context (js, css, imgs, ...)")?;
 
     if opt.open {
-        open::that(krate_index_path)?;
+        open::that(match outputs[..] {
+            [ref module_index] => module_index,
+            _ => &global_index
+        })?;
     }
 
     Ok(())
