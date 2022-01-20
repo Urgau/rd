@@ -408,7 +408,11 @@ fn module_page<'context>(
         let portability = Portability::from_attrs(&item.attrs)?
             .as_ref()
             .map(Portability::render_short);
-        let deprecated = item.deprecation.is_some();
+        let deprecated = item.deprecation.as_ref().map(|d| match d.since {
+            Some(ref since) if since != "none" => "Deprecated",
+            _ => "Future deprecation",
+        });
+        let unsafety = Option::<&str>::None;
 
         match &item.inner {
             ItemEnum::Import(_) => {
@@ -421,6 +425,7 @@ fn module_page<'context>(
                         ),
                     },
                     summary: Option::<String>::None,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -446,6 +451,7 @@ fn module_page<'context>(
                         })?,
                         class: "union",
                     },
+                    unsafety,
                     summary,
                     deprecated,
                     portability,
@@ -472,6 +478,7 @@ fn module_page<'context>(
                         })?,
                         class: "struct",
                     },
+                    unsafety,
                     summary,
                     deprecated,
                     portability,
@@ -497,6 +504,7 @@ fn module_page<'context>(
                         })?,
                         class: "enum",
                     },
+                    unsafety,
                     summary,
                     deprecated,
                     portability,
@@ -526,6 +534,11 @@ fn module_page<'context>(
                     summary,
                     deprecated,
                     portability,
+                    unsafety: if function_.header.contains(&Qualifiers::Unsafe) {
+                        Some("This function is unsafe to use")
+                    } else {
+                        unsafety
+                    }
                 });
             }
             ItemEnum::Trait(trait_) => {
@@ -552,6 +565,11 @@ fn module_page<'context>(
                     summary,
                     deprecated,
                     portability,
+                    unsafety: if trait_.is_unsafe {
+                        Some("This trait is unsafe to use")
+                    } else {
+                        unsafety
+                    }
                 });
             }
             ItemEnum::TraitAlias(_) => {
@@ -564,6 +582,7 @@ fn module_page<'context>(
                         ),
                     },
                     summary: Option::<String>::None,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -615,6 +634,7 @@ fn module_page<'context>(
                             ),
                         })
                     },
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -641,6 +661,7 @@ fn module_page<'context>(
                         class: "constant",
                     },
                     summary,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -667,6 +688,7 @@ fn module_page<'context>(
                         class: "static",
                     },
                     summary,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -693,6 +715,7 @@ fn module_page<'context>(
                         class: "macro",
                     },
                     summary,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -719,6 +742,7 @@ fn module_page<'context>(
                         class: "proc_macro",
                     },
                     summary,
+                    unsafety,
                     deprecated,
                     portability,
                 });
@@ -744,6 +768,7 @@ fn module_page<'context>(
                         class: "mod",
                     },
                     summary,
+                    unsafety,
                     deprecated,
                     portability,
                 });

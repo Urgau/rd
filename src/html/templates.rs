@@ -199,13 +199,22 @@ markup::define! {
     ModuleSectionItem<
         Item: markup::Render,
         Summary: markup::Render,
+        Unsafety: markup::Render,
+        Deprecated: markup::Render,
         Portability: markup::Render,
-    > (name: Item, summary: Summary, deprecated: bool, portability: Option<Portability>) {
+    > (name: Item, summary: Summary, deprecated: Option<Deprecated>, unsafety: Option<Unsafety>, portability: Option<Portability>) {
         div {
             p {
                 @name
-                @if *deprecated {
+                @if deprecated.is_some() {
                     span[class="badge bg-warning text-wrap text-dark ms-1"] { "Deprecated" }
+                }
+                @if unsafety.is_some() {
+                    " "
+                    span[role="tooltip", class="rd-tooltip"] {
+                        i[class="bi bi-exclamation-triangle-fill"] {}
+                        span[class="rd-tooltip-data"] { @unsafety }
+                    }
                 }
                 @if portability.is_some() {
                     " "
