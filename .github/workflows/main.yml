@@ -4,7 +4,7 @@ name: Continuous integration
 
 jobs:
   check:
-    name: Check
+    name: Check and build (stable)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -15,10 +15,10 @@ jobs:
           override: true
       - uses: actions-rs/cargo@v1
         with:
-          command: check
+          command: build
 
   test:
-    name: Test Suite
+    name: Test suite (stable)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -30,3 +30,40 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
+
+  demos:
+    name: Demos (nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2022-01-15
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Checkout nix-rust/nix
+        uses: actions/checkout@v2
+        with:
+          repository: nix-rust/nix
+          ref: afba7c5a33dd4fd62b047e64089487cf822ccec2
+          path: nix
+      - name: rustdoc.json nix
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --manifest-path nix/Cargo.toml
+        env:
+          RUSTDOCFLAGS: -Zunstable-options --output-format=json
+      - name: rd.html nix
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --release -- -v --output output/ nix/target/doc/nix.json
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages
+          folder: output/
