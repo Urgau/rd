@@ -172,7 +172,7 @@ markup::define! {
     DeprecationNotice<
         'deprecation,
     > (since: &'deprecation Option<String>, note : &'deprecation Option<String>) {
-        div[class="alert alert-warning", role="alert"] {
+        div[class="alert alert-warning alert-sm", role="alert"] {
             i[class="bi bi-exclamation-triangle me-2"] {}
             "Deprecated"
             @if let Some(since) = &since {
@@ -276,8 +276,8 @@ markup::define! {
                 details[open=open] {
                     summary {
                         @InlineCodeWithSource { code, source_href }
+                        @deprecation
                     }
-                    @deprecation
                     div[class="mt-2 item-documentation"] { @doc }
                 }
             } else {

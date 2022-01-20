@@ -379,3 +379,9 @@ a:hover {
 .float-right {
 	float: right;
 }
+
+.alert-sm {
+    width: fit-content;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+}
