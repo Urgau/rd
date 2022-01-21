@@ -414,14 +414,14 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
             id = parent_id + id;
         }
 
-        let start_html = format!(
-            "<{} class=\"rd-anchor\" id=\"{}\"><a href=\"{}\">",
-            level,
-            id,
-            id.with_pound()
-        );
+        let start_html = format!("<{} class=\"rd-anchor\" id=\"{}\">", level, id);
 
-        let end_html = format!("</a></{}>", level);
+        let end_html = format!(
+            "<a aria-label=\"anchor\" href=\"{}\">\
+                               <i class=\"bi bi-hash\"></i></a></{}>",
+            id.with_pound(),
+            level
+        );
 
         self.buf.push_back(Event::Html(end_html.into()));
         if let Some(ref mut toc) = self.toc {

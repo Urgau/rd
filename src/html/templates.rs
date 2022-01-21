@@ -14,6 +14,21 @@ pub struct BodyInformations<'a> {
     root_path: PathBuf,
 }
 
+fn anchor<'a>(id: &'a str) -> impl markup::Render + 'a {
+    struct Anchor<'a> {
+        id: &'a str
+    }
+
+    impl<'a> markup::Render for Anchor<'a> {
+        fn render(&self, writer: &mut impl std::fmt::Write) -> std::fmt::Result {
+            writer.write_str("#")?;
+            writer.write_str(self.id)
+        }
+    }
+
+    Anchor { id }
+}
+
 impl<'context, 'krate> BodyInformations<'krate> {
     pub(super) fn with(
         global_context: &'context GlobalContext<'krate>,
@@ -231,10 +246,15 @@ markup::define! {
     ModuleSection<
         'name,
         Item: markup::Render,
-    > (name: &'name str, id: &'name str, items: &'name Vec<Item>) {
+    > (name: &'name str, id: &'static str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
             section {
-                h3[id=id, class="border-bottom rd-anchor"] { @name }
+                h3[id=id, class="border-bottom rd-anchor"] {
+                    @name
+                    a["aria-label"="anchor", href=anchor(id)] {
+                        i[class="bi bi-hash"] {}
+                    }
+                }
                 div[class = "item-table"] {
                     @for item in *items {
                         @item
@@ -247,10 +267,15 @@ markup::define! {
     GeneralSection<
         'name,
         Item: markup::Render,
-    > (name: &'name str, id: &'name str, items: &'name Vec<Item>) {
+    > (name: &'name str, id: &'static str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
             section {
-                h3[id=id, class="border-bottom rd-anchor"] { @name }
+                h3[id=id, class="border-bottom rd-anchor"] {
+                    @name
+                    a["aria-label"="anchor", href=anchor(id)] {
+                        i[class="bi bi-hash"] {}
+                    }
+                }
                 @for item in *items {
                     @item
                 }
@@ -369,7 +394,12 @@ markup::define! {
     > (title: &'title str, variants: Vec<Variant>, traits: Traits) {
         @if !variants.is_empty() {
             section {
-                h2[class="border-bottom pb-1 rd-anchor", id=VARIANTS_ID] { @title }
+                h2[class="border-bottom pb-1 rd-anchor", id=VARIANTS_ID] {
+                    @title
+                    a["aria-label"="anchor", href=anchor(VARIANTS_ID)] {
+                        i[class="bi bi-hash"] {}
+                    }
+                }
                 @for variant in variants {
                     @variant
                 }

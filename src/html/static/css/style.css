@@ -373,10 +373,6 @@ a:hover {
 	background-color: var(--bs-light);
 }
 
-.rd-anchor {
-	scroll-margin-top: 54px;
-}
-
 .float-right {
 	float: right;
 }
@@ -385,4 +381,21 @@ a:hover {
     width: fit-content;
     padding: 0.5rem;
     margin-top: 0.5rem;
+}
+
+.rd-anchor {
+	scroll-margin-top: 54px;
+}
+
+*:hover > a[aria-label="anchor"] {
+    opacity: 0.4;
+}
+
+a[aria-label="anchor"] {
+    opacity: 0;
+    transition: opacity 50ms ease-in-out;
+}
+
+a[aria-label="anchor"]:hover {
+    opacity: 1;
 }
