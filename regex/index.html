@@ -8,13 +8,13 @@ search text.</p>
 <a href="#syntax">supported syntax</a>.</p>
 <p>For more specific details on the API for regular expressions, please see the
 documentation for the <a href="struct.Regex.html"><code>Regex</code></a> type.</p>
-<h1 class="rd-anchor" id="usage"><a href="#usage">Usage</a></h1>
+<h2 class="rd-anchor" id="usage">Usage<a aria-label="anchor" href="#usage"><i class="bi bi-hash"></i></a></h2>
 <p>This crate is <a href="https://crates.io/crates/regex">on crates.io</a> and can be
 used by adding <code>regex</code> to your dependencies in your project’s <code>Cargo.toml</code>.</p>
 <pre><code class="language-toml">[dependencies]
 regex = &quot;1&quot;
 </code></pre>
-<h1 class="rd-anchor" id="example-find-a-date"><a href="#example-find-a-date">Example: find a date</a></h1>
+<h2 class="rd-anchor" id="example-find-a-date">Example: find a date<a aria-label="anchor" href="#example-find-a-date"><i class="bi bi-hash"></i></a></h2>
 <p>General use of regular expressions in this package involves compiling an
 expression and then using it to search, split or replace text. For example,
 to confirm that some text resembles a date:</p>
@@ -31,7 +31,7 @@ in Rust, which
 are just like regular strings except they are prefixed with an <code>r</code> and do
 not process any escape sequences. For example, <code>&quot;\\d&quot;</code> is the same
 expression as <code>r&quot;\d&quot;</code>.</p>
-<h1 class="rd-anchor" id="example-avoid-compiling-the-same-regex-in-a-loop"><a href="#example-avoid-compiling-the-same-regex-in-a-loop">Example: Avoid compiling the same regex in a loop</a></h1>
+<h2 class="rd-anchor" id="example-avoid-compiling-the-same-regex-in-a-loop">Example: Avoid compiling the same regex in a loop<a aria-label="anchor" href="#example-avoid-compiling-the-same-regex-in-a-loop"><i class="bi bi-hash"></i></a></h2>
 <p>It is an anti-pattern to compile the same regular expression in a loop
 since compilation is typically expensive. (It takes anywhere from a few
 microseconds to a few <strong>milliseconds</strong> depending on the size of the
@@ -55,7 +55,7 @@ fn some_helper_function(text: &amp;str) -&gt; bool {
 fn main() {}</code></pre>
 <p>Specifically, in this example, the regex will be compiled when it is used for
 the first time. On subsequent uses, it will reuse the previous compilation.</p>
-<h1 class="rd-anchor" id="example-iterating-over-capture-groups"><a href="#example-iterating-over-capture-groups">Example: iterating over capture groups</a></h1>
+<h2 class="rd-anchor" id="example-iterating-over-capture-groups">Example: iterating over capture groups<a aria-label="anchor" href="#example-iterating-over-capture-groups"><i class="bi bi-hash"></i></a></h2>
 <p>This crate provides convenient iterators for matching an expression
 repeatedly against a search string to find successive non-overlapping
 matches. For example, to find all dates in a string and be able to access
@@ -71,7 +71,7 @@ for cap in re.captures_iter(text) {
 // Month: 07 Day: 05 Year: 2014</code></pre>
 <p>Notice that the year is in the capture group indexed at <code>1</code>. This is
 because the <em>entire match</em> is stored in the capture group at index <code>0</code>.</p>
-<h1 class="rd-anchor" id="example-replacement-with-named-capture-groups"><a href="#example-replacement-with-named-capture-groups">Example: replacement with named capture groups</a></h1>
+<h2 class="rd-anchor" id="example-replacement-with-named-capture-groups">Example: replacement with named capture groups<a aria-label="anchor" href="#example-replacement-with-named-capture-groups"><i class="bi bi-hash"></i></a></h2>
 <p>Building on the previous example, perhaps we’d like to rearrange the date
 formats. This can be done with text replacement. But to make the code
 clearer, we can <em>name</em>  our capture groups and use those names as variables
@@ -99,7 +99,7 @@ assert_eq!(after, &quot;03/14/2012, 01/01/2013 and 07/05/2014&quot;);</code></pr
 <code>\n</code>, <code>\t</code>, etc. For escaping a single space character, you can escape it
 directly with <code>\ </code>, use its hex character code <code>\x20</code> or temporarily disable
 the <code>x</code> flag, e.g., <code>(?-x: )</code>.</p>
-<h1 class="rd-anchor" id="example-match-multiple-regular-expressions-simultaneously"><a href="#example-match-multiple-regular-expressions-simultaneously">Example: match multiple regular expressions simultaneously</a></h1>
+<h2 class="rd-anchor" id="example-match-multiple-regular-expressions-simultaneously">Example: match multiple regular expressions simultaneously<a aria-label="anchor" href="#example-match-multiple-regular-expressions-simultaneously"><i class="bi bi-hash"></i></a></h2>
 <p>This demonstrates how to use a <code>RegexSet</code> to match multiple (possibly
 overlapping) regular expressions in a single scan of the search text:</p>
 <pre><code class="language-rust">use regex::RegexSet;
@@ -121,7 +121,7 @@ assert_eq!(matches, vec![0, 2, 3, 4, 6]);
 // You can also test whether a particular regex matched:
 let matches = set.matches(&quot;foobar&quot;);
 assert!(!matches.matched(5));
-assert!(matches.matched(6));</code></pre><h1 class="rd-anchor" id="pay-for-what-you-use"><a href="#pay-for-what-you-use">Pay for what you use</a></h1>
+assert!(matches.matched(6));</code></pre><h2 class="rd-anchor" id="pay-for-what-you-use">Pay for what you use<a aria-label="anchor" href="#pay-for-what-you-use"><i class="bi bi-hash"></i></a></h2>
 <p>With respect to searching text with a regular expression, there are three
 questions that can be asked:</p>
 <ol>
@@ -136,7 +136,7 @@ not to do it if you don’t need to.</p>
 <p>Therefore, only use what you need. For example, don’t use <code>find</code> if you
 only need to test if an expression matches a string. (Use <code>is_match</code>
 instead.)</p>
-<h1 class="rd-anchor" id="unicode"><a href="#unicode">Unicode</a></h1>
+<h2 class="rd-anchor" id="unicode">Unicode<a aria-label="anchor" href="#unicode"><i class="bi bi-hash"></i></a></h2>
 <p>This implementation executes regular expressions <strong>only</strong> on valid UTF-8
 while exposing match locations as byte indices into the search string. (To
 relax this restriction, use the <a href="bytes/index.html"><code>bytes</code></a> sub-module.)</p>
@@ -174,7 +174,7 @@ assert_eq!((mat.start(), mat.end()), (3, 23));</code></pre>
 please see the
 <a href="https://github.com/rust-lang/regex/blob/master/UNICODE.md">UNICODE</a>
 document in the root of the regex repository.</p>
-<h1 class="rd-anchor" id="opt-out-of-unicode-support"><a href="#opt-out-of-unicode-support">Opt out of Unicode support</a></h1>
+<h2 class="rd-anchor" id="opt-out-of-unicode-support">Opt out of Unicode support<a aria-label="anchor" href="#opt-out-of-unicode-support"><i class="bi bi-hash"></i></a></h2>
 <p>The <code>bytes</code> sub-module provides a <code>Regex</code> type that can be used to match
 on <code>&amp;[u8]</code>. By default, text is interpreted as UTF-8 just like it is with
 the main <code>Regex</code> type. However, this behavior can be disabled by turning
@@ -192,11 +192,11 @@ tables, this crate exposes knobs to disable the compilation of those
 data tables, which can be useful for shrinking binary size and reducing
 compilation times. For details on how to do that, see the section on <a href="#crate-features">crate
 features</a>.</p>
-<h1 class="rd-anchor" id="syntax"><a href="#syntax">Syntax</a></h1>
+<h2 class="rd-anchor" id="syntax">Syntax<a aria-label="anchor" href="#syntax"><i class="bi bi-hash"></i></a></h2>
 <p>The syntax supported in this crate is documented below.</p>
 <p>Note that the regular expression parser and abstract syntax are exposed in
 a separate crate, <a href="https://docs.rs/regex-syntax"><code>regex-syntax</code></a>.</p>
-<h2 class="rd-anchor" id="matching-one-character"><a href="#matching-one-character">Matching one character</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="matching-one-character">Matching one character<a aria-label="anchor" href="#matching-one-character"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 .             any character except new line (includes new line with s flag)
 \d            digit (\p{Nd})
 \D            not digit
@@ -205,7 +205,7 @@ a separate crate, <a href="https://docs.rs/regex-syntax"><code>regex-syntax</cod
 \PN           Negated one-letter name Unicode character class
 \P{Greek}     negated Unicode character class (general category or script)
 </pre>
-<h3 class="rd-anchor" id="character-classes"><a href="#character-classes">Character classes</a></h3><pre class="rust">
+<h4 class="rd-anchor" id="character-classes">Character classes<a aria-label="anchor" href="#character-classes"><i class="bi bi-hash"></i></a></h4><pre class="rust">
 [xyz]         A character class matching either x, y or z (union).
 [^xyz]        A character class matching any character except x, y and z.
 [a-z]         A character class matching any character in range a-z.
@@ -228,11 +228,11 @@ digit. <code>[\p{Greek}&amp;&amp;\pL]</code> matches Greek letters.</p>
 <li>Intersection: <code>^a-z&amp;&amp;b</code> == <code>^[a-z&amp;&amp;b]</code></li>
 <li>Negation</li>
 </ol>
-<h2 class="rd-anchor" id="composites"><a href="#composites">Composites</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="composites">Composites<a aria-label="anchor" href="#composites"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 xy    concatenation (x followed by y)
 x|y   alternation (x or y, prefer x)
 </pre>
-<h2 class="rd-anchor" id="repetitions"><a href="#repetitions">Repetitions</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="repetitions">Repetitions<a aria-label="anchor" href="#repetitions"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 x*        zero or more of x (greedy)
 x+        one or more of x (greedy)
 x?        zero or one of x (greedy)
@@ -246,7 +246,7 @@ x{n,m}?   at least n x and at most m x (ungreedy/lazy)
 x{n,}?    at least n x (ungreedy/lazy)
 x{n}?     exactly n x
 </pre>
-<h2 class="rd-anchor" id="empty-matches"><a href="#empty-matches">Empty matches</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="empty-matches">Empty matches<a aria-label="anchor" href="#empty-matches"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 ^     the beginning of text (or start-of-line with multi-line mode)
 $     the end of text (or end-of-line with multi-line mode)
 \A    only the beginning of text (even with multi-line mode enabled)
@@ -254,7 +254,7 @@ $     the end of text (or end-of-line with multi-line mode)
 \b    a Unicode word boundary (\w on one side and \W, \A, or \z on other)
 \B    not a Unicode word boundary
 </pre>
-<h2 class="rd-anchor" id="grouping-and-flags"><a href="#grouping-and-flags">Grouping and flags</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="grouping-and-flags">Grouping and flags<a aria-label="anchor" href="#grouping-and-flags"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 (exp)          numbered capture group (indexed by opening parenthesis)
 (?P&lt;name&gt;exp)  named (also numbered) capture group (allowed chars: [_0-9a-zA-Z.\[\]])
 (?:exp)        non-capturing group
@@ -294,7 +294,7 @@ assert_eq!((m.start(), m.end()), (5, 5));</code></pre>
 word boundary:</p>
 <pre><code class="language-rust">let re = Regex::new(r&quot;(?-u:\b).+(?-u:\b)&quot;).unwrap();
 let cap = re.captures(&quot;$$abc$$&quot;).unwrap();
-assert_eq!(&amp;cap[0], &quot;abc&quot;);</code></pre><h2 class="rd-anchor" id="escape-sequences"><a href="#escape-sequences">Escape sequences</a></h2><pre class="rust">
+assert_eq!(&amp;cap[0], &quot;abc&quot;);</code></pre><h3 class="rd-anchor" id="escape-sequences">Escape sequences<a aria-label="anchor" href="#escape-sequences"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 \*          literal *, works for any punctuation character: \.+*?()|[]{}^$
 \a          bell (\x07)
 \f          form feed (\x0C)
@@ -310,7 +310,7 @@ assert_eq!(&amp;cap[0], &quot;abc&quot;);</code></pre><h2 class="rd-anchor" id="
 \U0000007F  hex character code (exactly eight digits)
 \U{7F}      any hex character code corresponding to a Unicode code point
 </pre>
-<h2 class="rd-anchor" id="perl-character-classes-unicode-friendly"><a href="#perl-character-classes-unicode-friendly">Perl character classes (Unicode friendly)</a></h2>
+<h3 class="rd-anchor" id="perl-character-classes-unicode-friendly">Perl character classes (Unicode friendly)<a aria-label="anchor" href="#perl-character-classes-unicode-friendly"><i class="bi bi-hash"></i></a></h3>
 <p>These classes are based on the definitions provided in
 <a href="https://www.unicode.org/reports/tr18/#Compatibility_Properties">UTS#18</a>:</p>
 <pre class="rust">
@@ -321,7 +321,7 @@ assert_eq!(&amp;cap[0], &quot;abc&quot;);</code></pre><h2 class="rd-anchor" id="
 \w     word character (\p{Alphabetic} + \p{M} + \d + \p{Pc} + \p{Join_Control})
 \W     not word character
 </pre>
-<h2 class="rd-anchor" id="ascii-character-classes"><a href="#ascii-character-classes">ASCII character classes</a></h2><pre class="rust">
+<h3 class="rd-anchor" id="ascii-character-classes">ASCII character classes<a aria-label="anchor" href="#ascii-character-classes"><i class="bi bi-hash"></i></a></h3><pre class="rust">
 [[:alnum:]]    alphanumeric ([0-9A-Za-z])
 [[:alpha:]]    alphabetic ([A-Za-z])
 [[:ascii:]]    ASCII ([\x00-\x7F])
@@ -337,7 +337,7 @@ assert_eq!(&amp;cap[0], &quot;abc&quot;);</code></pre><h2 class="rd-anchor" id="
 [[:word:]]     word characters ([0-9A-Za-z_])
 [[:xdigit:]]   hex digit ([0-9A-Fa-f])
 </pre>
-<h1 class="rd-anchor" id="crate-features"><a href="#crate-features">Crate features</a></h1>
+<h2 class="rd-anchor" id="crate-features">Crate features<a aria-label="anchor" href="#crate-features"><i class="bi bi-hash"></i></a></h2>
 <p>By default, this crate tries pretty hard to make regex matching both as fast
 as possible and as correct as it can be, within reason. This means that there
 is a lot of code dedicated to performance, the handling of Unicode data and the
@@ -358,14 +358,14 @@ differently, enabling or disabling any of the features below can only add or
 subtract from the total set of valid regular expressions. Enabling or disabling
 a feature will never modify the match semantics of a regular expression.</p>
 <p>All features below are enabled by default.</p>
-<h3 class="rd-anchor" id="ecosystem-features"><a href="#ecosystem-features">Ecosystem features</a></h3>
+<h4 class="rd-anchor" id="ecosystem-features">Ecosystem features<a aria-label="anchor" href="#ecosystem-features"><i class="bi bi-hash"></i></a></h4>
 <ul>
 <li><strong>std</strong> -
 When enabled, this will cause <code>regex</code> to use the standard library. Currently,
 disabling this feature will always result in a compilation error. It is
 intended to add <code>alloc</code>-only support to regex in the future.</li>
 </ul>
-<h3 class="rd-anchor" id="performance-features"><a href="#performance-features">Performance features</a></h3>
+<h4 class="rd-anchor" id="performance-features">Performance features<a aria-label="anchor" href="#performance-features"><i class="bi bi-hash"></i></a></h4>
 <ul>
 <li><strong>perf</strong> -
 Enables all performance related features. This feature is enabled by default
@@ -391,7 +391,7 @@ additional dependencies, but this is no longer an option. A fast internal
 cache is now used unconditionally with no additional dependencies. This may
 change in the future.</li>
 </ul>
-<h3 class="rd-anchor" id="unicode-features"><a href="#unicode-features">Unicode features</a></h3>
+<h4 class="rd-anchor" id="unicode-features">Unicode features<a aria-label="anchor" href="#unicode-features"><i class="bi bi-hash"></i></a></h4>
 <ul>
 <li><strong>unicode</strong> -
 Enables all Unicode features. This feature is enabled by default, and will
@@ -430,7 +430,7 @@ Provide the data necessary to provide the properties used to implement the
 This enables using classes like <code>\p{gcb=Extend}</code>, <code>\p{wb=Katakana}</code> and
 <code>\p{sb=ATerm}</code>.</li>
 </ul>
-<h1 class="rd-anchor" id="untrusted-input"><a href="#untrusted-input">Untrusted input</a></h1>
+<h2 class="rd-anchor" id="untrusted-input">Untrusted input<a aria-label="anchor" href="#untrusted-input"><i class="bi bi-hash"></i></a></h2>
 <p>This crate can handle both untrusted regular expressions and untrusted
 search text.</p>
 <p>Untrusted regular expressions are handled by capping the size of a compiled
@@ -453,8 +453,8 @@ the limit is reached too frequently, it gives up and hands control off to
 another matching engine with fixed memory requirements.
 (The DFA size limit can also be tweaked. See
 <a href="struct.RegexBuilder.html#method.dfa_size_limit"><code>RegexBuilder::dfa_size_limit</code></a>.)</p>
-</div></details></div><div id="rd-docs-nav" class="rd-toc ps-xl-3 collapse"><strong class="d-block h6 my-2 pb-2 border-bottom">On this page</strong><nav id="TableOfContents"><ul><li><a href="#item-title" class="d-inline-flex align-items-center rounded"><strong>regex</strong></a></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#item-documentation" data-bs-toggle="collapse" data-bs-target="#toc-documentation" aria-expanded="true" aria-current="true"><strong>Documentation</strong></a><ul id="toc-documentation" class="collapse show"><li><a href="#usage" class="d-inline-block align-items-center rounded">Usage</a></li><li><a href="#example-find-a-date" class="d-inline-block align-items-center rounded">Example: find a date</a></li><li><a href="#example-avoid-compiling-the-same-regex-in-a-loop" class="d-inline-block align-items-center rounded">Example: Avoid compiling the same regex in a loop</a></li><li><a href="#example-iterating-over-capture-groups" class="d-inline-block align-items-center rounded">Example: iterating over capture groups</a></li><li><a href="#example-replacement-with-named-capture-groups" class="d-inline-block align-items-center rounded">Example: replacement with named capture groups</a></li><li><a href="#example-match-multiple-regular-expressions-simultaneously" class="d-inline-block align-items-center rounded">Example: match multiple regular expressions simultaneously</a></li><li><a href="#pay-for-what-you-use" class="d-inline-block align-items-center rounded">Pay for what you use</a></li><li><a href="#unicode" class="d-inline-block align-items-center rounded">Unicode</a></li><li><a href="#opt-out-of-unicode-support" class="d-inline-block align-items-center rounded">Opt out of Unicode support</a></li><li><a href="#syntax" class="d-inline-block align-items-center rounded">Syntax</a></li><li><a href="#crate-features" class="d-inline-block align-items-center rounded">Crate features</a></li><li><a href="#untrusted-input" class="d-inline-block align-items-center rounded">Untrusted input</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#modules" data-bs-toggle="collapse" data-bs-target="#toc-modules" aria-expanded="true" aria-current="true"><strong>Modules</strong></a><ul id="toc-modules" class="collapse show"><li><a href="bytes/index.html" class="d-inline-block align-items-center rounded">bytes</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#structs" data-bs-toggle="collapse" data-bs-target="#toc-structs" aria-expanded="true" aria-current="true"><strong>Structs</strong></a><ul id="toc-structs" class="collapse show"><li><a href="struct.CaptureLocations.html" class="d-inline-block align-items-center rounded">CaptureLocations</a></li><li><a href="struct.CaptureMatches.html" class="d-inline-block align-items-center rounded">CaptureMatches</a></li><li><a href="struct.CaptureNames.html" class="d-inline-block align-items-center rounded">CaptureNames</a></li><li><a href="struct.Captures.html" class="d-inline-block align-items-center rounded">Captures</a></li><li><a href="struct.Match.html" class="d-inline-block align-items-center rounded">Match</a></li><li><a href="struct.Matches.html" class="d-inline-block align-items-center rounded">Matches</a></li><li><a href="struct.NoExpand.html" class="d-inline-block align-items-center rounded">NoExpand</a></li><li><a href="struct.Regex.html" class="d-inline-block align-items-center rounded">Regex</a></li><li><a href="struct.RegexBuilder.html" class="d-inline-block align-items-center rounded">RegexBuilder</a></li><li><a href="struct.RegexSet.html" class="d-inline-block align-items-center rounded">RegexSet</a></li><li><a href="struct.RegexSetBuilder.html" class="d-inline-block align-items-center rounded">RegexSetBuilder</a></li><li><a href="struct.ReplacerRef.html" class="d-inline-block align-items-center rounded">ReplacerRef</a></li><li><a href="struct.SetMatches.html" class="d-inline-block align-items-center rounded">SetMatches</a></li><li><a href="struct.SetMatchesIntoIter.html" class="d-inline-block align-items-center rounded">SetMatchesIntoIter</a></li><li><a href="struct.SetMatchesIter.html" class="d-inline-block align-items-center rounded">SetMatchesIter</a></li><li><a href="struct.Split.html" class="d-inline-block align-items-center rounded">Split</a></li><li><a href="struct.SplitN.html" class="d-inline-block align-items-center rounded">SplitN</a></li><li><a href="struct.SubCaptureMatches.html" class="d-inline-block align-items-center rounded">SubCaptureMatches</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#enums" data-bs-toggle="collapse" data-bs-target="#toc-enums" aria-expanded="true" aria-current="true"><strong>Enums</strong></a><ul id="toc-enums" class="collapse show"><li><a href="enum.Error.html" class="d-inline-block align-items-center rounded">Error</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#functions" data-bs-toggle="collapse" data-bs-target="#toc-functions" aria-expanded="true" aria-current="true"><strong>Functions</strong></a><ul id="toc-functions" class="collapse show"><li><a href="fn.escape.html" class="d-inline-block align-items-center rounded">escape</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#traits" data-bs-toggle="collapse" data-bs-target="#toc-traits" aria-expanded="true" aria-current="true"><strong>Traits</strong></a><ul id="toc-traits" class="collapse show"><li><a href="trait.Replacer.html" class="d-inline-block align-items-center rounded">Replacer</a></li></ul></li></ul></nav></div><div class="rd-content"><section><h3 id="modules" class="border-bottom rd-anchor">Modules</h3><div class="item-table"><div><p><a href="bytes/index.html" class="mod">bytes</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">feature = &quot;std&quot;</span></span></p></div><div><p>Match regular expressions on arbitrary bytes.</p>
-</div></div></section><section><h3 id="structs" class="border-bottom rd-anchor">Structs</h3><div class="item-table"><div><p><a href="struct.CaptureLocations.html" class="struct">CaptureLocations</a></p></div><div><p>CaptureLocations is a low level representation of the raw offsets of each
+</div></details></div><div id="rd-docs-nav" class="rd-toc ps-xl-3 collapse"><strong class="d-block h6 my-2 pb-2 border-bottom">On this page</strong><nav id="TableOfContents"><ul><li><a href="#item-title" class="d-inline-flex align-items-center rounded"><strong>regex</strong></a></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#item-documentation" data-bs-toggle="collapse" data-bs-target="#toc-documentation" aria-expanded="true" aria-current="true"><strong>Documentation</strong></a><ul id="toc-documentation" class="collapse show"></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#modules" data-bs-toggle="collapse" data-bs-target="#toc-modules" aria-expanded="true" aria-current="true"><strong>Modules</strong></a><ul id="toc-modules" class="collapse show"><li><a href="bytes/index.html" class="d-inline-block align-items-center rounded">bytes</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#structs" data-bs-toggle="collapse" data-bs-target="#toc-structs" aria-expanded="true" aria-current="true"><strong>Structs</strong></a><ul id="toc-structs" class="collapse show"><li><a href="struct.CaptureLocations.html" class="d-inline-block align-items-center rounded">CaptureLocations</a></li><li><a href="struct.CaptureMatches.html" class="d-inline-block align-items-center rounded">CaptureMatches</a></li><li><a href="struct.CaptureNames.html" class="d-inline-block align-items-center rounded">CaptureNames</a></li><li><a href="struct.Captures.html" class="d-inline-block align-items-center rounded">Captures</a></li><li><a href="struct.Match.html" class="d-inline-block align-items-center rounded">Match</a></li><li><a href="struct.Matches.html" class="d-inline-block align-items-center rounded">Matches</a></li><li><a href="struct.NoExpand.html" class="d-inline-block align-items-center rounded">NoExpand</a></li><li><a href="struct.Regex.html" class="d-inline-block align-items-center rounded">Regex</a></li><li><a href="struct.RegexBuilder.html" class="d-inline-block align-items-center rounded">RegexBuilder</a></li><li><a href="struct.RegexSet.html" class="d-inline-block align-items-center rounded">RegexSet</a></li><li><a href="struct.RegexSetBuilder.html" class="d-inline-block align-items-center rounded">RegexSetBuilder</a></li><li><a href="struct.ReplacerRef.html" class="d-inline-block align-items-center rounded">ReplacerRef</a></li><li><a href="struct.SetMatches.html" class="d-inline-block align-items-center rounded">SetMatches</a></li><li><a href="struct.SetMatchesIntoIter.html" class="d-inline-block align-items-center rounded">SetMatchesIntoIter</a></li><li><a href="struct.SetMatchesIter.html" class="d-inline-block align-items-center rounded">SetMatchesIter</a></li><li><a href="struct.Split.html" class="d-inline-block align-items-center rounded">Split</a></li><li><a href="struct.SplitN.html" class="d-inline-block align-items-center rounded">SplitN</a></li><li><a href="struct.SubCaptureMatches.html" class="d-inline-block align-items-center rounded">SubCaptureMatches</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#enums" data-bs-toggle="collapse" data-bs-target="#toc-enums" aria-expanded="true" aria-current="true"><strong>Enums</strong></a><ul id="toc-enums" class="collapse show"><li><a href="enum.Error.html" class="d-inline-block align-items-center rounded">Error</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#functions" data-bs-toggle="collapse" data-bs-target="#toc-functions" aria-expanded="true" aria-current="true"><strong>Functions</strong></a><ul id="toc-functions" class="collapse show"><li><a href="fn.escape.html" class="d-inline-block align-items-center rounded">escape</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#traits" data-bs-toggle="collapse" data-bs-target="#toc-traits" aria-expanded="true" aria-current="true"><strong>Traits</strong></a><ul id="toc-traits" class="collapse show"><li><a href="trait.Replacer.html" class="d-inline-block align-items-center rounded">Replacer</a></li></ul></li></ul></nav></div><div class="rd-content"><section><h2 id="modules" class="rd-anchor">Modules<a aria-label="anchor" href="#modules"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="bytes/index.html" class="mod">bytes</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">feature = &quot;std&quot;</span></span></p></div><div><p>Match regular expressions on arbitrary bytes.</p>
+</div></div></section><section><h2 id="structs" class="rd-anchor">Structs<a aria-label="anchor" href="#structs"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="struct.CaptureLocations.html" class="struct">CaptureLocations</a></p></div><div><p>CaptureLocations is a low level representation of the raw offsets of each
 submatch.</p>
 </div><div><p><a href="struct.CaptureMatches.html" class="struct">CaptureMatches</a></p></div><div><p>An iterator that yields all non-overlapping capture groups matching a
 particular regular expression.</p>
@@ -475,7 +475,7 @@ particular regular expression.</p>
 </div><div><p><a href="struct.SplitN.html" class="struct">SplitN</a></p></div><div><p>Yields at most <code>N</code> substrings delimited by a regular expression match.</p>
 </div><div><p><a href="struct.SubCaptureMatches.html" class="struct">SubCaptureMatches</a></p></div><div><p>An iterator that yields all capturing matches in the order in which they
 appear in the regex.</p>
-</div></div></section><section><h3 id="enums" class="border-bottom rd-anchor">Enums</h3><div class="item-table"><div><p><a href="enum.Error.html" class="enum">Error</a></p></div><div><p>An error that occurred during parsing or compiling a regular expression.</p>
-</div></div></section><section><h3 id="functions" class="border-bottom rd-anchor">Functions</h3><div class="item-table"><div><p><a href="fn.escape.html" class="fn">escape</a></p></div><div><p>Escapes all regular expression meta characters in <code>text</code>.</p>
-</div></div></section><section><h3 id="traits" class="border-bottom rd-anchor">Traits</h3><div class="item-table"><div><p><a href="trait.Replacer.html" class="trait">Replacer</a></p></div><div><p>Replacer describes types that can be used to replace matches in a string.</p>
+</div></div></section><section><h2 id="enums" class="rd-anchor">Enums<a aria-label="anchor" href="#enums"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="enum.Error.html" class="enum">Error</a></p></div><div><p>An error that occurred during parsing or compiling a regular expression.</p>
+</div></div></section><section><h2 id="functions" class="rd-anchor">Functions<a aria-label="anchor" href="#functions"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="fn.escape.html" class="fn">escape</a></p></div><div><p>Escapes all regular expression meta characters in <code>text</code>.</p>
+</div></div></section><section><h2 id="traits" class="rd-anchor">Traits<a aria-label="anchor" href="#traits"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="trait.Replacer.html" class="trait">Replacer</a></p></div><div><p>Replacer describes types that can be used to replace matches in a string.</p>
 </div></div></section></div></div></div><footer class="container-xxl text-center">The rd developpers - (c) 2022</footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js" integrity="sha384-A4SLs39X/aUfwRclRaXvNeXNBTLZdnZdHhhteqbYFS2jZTRD79tKeFeBn7SGXNpi" crossorigin="anonymous"></script><script src="../regex/search-index.js"></script><script src="../search.js"></script></body></html>
