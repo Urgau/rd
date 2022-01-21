@@ -14,8 +14,8 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
  - [regex](https://urgau.github.io/rd/regex/) ([docs.rs](https://docs.rs/regex/1.5.4/regex/))
  - [memchr](https://urgau.github.io/rd/memchr/) ([docs.rs](https://docs.rs/memchr/2.4.1/memchr/))
  - [curl](https://urgau.github.io/rd/curl/) ([docs.rs](https://docs.rs/curl/0.4.42/nix/))
- - [curl-sys](https://urgau.github.io/rd/curl-sys/) ([docs.rs](https://docs.rs/curl-sys/0.4.52+curl-7.81.0/curl_sys/index.html))
- - [openssl-sys](https://urgau.github.io/rd/openssl-sys/) ([docs.rs](https://docs.rs/openssl-sys/))
+ - [curl-sys](https://urgau.github.io/rd/curl_sys/) ([docs.rs](https://docs.rs/curl-sys/0.4.52+curl-7.81.0/curl_sys/index.html))
+ - [openssl-sys](https://urgau.github.io/rd/openssl_sys/) ([docs.rs](https://docs.rs/openssl-sys/))
 
 ## Features
 
