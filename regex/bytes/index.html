@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="en" data-bs-color-scheme="light"><head><title>bytes in regex - Rust</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-blackbox.min.css" integrity="sha384-nXtYGwAUBOgb4M8Eo9xOK3Er3bVPQo1HguUNWf/RheIagsbCaP3ZaYqVeUqHEr20" rel="stylesheet" crossorigin="anonymous"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" integrity="sha384-tKLJeE1ALTUwtXlaGjJYM3sejfssWdAaWR2s97axw4xkiAdMzQjtOjgcyw0Y50KU" rel="stylesheet" crossorigin="anonymous"><link href="../../style.css" rel="stylesheet"><link href="../../rust.svg" rel="icon" type="image/svg+xml"></head><body><header class="navbar navbar-expand-md navbar-dark rd-navbar"><nav class="container-xxl flex-wrap flex-md-nowrap" aria-label="Main navigation"><a class="navbar-brand p-0 me-2" href="../../regex/index.html" aria-label="Rust"><img src="../../rust.svg" width="40" height="40" alt="Rust Logo"></a><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#rdNavbar" aria-controls="rdNavbar" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list"></i></button><div class="collapse navbar-collapse" id="rdNavbar"><ul class="navbar-nav flex-row flex-wrap pt-2 py-md-0"><li class="nav-item col-6 col-md-auto"><a class="nav-link p-2 active" href="../../regex/index.html">regex</a></li></ul><hr class="d-md-none text-white-50"><ul class="navbar-nav flex-row flex-wrap ms-md-auto"><li class="nav-item col-6 col-md-auto"><a class="nav-link p-2" href="#themes" title="Toggle themes" onclick="darkmode.toggleDarkMode()"><i class="bi bi-palette"></i><small class="d-md-none ms-2">Themes</small></a></li><li class="nav-item col-6 col-md-auto" title="Unimplemented"><a class="nav-link p-2" href="#shortcuts"><i class="bi bi-question-lg"></i><small class="d-md-none ms-2">Shortcut</small></a></li><li class="nav-item col-6 col-md-auto" title="Unimplemented"><a class="nav-link p-2" href="#options"><i class="bi bi-wrench"></i><small class="d-md-none ms-2">Options</small></a></li></ul></div></nav></header><nav class="rd-subnavbar py-2 border-bottom shadow-sm" aria-label="Secondary navigation"><div class="container-xxl d-flex align-items-md-center"><form class="rd-search position-relative" id="rd-search-form"><span class="w-100" style="position: relative; display: inline-block; direction: ltr;"><input type="search" class="form-control ds-input" id="rd-search-input" placeholder="Search in regex..." aria-label="Search docs for..." autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-owns="rd-search-menu" style="position: relative; vertical-align: top;" dir="auto"><span class="ds-dropdown-menu" style="position: absolute; top: 100%; z-index: 100; display: none; left: 0px; right: 0px;" role="listbox" id="rd-search-menu"><div class="rd-search-items" id="rd-search-items"></div></span></span></form><button class="btn rd-sidebar-toggle d-md-none py-0 px-1 ms-3 order-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#rd-docs-nav" aria-controls="rd-docs-nav" aria-expanded="false" aria-label="Toggle docs navigation"><i class="bi bi-arrows-expand"></i><i class="bi bi-arrows-collapse"></i></button></div></nav><div id="main" class="container-xxl"><div class="rd-main"><div class="rd-intro"><h1 id="item-title" class="rd-anchor item-title">Module <a class="mod" href="../index.html">regex</a>::<wbr><a class="mod" href="index.html">bytes</a></h1><div class="alert alert-primary" role="alert"><i class="bi bi-info-circle me-2"></i>The portability is definied by: <code>#[cfg(feature = &quot;std&quot;)]</code></div><details id="item-documentation" class="rd-anchor item-documentation" open=""><summary>Documentation</summary><div class="mt-2"><p>Match regular expressions on arbitrary bytes.</p>
+<p>This module provides a nearly identical API to the one found in the
+top-level of this crate. There are two important differences:</p>
+<ol>
+<li>Matching is done on <code>&amp;[u8]</code> instead of <code>&amp;str</code>. Additionally, <code>Vec&lt;u8&gt;</code>
+is used where <code>String</code> would have been used.</li>
+<li>Unicode support can be disabled even when disabling it would result in
+matching invalid UTF-8 bytes.</li>
+</ol>
+<h1 class="rd-anchor" id="example-match-null-terminated-string"><a href="#example-match-null-terminated-string">Example: match null terminated string</a></h1>
+<p>This shows how to find all null-terminated strings in a slice of bytes:</p>
+<pre><code class="language-rust">let re = Regex::new(r&quot;(?-u)(?P&lt;cstr&gt;[^\x00]+)\x00&quot;).unwrap();
+let text = b&quot;foo\x00bar\x00baz\x00&quot;;
+
+// Extract all of the strings without the null terminator from each match.
+// The unwrap is OK here since a match requires the `cstr` capture to match.
+let cstrs: Vec&lt;&amp;[u8]&gt; =
+    re.captures_iter(text)
+      .map(|c| c.name(&quot;cstr&quot;).unwrap().as_bytes())
+      .collect();
+assert_eq!(vec![&amp;b&quot;foo&quot;[..], &amp;b&quot;bar&quot;[..], &amp;b&quot;baz&quot;[..]], cstrs);</code></pre><h1 class="rd-anchor" id="example-selectively-enable-unicode-support"><a href="#example-selectively-enable-unicode-support">Example: selectively enable Unicode support</a></h1>
+<p>This shows how to match an arbitrary byte pattern followed by a UTF-8 encoded
+string (e.g., to extract a title from a Matroska file):</p>
+<pre><code class="language-rust">let re = Regex::new(
+    r&quot;(?-u)\x7b\xa9(?:[\x80-\xfe]|[\x40-\xff].)(?u:(.*))&quot;
+).unwrap();
+let text = b&quot;\x12\xd0\x3b\x5f\x7b\xa9\x85\xe2\x98\x83\x80\x98\x54\x76\x68\x65&quot;;
+let caps = re.captures(text).unwrap();
+
+// Notice that despite the `.*` at the end, it will only match valid UTF-8
+// because Unicode mode was enabled with the `u` flag. Without the `u` flag,
+// the `.*` would match the rest of the bytes.
+let mat = caps.get(1).unwrap();
+assert_eq!((7, 10), (mat.start(), mat.end()));
+
+// If there was a match, Unicode mode guarantees that `title` is valid UTF-8.
+let title = str::from_utf8(&amp;caps[1]).unwrap();
+assert_eq!(&quot;☃&quot;, title);</code></pre>
+<p>In general, if the Unicode flag is enabled in a capture group and that capture
+is part of the overall match, then the capture is <em>guaranteed</em> to be valid
+UTF-8.</p>
+<h1 class="rd-anchor" id="syntax"><a href="#syntax">Syntax</a></h1>
+<p>The supported syntax is pretty much the same as the syntax for Unicode
+regular expressions with a few changes that make sense for matching arbitrary
+bytes:</p>
+<ol>
+<li>The <code>u</code> flag can be disabled even when disabling it might cause the regex to
+match invalid UTF-8. When the <code>u</code> flag is disabled, the regex is said to be in
+“ASCII compatible” mode.</li>
+<li>In ASCII compatible mode, neither Unicode scalar values nor Unicode
+character classes are allowed.</li>
+<li>In ASCII compatible mode, Perl character classes (<code>\w</code>, <code>\d</code> and <code>\s</code>)
+revert to their typical ASCII definition. <code>\w</code> maps to <code>[[:word:]]</code>, <code>\d</code> maps
+to <code>[[:digit:]]</code> and <code>\s</code> maps to <code>[[:space:]]</code>.</li>
+<li>In ASCII compatible mode, word boundaries use the ASCII compatible <code>\w</code> to
+determine whether a byte is a word byte or not.</li>
+<li>Hexadecimal notation can be used to specify arbitrary bytes instead of
+Unicode codepoints. For example, in ASCII compatible mode, <code>\xFF</code> matches the
+literal byte <code>\xFF</code>, while in Unicode mode, <code>\xFF</code> is a Unicode codepoint that
+matches its UTF-8 encoding of <code>\xC3\xBF</code>. Similarly for octal notation when
+enabled.</li>
+<li>In ASCII compatible mode, <code>.</code> matches any <em>byte</em> except for <code>\n</code>. When the
+<code>s</code> flag is additionally enabled, <code>.</code> matches any byte.</li>
+</ol>
+<h1 class="rd-anchor" id="performance"><a href="#performance">Performance</a></h1>
+<p>In general, one should expect performance on <code>&amp;[u8]</code> to be roughly similar to
+performance on <code>&amp;str</code>.</p>
+</div></details></div><div id="rd-docs-nav" class="rd-toc ps-xl-3 collapse"><strong class="d-block h6 my-2 pb-2 border-bottom">On this page</strong><nav id="TableOfContents"><ul><li><a href="#item-title" class="d-inline-flex align-items-center rounded"><strong>bytes</strong></a></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#item-documentation" data-bs-toggle="collapse" data-bs-target="#toc-documentation" aria-expanded="true" aria-current="true"><strong>Documentation</strong></a><ul id="toc-documentation" class="collapse show"><li><a href="#example-match-null-terminated-string" class="d-inline-block align-items-center rounded">Example: match null terminated string</a></li><li><a href="#example-selectively-enable-unicode-support" class="d-inline-block align-items-center rounded">Example: selectively enable Unicode support</a></li><li><a href="#syntax" class="d-inline-block align-items-center rounded">Syntax</a></li><li><a href="#performance" class="d-inline-block align-items-center rounded">Performance</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#structs" data-bs-toggle="collapse" data-bs-target="#toc-structs" aria-expanded="true" aria-current="true"><strong>Structs</strong></a><ul id="toc-structs" class="collapse show"><li><a href="struct.CaptureLocations.html" class="d-inline-block align-items-center rounded">CaptureLocations</a></li><li><a href="struct.CaptureMatches.html" class="d-inline-block align-items-center rounded">CaptureMatches</a></li><li><a href="struct.CaptureNames.html" class="d-inline-block align-items-center rounded">CaptureNames</a></li><li><a href="struct.Captures.html" class="d-inline-block align-items-center rounded">Captures</a></li><li><a href="struct.Match.html" class="d-inline-block align-items-center rounded">Match</a></li><li><a href="struct.Matches.html" class="d-inline-block align-items-center rounded">Matches</a></li><li><a href="struct.NoExpand.html" class="d-inline-block align-items-center rounded">NoExpand</a></li><li><a href="struct.Regex.html" class="d-inline-block align-items-center rounded">Regex</a></li><li><a href="struct.RegexBuilder.html" class="d-inline-block align-items-center rounded">RegexBuilder</a></li><li><a href="struct.RegexSet.html" class="d-inline-block align-items-center rounded">RegexSet</a></li><li><a href="struct.RegexSetBuilder.html" class="d-inline-block align-items-center rounded">RegexSetBuilder</a></li><li><a href="struct.ReplacerRef.html" class="d-inline-block align-items-center rounded">ReplacerRef</a></li><li><a href="struct.SetMatches.html" class="d-inline-block align-items-center rounded">SetMatches</a></li><li><a href="struct.SetMatchesIntoIter.html" class="d-inline-block align-items-center rounded">SetMatchesIntoIter</a></li><li><a href="struct.SetMatchesIter.html" class="d-inline-block align-items-center rounded">SetMatchesIter</a></li><li><a href="struct.Split.html" class="d-inline-block align-items-center rounded">Split</a></li><li><a href="struct.SplitN.html" class="d-inline-block align-items-center rounded">SplitN</a></li><li><a href="struct.SubCaptureMatches.html" class="d-inline-block align-items-center rounded">SubCaptureMatches</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#traits" data-bs-toggle="collapse" data-bs-target="#toc-traits" aria-expanded="true" aria-current="true"><strong>Traits</strong></a><ul id="toc-traits" class="collapse show"><li><a href="trait.Replacer.html" class="d-inline-block align-items-center rounded">Replacer</a></li></ul></li></ul></nav></div><div class="rd-content"><section><h3 id="structs" class="border-bottom rd-anchor">Structs</h3><div class="item-table"><div><p><a href="struct.CaptureLocations.html" class="struct">CaptureLocations</a></p></div><div><p>CaptureLocations is a low level representation of the raw offsets of each
+submatch.</p>
+</div><div><p><a href="struct.CaptureMatches.html" class="struct">CaptureMatches</a></p></div><div><p>An iterator that yields all non-overlapping capture groups matching a
+particular regular expression.</p>
+</div><div><p><a href="struct.CaptureNames.html" class="struct">CaptureNames</a></p></div><div><p>An iterator over the names of all possible captures.</p>
+</div><div><p><a href="struct.Captures.html" class="struct">Captures</a></p></div><div><p>Captures represents a group of captured byte strings for a single match.</p>
+</div><div><p><a href="struct.Match.html" class="struct">Match</a></p></div><div><p>Match represents a single match of a regex in a haystack.</p>
+</div><div><p><a href="struct.Matches.html" class="struct">Matches</a></p></div><div><p>An iterator over all non-overlapping matches for a particular string.</p>
+</div><div><p><a href="struct.NoExpand.html" class="struct">NoExpand</a></p></div><div><p><code>NoExpand</code> indicates literal byte string replacement.</p>
+</div><div><p><a href="struct.Regex.html" class="struct">Regex</a></p></div><div><p>A compiled regular expression for matching arbitrary bytes.</p>
+</div><div><p><a href="struct.RegexBuilder.html" class="struct">RegexBuilder</a></p></div><div><p>A configurable builder for a regular expression.</p>
+</div><div><p><a href="struct.RegexSet.html" class="struct">RegexSet</a></p></div><div><p>Match multiple (possibly overlapping) regular expressions in a single scan.</p>
+</div><div><p><a href="struct.RegexSetBuilder.html" class="struct">RegexSetBuilder</a></p></div><div><p>A configurable builder for a set of regular expressions.</p>
+</div><div><p><a href="struct.ReplacerRef.html" class="struct">ReplacerRef</a></p></div><div><p>By-reference adaptor for a <code>Replacer</code></p>
+</div><div><p><a href="struct.SetMatches.html" class="struct">SetMatches</a></p></div><div><p>A set of matches returned by a regex set.</p>
+</div><div><p><a href="struct.SetMatchesIntoIter.html" class="struct">SetMatchesIntoIter</a></p></div><div><p>An owned iterator over the set of matches from a regex set.</p>
+</div><div><p><a href="struct.SetMatchesIter.html" class="struct">SetMatchesIter</a></p></div><div><p>A borrowed iterator over the set of matches from a regex set.</p>
+</div><div><p><a href="struct.Split.html" class="struct">Split</a></p></div><div><p>Yields all substrings delimited by a regular expression match.</p>
+</div><div><p><a href="struct.SplitN.html" class="struct">SplitN</a></p></div><div><p>Yields at most <code>N</code> substrings delimited by a regular expression match.</p>
+</div><div><p><a href="struct.SubCaptureMatches.html" class="struct">SubCaptureMatches</a></p></div><div><p>An iterator that yields all capturing matches in the order in which they
+appear in the regex.</p>
+</div></div></section><section><h3 id="traits" class="border-bottom rd-anchor">Traits</h3><div class="item-table"><div><p><a href="trait.Replacer.html" class="trait">Replacer</a></p></div><div><p>Replacer describes types that can be used to replace matches in a byte
+string.</p>
+</div></div></section></div></div></div><footer class="container-xxl text-center">The rd developpers - (c) 2022</footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js" integrity="sha384-A4SLs39X/aUfwRclRaXvNeXNBTLZdnZdHhhteqbYFS2jZTRD79tKeFeBn7SGXNpi" crossorigin="anonymous"></script><script src="../../regex/search-index.js"></script><script src="../../search.js"></script></body></html>

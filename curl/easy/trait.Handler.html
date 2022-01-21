@@ -1,0 +1,173 @@
+<!DOCTYPE html><html lang="en" data-bs-color-scheme="light"><head><title>Handler in curl::easy - Rust</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><link href="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/css/bootstrap-blackbox.min.css" integrity="sha384-nXtYGwAUBOgb4M8Eo9xOK3Er3bVPQo1HguUNWf/RheIagsbCaP3ZaYqVeUqHEr20" rel="stylesheet" crossorigin="anonymous"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" integrity="sha384-tKLJeE1ALTUwtXlaGjJYM3sejfssWdAaWR2s97axw4xkiAdMzQjtOjgcyw0Y50KU" rel="stylesheet" crossorigin="anonymous"><link href="../../style.css" rel="stylesheet"><link href="../../rust.svg" rel="icon" type="image/svg+xml"></head><body><header class="navbar navbar-expand-md navbar-dark rd-navbar"><nav class="container-xxl flex-wrap flex-md-nowrap" aria-label="Main navigation"><a class="navbar-brand p-0 me-2" href="../../curl/index.html" aria-label="Rust"><img src="../../rust.svg" width="40" height="40" alt="Rust Logo"></a><button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#rdNavbar" aria-controls="rdNavbar" aria-expanded="false" aria-label="Toggle navigation"><i class="bi bi-list"></i></button><div class="collapse navbar-collapse" id="rdNavbar"><ul class="navbar-nav flex-row flex-wrap pt-2 py-md-0"><li class="nav-item col-6 col-md-auto"><a class="nav-link p-2 active" href="../../curl/index.html">curl</a></li></ul><hr class="d-md-none text-white-50"><ul class="navbar-nav flex-row flex-wrap ms-md-auto"><li class="nav-item col-6 col-md-auto"><a class="nav-link p-2" href="#themes" title="Toggle themes" onclick="darkmode.toggleDarkMode()"><i class="bi bi-palette"></i><small class="d-md-none ms-2">Themes</small></a></li><li class="nav-item col-6 col-md-auto" title="Unimplemented"><a class="nav-link p-2" href="#shortcuts"><i class="bi bi-question-lg"></i><small class="d-md-none ms-2">Shortcut</small></a></li><li class="nav-item col-6 col-md-auto" title="Unimplemented"><a class="nav-link p-2" href="#options"><i class="bi bi-wrench"></i><small class="d-md-none ms-2">Options</small></a></li></ul></div></nav></header><nav class="rd-subnavbar py-2 border-bottom shadow-sm" aria-label="Secondary navigation"><div class="container-xxl d-flex align-items-md-center"><form class="rd-search position-relative" id="rd-search-form"><span class="w-100" style="position: relative; display: inline-block; direction: ltr;"><input type="search" class="form-control ds-input" id="rd-search-input" placeholder="Search in curl..." aria-label="Search docs for..." autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-owns="rd-search-menu" style="position: relative; vertical-align: top;" dir="auto"><span class="ds-dropdown-menu" style="position: absolute; top: 100%; z-index: 100; display: none; left: 0px; right: 0px;" role="listbox" id="rd-search-menu"><div class="rd-search-items" id="rd-search-items"></div></span></span></form><button class="btn rd-sidebar-toggle d-md-none py-0 px-1 ms-3 order-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#rd-docs-nav" aria-controls="rd-docs-nav" aria-expanded="false" aria-label="Toggle docs navigation"><i class="bi bi-arrows-expand"></i><i class="bi bi-arrows-collapse"></i></button></div></nav><div id="main" class="container-xxl"><div class="rd-main"><div class="rd-intro"><h1 id="item-title" class="rd-anchor item-title">Trait <a class="mod" href="../index.html">curl</a>::<wbr><a class="mod" href="index.html">easy</a>::<wbr><a class="trait" href="trait.Handler.html">Handler</a></h1><pre id="item-definition" class="rd-anchor item-definition"><code><span class="kw">pub</span>&nbsp;<span class="kw">trait</span>&nbsp;<span class="ident trait"><a href="trait.Handler.html">Handler</a></span>&nbsp;<span class="ponct">{</span>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.write">write</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="primitive">usize</span><span class="ponct">,</span>&nbsp;<span class="ident enum"><a href="enum.WriteError.html">WriteError</a></span><span class="ponct">&gt;</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.read">read</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="primitive">usize</span><span class="ponct">,</span>&nbsp;<span class="ident enum"><a href="enum.ReadError.html">ReadError</a></span><span class="ponct">&gt;</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.seek">seek</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>whence</span><span class="ponct">:</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a></span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="enum.SeekResult.html">SeekResult</a></span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.debug">debug</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>kind</span><span class="ponct">:</span>&nbsp;<span class="ident enum"><a href="enum.InfoType.html">InfoType</a></span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ponct">)</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.header">header</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="primitive">bool</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.progress">progress</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>dltotal</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>dlnow</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>ultotal</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>ulnow</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="primitive">bool</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.ssl_ctx">ssl_ctx</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>cx</span><span class="ponct">:</span>&nbsp;<span class="kw">*</span><span class="kw">mut</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a></span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="ponct">(</span><span class="ponct">)</span><span class="ponct">,</span>&nbsp;<span class="ident struct"><a href="../struct.Error.html">Error</a></span><span class="ponct">&gt;</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.open_socket">open_socket</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>family</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>socktype</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>protocol</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html">Option</a></span><span class="ponct">&lt;</span><span class="ident type"><a href="https://docs.rs/curl-sys/0.3/curl_sys/type.curl_socket_t.html">curl_sys::curl_socket_t</a></span><span class="ponct">&gt;</span>&nbsp;<span class="ponct">{</span>&nbsp;...&nbsp;<span class="ponct">}</span><br><span class="ponct">}</span></code></pre><details id="item-documentation" class="rd-anchor item-documentation" open=""><summary>Documentation</summary><div class="mt-2"><p>A trait for the various callbacks used by libcurl to invoke user code.</p>
+<p>This trait represents all operations that libcurl can possibly invoke a
+client for code during an HTTP transaction. Each callback has a default
+“noop” implementation, the same as in libcurl. Types implementing this trait
+may simply override the relevant functions to learn about the callbacks
+they’re interested in.</p>
+<h1 class="rd-anchor" id="examples"><a href="#examples">Examples</a></h1><pre><code class="language-rust">use curl::easy::{Easy2, Handler, WriteError};
+
+struct Collector(Vec&lt;u8&gt;);
+
+impl Handler for Collector {
+    fn write(&amp;mut self, data: &amp;[u8]) -&gt; Result&lt;usize, WriteError&gt; {
+        self.0.extend_from_slice(data);
+        Ok(data.len())
+    }
+}
+
+let mut easy = Easy2::new(Collector(Vec::new()));
+easy.get(true).unwrap();
+easy.url(&quot;https://www.rust-lang.org/&quot;).unwrap();
+easy.perform().unwrap();
+
+assert_eq!(easy.response_code().unwrap(), 200);
+let contents = easy.get_ref();
+println!(&quot;{}&quot;, String::from_utf8_lossy(&amp;contents.0));</code></pre></div></details></div><div id="rd-docs-nav" class="rd-toc ps-xl-3 collapse"><strong class="d-block h6 my-2 pb-2 border-bottom">On this page</strong><nav id="TableOfContents"><ul><li><a href="#item-title" class="d-inline-flex align-items-center rounded"><strong>Handler</strong></a></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#item-documentation" data-bs-toggle="collapse" data-bs-target="#toc-documentation" aria-expanded="true" aria-current="true"><strong>Documentation</strong></a><ul id="toc-documentation" class="collapse show"><li><a href="#examples" class="d-inline-block align-items-center rounded">Examples</a></li></ul></li><li><a class="rd-btn-toc d-inline-block align-items-center rounded bi bi-caret-right-fill" href="#provided-methods" data-bs-toggle="collapse" data-bs-target="#toc-provided-methods" aria-expanded="true" aria-current="true"><strong>Provided Methods</strong></a><ul id="toc-provided-methods" class="collapse show"><li><a href="#method.debug" class="d-inline-block align-items-center rounded">debug</a></li><li><a href="#method.header" class="d-inline-block align-items-center rounded">header</a></li><li><a href="#method.open_socket" class="d-inline-block align-items-center rounded">open_socket</a></li><li><a href="#method.progress" class="d-inline-block align-items-center rounded">progress</a></li><li><a href="#method.read" class="d-inline-block align-items-center rounded">read</a></li><li><a href="#method.seek" class="d-inline-block align-items-center rounded">seek</a></li><li><a href="#method.ssl_ctx" class="d-inline-block align-items-center rounded">ssl_ctx</a></li><li><a href="#method.write" class="d-inline-block align-items-center rounded">write</a></li></ul></li></ul></nav></div><div class="rd-content"><section><h3 id="provided-methods" class="border-bottom rd-anchor">Provided Methods</h3><div id="method.debug" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.debug">debug</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>kind</span><span class="ponct">:</span>&nbsp;<span class="ident enum"><a href="enum.InfoType.html">InfoType</a></span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><br><span class="ponct">)</span></code></summary><div class="mt-2 item-documentation"><p>Specify a debug callback</p>
+<p><code>debug_function</code> replaces the standard debug function used when
+<code>verbose</code> is in effect. This callback receives debug information,
+as specified in the type argument.</p>
+<p>By default this option is not set and corresponds to the
+<code>CURLOPT_DEBUGFUNCTION</code> and <code>CURLOPT_DEBUGDATA</code> options.</p>
+</div></details></div><div id="method.header" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.header">header</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="primitive">bool</span></code></summary><div class="mt-2 item-documentation"><p>Callback that receives header data</p>
+<p>This function gets called by libcurl as soon as it has received header
+data. The header callback will be called once for each header and only
+complete header lines are passed on to the callback. Parsing headers is
+very easy using this. If this callback returns <code>false</code> it’ll signal an
+error to the library. This will cause the transfer to get aborted and
+the libcurl function in progress will return <code>is_write_error</code>.</p>
+<p>A complete HTTP header that is passed to this function can be up to
+CURL_MAX_HTTP_HEADER (100K) bytes.</p>
+<p>It’s important to note that the callback will be invoked for the headers
+of all responses received after initiating a request and not just the
+final response. This includes all responses which occur during
+authentication negotiation. If you need to operate on only the headers
+from the final response, you will need to collect headers in the
+callback yourself and use HTTP status lines, for example, to delimit
+response boundaries.</p>
+<p>When a server sends a chunked encoded transfer, it may contain a
+trailer. That trailer is identical to a HTTP header and if such a
+trailer is received it is passed to the application using this callback
+as well. There are several ways to detect it being a trailer and not an
+ordinary header: 1) it comes after the response-body. 2) it comes after
+the final header line (CR LF) 3) a Trailer: header among the regular
+response-headers mention what header(s) to expect in the trailer.</p>
+<p>For non-HTTP protocols like FTP, POP3, IMAP and SMTP this function will
+get called with the server responses to the commands that libcurl sends.</p>
+<p>By default this option is not set and corresponds to the
+<code>CURLOPT_HEADERFUNCTION</code> and <code>CURLOPT_HEADERDATA</code> options.</p>
+</div></details></div><div id="method.open_socket" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.open_socket">open_socket</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>family</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>socktype</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>protocol</span><span class="ponct">:</span>&nbsp;<span class="ident">c_int</span><br><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html">Option</a></span><span class="ponct">&lt;</span><span class="ident type"><a href="https://docs.rs/curl-sys/0.3/curl_sys/type.curl_socket_t.html">curl_sys::curl_socket_t</a></span><span class="ponct">&gt;</span></code></summary><div class="mt-2 item-documentation"><p>Callback to open sockets for libcurl.</p>
+<p>This callback function gets called by libcurl instead of the socket(2)
+call. The callback function should return the newly created socket
+or <code>None</code> in case no connection could be established or another
+error was detected. Any additional <code>setsockopt(2)</code> calls can of course
+be done on the socket at the user’s discretion. A <code>None</code> return
+value from the callback function will signal an unrecoverable error to
+libcurl and it will return <code>is_couldnt_connect</code> from the function that
+triggered this callback.</p>
+<p>By default this function opens a standard socket and
+corresponds to <code>CURLOPT_OPENSOCKETFUNCTION </code>.</p>
+</div></details></div><div id="method.progress" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.progress">progress</a></span><span class="ponct">(</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>dltotal</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>dlnow</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>ultotal</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><span class="ponct">,</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span>ulnow</span><span class="ponct">:</span>&nbsp;<span class="primitive">f64</span><br><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="primitive">bool</span></code></summary><div class="mt-2 item-documentation"><p>Callback to progress meter function</p>
+<p>This function gets called by libcurl instead of its internal equivalent
+with a frequent interval. While data is being transferred it will be
+called very frequently, and during slow periods like when nothing is
+being transferred it can slow down to about one call per second.</p>
+<p>The callback gets told how much data libcurl will transfer and has
+transferred, in number of bytes. The first argument is the total number
+of bytes libcurl expects to download in this transfer. The second
+argument is the number of bytes downloaded so far. The third argument is
+the total number of bytes libcurl expects to upload in this transfer.
+The fourth argument is the number of bytes uploaded so far.</p>
+<p>Unknown/unused argument values passed to the callback will be set to
+zero (like if you only download data, the upload size will remain 0).
+Many times the callback will be called one or more times first, before
+it knows the data sizes so a program must be made to handle that.</p>
+<p>Returning <code>false</code> from this callback will cause libcurl to abort the
+transfer and return <code>is_aborted_by_callback</code>.</p>
+<p>If you transfer data with the multi interface, this function will not be
+called during periods of idleness unless you call the appropriate
+libcurl function that performs transfers.</p>
+<p><code>progress</code> must be set to <code>true</code> to make this function actually get
+called.</p>
+<p>By default this function calls an internal method and corresponds to
+<code>CURLOPT_PROGRESSFUNCTION</code> and <code>CURLOPT_PROGRESSDATA</code>.</p>
+</div></details></div><div id="method.read" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.read">read</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="kw">mut</span>&nbsp;<span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="primitive">usize</span><span class="ponct">,</span>&nbsp;<span class="ident enum"><a href="enum.ReadError.html">ReadError</a></span><span class="ponct">&gt;</span></code></summary><div class="mt-2 item-documentation"><p>Read callback for data uploads.</p>
+<p>This callback function gets called by libcurl as soon as it needs to
+read data in order to send it to the peer - like if you ask it to upload
+or post data to the server.</p>
+<p>Your function must then return the actual number of bytes that it stored
+in that memory area. Returning 0 will signal end-of-file to the library
+and cause it to stop the current transfer.</p>
+<p>If you stop the current transfer by returning 0 “pre-maturely” (i.e
+before the server expected it, like when you’ve said you will upload N
+bytes and you upload less than N bytes), you may experience that the
+server “hangs” waiting for the rest of the data that won’t come.</p>
+<p>The read callback may return <code>Err(ReadError::Abort)</code> to stop the
+current operation immediately, resulting in a <code>is_aborted_by_callback</code>
+error code from the transfer.</p>
+<p>The callback can return <code>Err(ReadError::Pause)</code> to cause reading from
+this connection to pause. See <code>unpause_read</code> for further details.</p>
+<p>By default data not input, and this corresponds to the
+<code>CURLOPT_READFUNCTION</code> and <code>CURLOPT_READDATA</code> options.</p>
+<p>Note that the lifetime bound on this function is <code>'static</code>, but that
+is often too restrictive. To use stack data consider calling the
+<code>transfer</code> method and then using <code>read_function</code> to configure a
+callback that can reference stack-local data.</p>
+</div></details></div><div id="method.seek" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.seek">seek</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>whence</span><span class="ponct">:</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a></span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="enum.SeekResult.html">SeekResult</a></span></code></summary><div class="mt-2 item-documentation"><p>User callback for seeking in input stream.</p>
+<p>This function gets called by libcurl to seek to a certain position in
+the input stream and can be used to fast forward a file in a resumed
+upload (instead of reading all uploaded bytes with the normal read
+function/callback). It is also called to rewind a stream when data has
+already been sent to the server and needs to be sent again. This may
+happen when doing a HTTP PUT or POST with a multi-pass authentication
+method, or when an existing HTTP connection is reused too late and the
+server closes the connection.</p>
+<p>The callback function must return <code>SeekResult::Ok</code> on success,
+<code>SeekResult::Fail</code> to cause the upload operation to fail or
+<code>SeekResult::CantSeek</code> to indicate that while the seek failed, libcurl
+is free to work around the problem if possible. The latter can sometimes
+be done by instead reading from the input or similar.</p>
+<p>By default data this option is not set, and this corresponds to the
+<code>CURLOPT_SEEKFUNCTION</code> and <code>CURLOPT_SEEKDATA</code> options.</p>
+</div></details></div><div id="method.ssl_ctx" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.ssl_ctx">ssl_ctx</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>cx</span><span class="ponct">:</span>&nbsp;<span class="kw">*</span><span class="kw">mut</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">c_void</a></span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="ponct">(</span><span class="ponct">)</span><span class="ponct">,</span>&nbsp;<span class="ident struct"><a href="../struct.Error.html">Error</a></span><span class="ponct">&gt;</span></code></summary><div class="mt-2 item-documentation"><p>Callback to SSL context</p>
+<p>This callback function gets called by libcurl just before the
+initialization of an SSL connection after having processed all
+other SSL related options to give a last chance to an
+application to modify the behaviour of the SSL
+initialization. The <code>ssl_ctx</code> parameter is actually a pointer
+to the SSL library’s SSL_CTX. If an error is returned from the
+callback no attempt to establish a connection is made and the
+perform operation will return the callback’s error code.</p>
+<p>This function will get called on all new connections made to a
+server, during the SSL negotiation. The SSL_CTX pointer will
+be a new one every time.</p>
+<p>To use this properly, a non-trivial amount of knowledge of
+your SSL library is necessary. For example, you can use this
+function to call library-specific callbacks to add additional
+validation code for certificates, and even to change the
+actual URI of a HTTPS request.</p>
+<p>By default this function calls an internal method and
+corresponds to <code>CURLOPT_SSL_CTX_FUNCTION</code> and
+<code>CURLOPT_SSL_CTX_DATA</code>.</p>
+<p>Note that this callback is not guaranteed to be called, not all versions
+of libcurl support calling this callback.</p>
+</div></details></div><div id="method.write" class="mt-2 mb-2 rd-anchor"><details open><summary><code class="inline-code"><span class="kw">fn</span>&nbsp;<span class="ident method"><a href="#method.write">write</a></span><span class="ponct">(</span><span class="kw">&</span><span class="kw">mut</span>&nbsp;<span>Self</span><span class="ponct">,</span>&nbsp;<span>data</span><span class="ponct">:</span>&nbsp;<span class="kw">&</span><span class="ponct">[</span><span class="primitive">u8</span><span class="ponct">]</span><span class="ponct">)</span>&nbsp;<span class="ponct">-</span><span class="ponct">&gt;</span>&nbsp;<span class="ident enum"><a href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html">Result</a></span><span class="ponct">&lt;</span><span class="primitive">usize</span><span class="ponct">,</span>&nbsp;<span class="ident enum"><a href="enum.WriteError.html">WriteError</a></span><span class="ponct">&gt;</span></code></summary><div class="mt-2 item-documentation"><p>Callback invoked whenever curl has downloaded data for the application.</p>
+<p>This callback function gets called by libcurl as soon as there is data
+received that needs to be saved.</p>
+<p>The callback function will be passed as much data as possible in all
+invokes, but you must not make any assumptions. It may be one byte, it
+may be thousands. If <code>show_header</code> is enabled, which makes header data
+get passed to the write callback, you can get up to
+<code>CURL_MAX_HTTP_HEADER</code> bytes of header data passed into it.  This
+usually means 100K.</p>
+<p>This function may be called with zero bytes data if the transferred file
+is empty.</p>
+<p>The callback should return the number of bytes actually taken care of.
+If that amount differs from the amount passed to your callback function,
+it’ll signal an error condition to the library. This will cause the
+transfer to get aborted and the libcurl function used will return
+an error with <code>is_write_error</code>.</p>
+<p>If your callback function returns <code>Err(WriteError::Pause)</code> it will cause
+this transfer to become paused. See <code>unpause_write</code> for further details.</p>
+<p>By default data is sent into the void, and this corresponds to the
+<code>CURLOPT_WRITEFUNCTION</code> and <code>CURLOPT_WRITEDATA</code> options.</p>
+</div></details></div></section></div></div></div><footer class="container-xxl text-center">The rd developpers - (c) 2022</footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js" integrity="sha384-A4SLs39X/aUfwRclRaXvNeXNBTLZdnZdHhhteqbYFS2jZTRD79tKeFeBn7SGXNpi" crossorigin="anonymous"></script><script src="../../curl/search-index.js"></script><script src="../../search.js"></script></body></html>
