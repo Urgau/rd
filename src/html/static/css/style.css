@@ -306,40 +306,6 @@ a:hover {
     display: none;
 }
 
-.item-documentation h1 {
-	font-size: 1.3em;
-}
-
-.item-documentation h2 {
-	font-size: 1.15em;
-}
-
-.item-documentation h3 {
-	font-size: 1em;
-}
-
-.item-documentation h4 {
-	font-size: 0.85em;
-}
-
-.item-documentation h5 {
-	font-size: 0.70em;
-}
-
-.item-documentation h6 {
-	font-size: 0.55em;
-}
-
-.item-documentation h1,
-.item-documentation h2,
-.item-documentation h3,
-.item-documentation h4,
-.item-documentation h5,
-.item-documentation h6 {
-	padding-bottom: .25rem;
-    border-bottom: 1px solid #dee2e6;
-}
-
 [data-bs-color-scheme="dark"] .rd-search-items {
 	background-color: var(--bs-dark);
 	border: 1px solid var(--bs-gray-dark);

@@ -1,11 +1,12 @@
 //! Markdown handling for HTML output
 
 use log::warn;
-use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, Options, Parser, Tag};
+use pulldown_cmark::{escape, html, BrokenLink, CowStr, Event, HeadingLevel, Options, Parser, Tag};
 use rustdoc_types::Id;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::{HashMap, VecDeque};
+use std::convert::TryFrom;
 use std::{fmt, io, str};
 
 use super::id::Id as HtmlId;
@@ -413,6 +414,9 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
         if let Some(parent_id) = self.parent_id {
             id = parent_id + id;
         }
+
+        let level = HeadingLevel::try_from(level as usize + 1)
+            .expect("unable to increase the heading level");
 
         let start_html = format!("<{} class=\"rd-anchor\" id=\"{}\">", level, id);
 

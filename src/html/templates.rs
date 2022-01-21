@@ -249,7 +249,7 @@ markup::define! {
     > (name: &'name str, id: &'static str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
             section {
-                h3[id=id, class="border-bottom rd-anchor"] {
+                h2[id=id, class="rd-anchor"] {
                     @name
                     a["aria-label"="anchor", href=anchor(id)] {
                         i[class="bi bi-hash"] {}
@@ -270,7 +270,7 @@ markup::define! {
     > (name: &'name str, id: &'static str, items: &'name Vec<Item>) {
         @if !items.is_empty() {
             section {
-                h3[id=id, class="border-bottom rd-anchor"] {
+                h2[id=id, class="rd-anchor"] {
                     @name
                     a["aria-label"="anchor", href=anchor(id)] {
                         i[class="bi bi-hash"] {}
@@ -394,7 +394,7 @@ markup::define! {
     > (title: &'title str, variants: Vec<Variant>, traits: Traits) {
         @if !variants.is_empty() {
             section {
-                h2[class="border-bottom pb-1 rd-anchor", id=VARIANTS_ID] {
+                h2[class="pb-1 rd-anchor", id=VARIANTS_ID] {
                     @title
                     a["aria-label"="anchor", href=anchor(VARIANTS_ID)] {
                         i[class="bi bi-hash"] {}
