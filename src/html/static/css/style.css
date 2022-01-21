@@ -92,6 +92,7 @@ a:hover {
 	display: grid;
 	column-gap: 1.2rem;
 	justify-items: start;
+    overflow-wrap: break-word;
 }
 
 /* FIXME: Maybe remove the p so that this hack can be removed */
