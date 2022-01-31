@@ -415,16 +415,16 @@ impl<'a, 'toc, 'vec, I: Iterator<Item = Event<'a>>> Iterator for Headings<'a, 't
             id = parent_id + id;
         }
 
-        let level = HeadingLevel::try_from(level as usize + 1)
+        let inner_level = HeadingLevel::try_from(level as usize + 1)
             .expect("unable to increase the heading level");
 
-        let start_html = format!("<{} class=\"rd-anchor\" id=\"{}\">", level, id);
+        let start_html = format!("<{} class=\"rd-anchor\" id=\"{}\">", inner_level, id);
 
         let end_html = format!(
             "<a aria-label=\"anchor\" href=\"{}\">\
                                <i class=\"bi bi-hash\"></i></a></{}>",
             id.with_pound(),
-            level
+            inner_level
         );
 
         self.buf.push_back(Event::Html(end_html.into()));
