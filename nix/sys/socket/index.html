@@ -6,8 +6,8 @@
 </div><div><p><a href="struct.LinkAddr.html" class="struct">LinkAddr</a></p></div><div><p>Hardware Address</p>
 </div><div><p><a href="struct.MsgFlags.html" class="struct">MsgFlags</a></p></div><div><p>Flags for send/recv and their relatives</p>
 </div><div><p><a href="struct.NetlinkAddr.html" class="struct">NetlinkAddr</a></p></div><div></div><div><p><a href="struct.RecvMmsgData.html" class="struct">RecvMmsgData</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os = &quot;freebsd&quot;,
-          target_os = &quot;netbsd&quot;,)</span></span></p></div><div></div><div><p><a href="struct.RecvMsg.html" class="struct">RecvMsg</a></p></div><div></div><div><p><a href="struct.SendMmsgData.html" class="struct">SendMmsgData</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os = &quot;freebsd&quot;,
-          target_os = &quot;netbsd&quot;,)</span></span></p></div><div></div><div><p><a href="struct.SockFlag.html" class="struct">SockFlag</a></p></div><div><p>Additional socket options</p>
+target_os = &quot;netbsd&quot;,)</span></span></p></div><div></div><div><p><a href="struct.RecvMsg.html" class="struct">RecvMsg</a></p></div><div></div><div><p><a href="struct.SendMmsgData.html" class="struct">SendMmsgData</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os = &quot;freebsd&quot;,
+target_os = &quot;netbsd&quot;,)</span></span></p></div><div></div><div><p><a href="struct.SockFlag.html" class="struct">SockFlag</a></p></div><div><p>Additional socket options</p>
 </div><div><p><a href="struct.UnixAddr.html" class="struct">UnixAddr</a></p></div><div><p>A wrapper around <code>sockaddr_un</code>.</p>
 </div><div><p><a href="struct.UnixCredentials.html" class="struct">UnixCredentials</a></p></div><div><p>Unix credentials of the sending process.</p>
 </div><div><p><a href="struct.VsockAddr.html" class="struct">VsockAddr</a></p></div><div></div></div></section><section><h2 id="enums" class="rd-anchor">Enums<a aria-label="anchor" href="#enums"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="enum.AddressFamily.html" class="enum">AddressFamily</a></p></div><div><p>These constants specify the protocol family to be used
@@ -24,9 +24,8 @@ to specify the protocol to use.</p>
 when creating a socket with <a href="fn.socket.html"><code>socket()</code></a></p>
 </div></div></section><section><h2 id="functions" class="rd-anchor">Functions<a aria-label="anchor" href="#functions"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="fn.accept.html" class="fn">accept</a></p></div><div><p>Accept a connection on a socket</p>
 </div><div><p><a href="fn.accept4.html" class="fn">accept4</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(all(target_os = &quot;android&quot;,
-              any(target_arch = &quot;aarch64&quot;, target_arch = &quot;x86&quot;, target_arch =
-                  &quot;x86_64&quot;)), target_os = &quot;freebsd&quot;, target_os = &quot;linux&quot;,
-          target_os = &quot;openbsd&quot;)</span></span></p></div><div><p>Accept a connection on a socket</p>
+any(target_arch = &quot;aarch64&quot;, target_arch = &quot;x86&quot;, target_arch = &quot;x86_64&quot;)),
+target_os = &quot;freebsd&quot;, target_os = &quot;linux&quot;, target_os = &quot;openbsd&quot;)</span></span></p></div><div><p>Accept a connection on a socket</p>
 </div><div><p><a href="fn.bind.html" class="fn">bind</a></p></div><div><p>Bind a name to a socket</p>
 </div><div><p><a href="fn.connect.html" class="fn">connect</a></p></div><div><p>Initiate a connection on a socket</p>
 </div><div><p><a href="fn.getpeername.html" class="fn">getpeername</a></p></div><div><p>Get the address of the peer connected to the socket <code>fd</code>.</p>
@@ -39,7 +38,7 @@ bytes read</p>
 the number of bytes read and, for connectionless sockets,  the socket
 address of the sender.</p>
 </div><div><p><a href="fn.recvmmsg.html" class="fn">recvmmsg</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os = &quot;freebsd&quot;,
-          target_os = &quot;netbsd&quot;,)</span></span></p></div><div><p>An extension of <code>recvmsg</code> that allows the caller to receive multiple
+target_os = &quot;netbsd&quot;,)</span></span></p></div><div><p>An extension of <code>recvmsg</code> that allows the caller to receive multiple
 messages from a socket using a single system call. This has
 performance benefits for some applications.</p>
 </div><div><p><a href="fn.recvmsg.html" class="fn">recvmsg</a></p></div><div><p>Receive message in scatter-gather vectors from a socket, and
@@ -47,7 +46,7 @@ optionally receive ancillary data into the provided buffer.
 If no ancillary data is desired, use () as the type parameter.</p>
 </div><div><p><a href="fn.send.html" class="fn">send</a></p></div><div><p>Send data to a connection-oriented socket. Returns the number of bytes read</p>
 </div><div><p><a href="fn.sendmmsg.html" class="fn">sendmmsg</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os = &quot;freebsd&quot;,
-          target_os = &quot;netbsd&quot;,)</span></span></p></div><div><p>An extension of <code>sendmsg</code> that allows the caller to transmit multiple
+target_os = &quot;netbsd&quot;,)</span></span></p></div><div><p>An extension of <code>sendmsg</code> that allows the caller to transmit multiple
 messages on a socket using a single system call. This has performance
 benefits for some applications.</p>
 </div><div><p><a href="fn.sendmsg.html" class="fn">sendmsg</a></p></div><div><p>Send data in scatter-gather vectors to a socket, possibly accompanied

@@ -24,8 +24,8 @@ See <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/access.h
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html">chown(2)</a>).</p>
 </div><div><p><a href="fn.chroot.html" class="fn">chroot</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(target_os = &quot;fuchsia&quot;)</span></span></p></div><div></div><div><p><a href="fn.close.html" class="fn">close</a></p></div><div><p>Close a raw file descriptor</p>
 </div><div><p><a href="fn.daemon.html" class="fn">daemon</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;android&quot;, target_os = &quot;dragonfly&quot;, target_os =
-          &quot;freebsd&quot;, target_os = &quot;illumos&quot;, target_os = &quot;linux&quot;, target_os =
-          &quot;netbsd&quot;, target_os = &quot;openbsd&quot;, target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Daemonize this process by detaching from the controlling terminal (see
+&quot;freebsd&quot;, target_os = &quot;illumos&quot;, target_os = &quot;linux&quot;, target_os = &quot;netbsd&quot;,
+target_os = &quot;openbsd&quot;, target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Daemonize this process by detaching from the controlling terminal (see
 <a href="https://man7.org/linux/man-pages/man3/daemon.3.html">daemon(3)</a>).</p>
 </div><div><p><a href="fn.dup.html" class="fn">dup</a></p></div><div><p>Create a copy of the specified file descriptor (see
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html">dup(2)</a>).</p>
@@ -54,7 +54,7 @@ the specified <code>owner</code> (user) and <code>group</code> (see
 </div><div><p><a href="fn.fchownat.html" class="fn">fchownat</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(target_os = &quot;redox&quot;)</span></span></p></div><div><p>Change the ownership of the file at <code>path</code> to be owned by the specified
 <code>owner</code> (user) and <code>group</code>.</p>
 </div><div><p><a href="fn.fdatasync.html" class="fn">fdatasync</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;, target_os =
-          &quot;emscripten&quot;, target_os = &quot;illumos&quot;, target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Synchronize the data of a file</p>
+&quot;emscripten&quot;, target_os = &quot;illumos&quot;, target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Synchronize the data of a file</p>
 </div><div><p><a href="fn.fexecve.html" class="fn">fexecve</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;android&quot;, target_os = &quot;linux&quot;, target_os = &quot;freebsd&quot;)</span></span></p></div><div><p>Replace the current process image with a new one (see
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fexecve.html">fexecve(2)</a>).</p>
 </div><div><p><a href="fn.fork.html" class="fn">fork</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-exclamation-triangle-fill"></i><span class="rd-tooltip-data">This function is unsafe to use</span></span></p></div><div><p>Create a new child process duplicating the parent process (<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html">see
@@ -68,7 +68,7 @@ fork(2)</a>).</p>
 </div><div><p><a href="fn.geteuid.html" class="fn">geteuid</a></p></div><div><p>Get the effective user ID</p>
 </div><div><p><a href="fn.getgid.html" class="fn">getgid</a></p></div><div><p>Get the real group ID</p>
 </div><div><p><a href="fn.getgrouplist.html" class="fn">getgrouplist</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(any(target_os = &quot;illumos&quot;, target_os = &quot;ios&quot;, target_os = &quot;macos&quot;,
-              target_os = &quot;redox&quot;))</span></span></p></div><div><p>Calculate the supplementary group access list.</p>
+target_os = &quot;redox&quot;))</span></span></p></div><div><p>Calculate the supplementary group access list.</p>
 </div><div><p><a href="fn.getgroups.html" class="fn">getgroups</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(any(target_os = &quot;ios&quot;, target_os = &quot;macos&quot;))</span></span></p></div><div><p>Get the list of supplementary group IDs of the calling process.</p>
 </div><div><p><a href="fn.gethostname.html" class="fn">gethostname</a></p></div><div><p>Get the host name and store it in the provided buffer, returning a pointer
 the <code>CStr</code> in that buffer on success (see
@@ -92,16 +92,16 @@ the <code>CStr</code> in that buffer on success (see
 </div><div><p><a href="fn.lseek64.html" class="fn">lseek64</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;linux&quot;, target_os = &quot;android&quot;)</span></span></p></div><div></div><div><p><a href="fn.mkdir.html" class="fn">mkdir</a></p></div><div><p>Creates new directory <code>path</code> with access rights <code>mode</code>.  (see <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkdir.html">mkdir(2)</a>)</p>
 </div><div><p><a href="fn.mkfifo.html" class="fn">mkfifo</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(target_os = &quot;redox&quot;)</span></span></p></div><div><p>Creates new fifo special file (named pipe) with path <code>path</code> and access rights <code>mode</code>.</p>
 </div><div><p><a href="fn.mkfifoat.html" class="fn">mkfifoat</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(any(target_os = &quot;macos&quot;, target_os = &quot;ios&quot;, target_os = &quot;android&quot;,
-              target_os = &quot;redox&quot;))</span></span></p></div><div><p>Creates new fifo special file (named pipe) with path <code>path</code> and access rights <code>mode</code>.</p>
+target_os = &quot;redox&quot;))</span></span></p></div><div><p>Creates new fifo special file (named pipe) with path <code>path</code> and access rights <code>mode</code>.</p>
 </div><div><p><a href="fn.mkstemp.html" class="fn">mkstemp</a></p></div><div><p>Creates a regular file which persists even after process termination</p>
 </div><div><p><a href="fn.pathconf.html" class="fn">pathconf</a></p></div><div><p>Get path-dependent configurable system variables (see
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html">pathconf(2)</a>)</p>
 </div><div><p><a href="fn.pause.html" class="fn">pause</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(target_os = &quot;redox&quot;)</span></span></p></div><div><p>Suspend the thread until a signal is received.</p>
 </div><div><p><a href="fn.pipe.html" class="fn">pipe</a></p></div><div><p>Create an interprocess channel.</p>
 </div><div><p><a href="fn.pipe2.html" class="fn">pipe2</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;android&quot;, target_os = &quot;dragonfly&quot;, target_os =
-          &quot;emscripten&quot;, target_os = &quot;freebsd&quot;, target_os = &quot;illumos&quot;,
-          target_os = &quot;linux&quot;, target_os = &quot;redox&quot;, target_os = &quot;netbsd&quot;,
-          target_os = &quot;openbsd&quot;, target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Like <code>pipe</code>, but allows setting certain file descriptor flags.</p>
+&quot;emscripten&quot;, target_os = &quot;freebsd&quot;, target_os = &quot;illumos&quot;, target_os =
+&quot;linux&quot;, target_os = &quot;redox&quot;, target_os = &quot;netbsd&quot;, target_os = &quot;openbsd&quot;,
+target_os = &quot;solaris&quot;)</span></span></p></div><div><p>Like <code>pipe</code>, but allows setting certain file descriptor flags.</p>
 </div><div><p><a href="fn.pivot_root.html" class="fn">pivot_root</a></p></div><div></div><div><p><a href="fn.read.html" class="fn">read</a></p></div><div><p>Read from a raw file descriptor.</p>
 </div><div><p><a href="fn.setegid.html" class="fn">setegid</a></p></div><div><p>Set the effective group ID</p>
 </div><div><p><a href="fn.seteuid.html" class="fn">seteuid</a></p></div><div><p>Set the effective user ID</p>
@@ -127,7 +127,7 @@ ID of the caller.</p>
 </div><div><p><a href="fn.sleep.html" class="fn">sleep</a></p></div><div><p>Suspend execution for an interval of time</p>
 </div><div><p><a href="fn.symlinkat.html" class="fn">symlinkat</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">not(target_os = &quot;redox&quot;)</span></span></p></div><div><p>Creates a symbolic link at <code>path2</code> which points to <code>path1</code>.</p>
 </div><div><p><a href="fn.sync.html" class="fn">sync</a> <span role="tooltip" class="rd-tooltip"><i class="bi bi-gear"></i><span class="rd-tooltip-data">any(target_os = &quot;dragonfly&quot;, target_os = &quot;freebsd&quot;, target_os = &quot;linux&quot;,
-          target_os = &quot;netbsd&quot;, target_os = &quot;openbsd&quot;)</span></span></p></div><div><p>Commit filesystem caches to disk</p>
+target_os = &quot;netbsd&quot;, target_os = &quot;openbsd&quot;)</span></span></p></div><div><p>Commit filesystem caches to disk</p>
 </div><div><p><a href="fn.sysconf.html" class="fn">sysconf</a></p></div><div><p>Get configurable system variables (see
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/sysconf.html">sysconf(3)</a>)</p>
 </div><div><p><a href="fn.tcgetpgrp.html" class="fn">tcgetpgrp</a></p></div><div><p>Get the terminal foreground process group (see
