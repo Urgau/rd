@@ -1450,7 +1450,10 @@ fn with_where_predicate<'tokens>(
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
 
-            with_type(tokens, rhs)?;
+            match rhs {
+                Term::Type(ty) => with_type(tokens, ty)?,
+                Term::Constant(constant) => todo!("un-handle constant: {:?}", constant),
+            }
         }
     }
     Ok(())
@@ -1597,12 +1600,15 @@ fn with_type_binding<'tcx>(
     type_bindind: &'tcx TypeBinding,
 ) -> Result<(), FromItemErrorKind> {
     match &type_bindind.binding {
-        TypeBindingKind::Equality(type_) => {
+        TypeBindingKind::Equality(term) => {
             tokens.try_push(Token::Ident(&type_bindind.name, None))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             tokens.try_push(Token::Ponct("="))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
-            with_type(tokens, type_)?;
+            match term {
+                Term::Type(ty) => with_type(tokens, ty)?,
+                Term::Constant(constant) => todo!("un-handle constant: {:?}", constant),
+            }
         }
         TypeBindingKind::Constraint(constraint) => {
             eprintln!("don't really know how to handle TypeBindingKind::Constraint");
