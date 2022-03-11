@@ -4,34 +4,35 @@ use rustdoc_types::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use structopt::StructOpt;
+use clap::Parser;
 
 mod html;
 mod pp;
 
 /// Commande-line options
-#[derive(StructOpt)]
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
 pub(crate) struct Opt {
     // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
-    #[structopt(short, long, parse(from_occurrences))]
+    #[clap(short, long, parse(from_occurrences))]
     verbose: u8,
 
     /// Open the generated documentation if successful
-    #[structopt(long)]
+    #[clap(long)]
     open: bool,
 
     /// Output directory of html files
-    #[structopt(short, long, parse(from_os_str))]
+    #[clap(short, long, parse(from_os_str))]
     output: PathBuf,
 
     /// Rustdoc json input file to process
-    #[structopt(name = "FILE", required = true, parse(from_os_str))]
+    #[clap(name = "FILE", required = true, parse(from_os_str))]
     files: Vec<PathBuf>,
 }
 
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let opt = Opt::try_parse()?;
 
     env_logger::builder()
         .filter_level(match opt.verbose {

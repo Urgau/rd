@@ -544,7 +544,7 @@ fn module_page<'context>(
                     summary,
                     deprecated,
                     portability,
-                    unsafety: if function_.header.contains(&Qualifiers::Unsafe) {
+                    unsafety: if function_.header.unsafe_ {
                         Some("This function is unsafe to use")
                     } else {
                         unsafety

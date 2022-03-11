@@ -552,32 +552,7 @@ impl Tokens<'_> {
 
                 with_attrs(&mut tokens, &item.attrs)?;
                 with_visibility(&mut tokens, &item.visibility)?;
-
-                let qualifiers = &function.header;
-                let qualifiers = qualifiers.iter().collect::<Vec<_>>();
-
-                with(
-                    &mut tokens,
-                    &qualifiers,
-                    Option::<Token>::None,
-                    Some(Token::Special(SpecialToken::Space)),
-                    Some(Token::Special(SpecialToken::Space)),
-                    with_qualifiers,
-                )?;
-
-                if !function
-                    .abi
-                    .strip_prefix('\"')
-                    .unwrap_or(&function.abi)
-                    .strip_suffix('\"')
-                    .unwrap_or(&function.abi)
-                    .eq_ignore_ascii_case("rust")
-                {
-                    tokens.try_push(Token::Kw("extern"))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Ident(&function.abi, None))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                }
+                with_header(&mut tokens, &function.header)?;
 
                 tokens.try_push(Token::Kw("fn"))?;
                 if let Some(name) = &item.name {
@@ -723,8 +698,8 @@ impl Tokens<'_> {
                                     ItemEnum::AssocConst { type_, default } => {
                                         with_assoc_const(tokens, item, type_, default, false)?
                                     }
-                                    ItemEnum::AssocType { bounds, default } => {
-                                        with_assoc_type(tokens, item, bounds, default, false)?
+                                    ItemEnum::AssocType { bounds, default, generics } => {
+                                        with_assoc_type(tokens, item, bounds, default, generics, false)?
                                     }
                                     ItemEnum::Method(method) => {
                                         with_method(tokens, item, method, false)?
@@ -1016,10 +991,10 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::AssocType { bounds, default } => {
+            ItemEnum::AssocType { bounds, default, generics } => {
                 let mut tokens = Vec::with_capacity(12);
 
-                with_assoc_type(&mut tokens, item, bounds, default, true)?;
+                with_assoc_type(&mut tokens, item, bounds, default, generics, true)?;
 
                 tokens
             }
@@ -1063,6 +1038,7 @@ fn with_assoc_type<'tokens>(
     item: &'tokens Item,
     bounds: &'tokens [GenericBound],
     default: &'tokens Option<Type>,
+    generics: &'tokens Generics,
     standalone: bool,
 ) -> Result<(), FromItemErrorKind> {
     //with_attrs(tokens, &item.attrs)?;
@@ -1071,6 +1047,15 @@ fn with_assoc_type<'tokens>(
     tokens.try_push(Token::Kw("type"))?;
     tokens.try_push(Token::Special(SpecialToken::Space))?;
     tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
+    
+    with(
+        tokens,
+        &generics.params,
+        Some([Token::Ponct("<")]),
+        Some(Token::Ponct(">")),
+        Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+        with_generic_param_def,
+    )?;
 
     with(
         tokens,
@@ -1087,12 +1072,86 @@ fn with_assoc_type<'tokens>(
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         with_type(tokens, default)?;
     }
+    
+    with(
+        tokens,
+        &generics.where_predicates,
+        Some([
+            Token::Special(SpecialToken::NewLine),
+            Token::Kw("where"),
+            Token::Special(SpecialToken::NewLine),
+            Token::Special(SpecialToken::Tabulation),
+        ]),
+        Option::<Token>::None,
+        Some([
+            Token::Ponct(","),
+            Token::Special(SpecialToken::NewLine),
+            Token::Special(SpecialToken::Tabulation),
+        ]),
+        with_where_predicate,
+    )?;
 
     if !standalone {
         tokens.try_push(Token::Ponct(";"))?;
     }
 
     Ok(())
+}
+
+fn with_abi<'tokens>(
+    tokens: &mut dyn Pusher<Token<'tokens>>,
+    abi: &'tokens Abi,
+) -> Result<(), FromItemErrorKind> {
+    if !matches!(abi, Abi::Rust) {
+        tokens.try_push(Token::Kw("extern"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+        tokens.try_push(Token::Ponct("\""))?;
+        tokens.try_push(Token::Ident(match abi {
+            Abi::Rust => "Rust",
+            Abi::C { unwind: false } => "C",
+            Abi::C { unwind: true } => "C-unwind",
+            Abi::Cdecl { unwind: false } => "cdecl",
+            Abi::Cdecl { unwind: true } => "cdecl-unwind",
+            Abi::Stdcall { unwind: false } => "stdcall",
+            Abi::Stdcall { unwind: true } => "stdcall-unwind",
+            Abi::Fastcall { unwind: false } => "fastcall",
+            Abi::Fastcall { unwind: true } => "fastcall-unwind",
+            Abi::Aapcs { unwind: false } => "aapcs",
+            Abi::Aapcs { unwind: true } => "aapcs-unwind",
+            Abi::Win64 { unwind: false } => "win64",
+            Abi::Win64 { unwind: true } => "win64-unwind",
+            Abi::SysV64 { unwind: false } => "sysv64",
+            Abi::SysV64 { unwind: true } => "sysv64",
+            Abi::System { unwind: false } => "system",
+            Abi::System { unwind: true } => "system-unwind",
+            Abi::Other(abi) => abi,
+        }, None))?;
+        tokens.try_push(Token::Ponct("\""))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+    }
+
+    Ok(())
+}
+
+fn with_header<'tokens>(
+    tokens: &mut dyn Pusher<Token<'tokens>>,
+    header: &'tokens Header,
+) -> Result<(), FromItemErrorKind> {
+
+    if header.const_ {
+        tokens.try_push(Token::Kw("const"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+    }
+    if header.unsafe_ {
+        tokens.try_push(Token::Kw("unsafe"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+    }
+    if header.async_ {
+        tokens.try_push(Token::Kw("async"))?;
+        tokens.try_push(Token::Special(SpecialToken::Space))?;
+    }
+
+    with_abi(tokens, &header.abi)
 }
 
 fn with_method<'tokens>(
@@ -1103,27 +1162,7 @@ fn with_method<'tokens>(
 ) -> Result<(), FromItemErrorKind> {
     with_attrs(tokens, &item.attrs)?;
     with_visibility(tokens, &item.visibility)?;
-
-    let qualifiers = &method.header;
-    let qualifiers = qualifiers.iter().collect::<Vec<_>>();
-
-    with(
-        tokens,
-        &qualifiers,
-        Option::<Token>::None,
-        Some(Token::Special(SpecialToken::Space)),
-        Some(Token::Special(SpecialToken::Space)),
-        with_qualifiers,
-    )?;
-
-    if method.abi.eq_ignore_ascii_case("rust") {
-        tokens.try_push(Token::Kw("extern"))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-        tokens.try_push(Token::Ponct("\""))?;
-        tokens.try_push(Token::Ident(&method.abi, None))?;
-        tokens.try_push(Token::Ponct("\""))?;
-        tokens.try_push(Token::Special(SpecialToken::Space))?;
-    }
+    with_header(tokens, &method.header)?;
 
     tokens.try_push(Token::Kw("fn"))?;
     if let Some(name) = &item.name {
@@ -1344,27 +1383,6 @@ fn with_visibility<'tokens>(
             tokens.try_push(Token::Ident(path, Some(parent)))?;
             tokens.try_push(Token::Ponct(")"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
-        }
-    }
-    Ok(())
-}
-
-fn with_qualifiers<'tokens>(
-    tokens: &mut dyn Pusher<Token<'tokens>>,
-    qualifiers: &&'tokens Qualifiers,
-) -> Result<(), FromItemErrorKind> {
-    match qualifiers {
-        Qualifiers::Const => {
-            tokens.try_push(Token::Kw("const"))?;
-        }
-        Qualifiers::Unsafe => {
-            tokens.try_push(Token::Kw("unsafe"))?;
-        }
-        Qualifiers::Async => {
-            tokens.try_push(Token::Kw("async"))?;
-        }
-        _ => {
-            todo!("qualifier not handle");
         }
     }
     Ok(())
@@ -1762,31 +1780,7 @@ fn with_type<'tcx>(
         }
         // `extern "ABI" fn`
         Type::FunctionPointer(fn_ptr) => {
-            let qualifiers = &fn_ptr.header;
-            let qualifiers = qualifiers.iter().collect::<Vec<_>>();
-
-            with(
-                tokens,
-                &qualifiers,
-                Option::<Token>::None,
-                Some(Token::Special(SpecialToken::Space)),
-                Some(Token::Special(SpecialToken::Space)),
-                with_qualifiers,
-            )?;
-
-            if !fn_ptr
-                .abi
-                .strip_prefix('\"')
-                .unwrap_or(&fn_ptr.abi)
-                .strip_suffix('\"')
-                .unwrap_or(&fn_ptr.abi)
-                .eq_ignore_ascii_case("rust")
-            {
-                tokens.try_push(Token::Kw("extern"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-                tokens.try_push(Token::Ident(&fn_ptr.abi, None))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-            }
+            with_header(tokens, &fn_ptr.header)?;
 
             tokens.try_push(Token::Kw("fn"))?;
             with(
@@ -1893,6 +1887,7 @@ fn with_type<'tcx>(
             name,
             self_type,
             trait_,
+            args: qargs,
         } => match **self_type {
             Type::ResolvedPath { .. }
             | Type::Primitive(_)
@@ -1915,11 +1910,13 @@ fn with_type<'tcx>(
                     tokens.try_push(Token::Ponct(">"))?;
                     tokens.try_push(Token::Ponct("::"))?;
                     tokens.try_push(Token::Ident(name, None))?;
+                    with_generic_args(tokens, &qargs)?;
                 }
                 Type::ResolvedPath { .. } => {
                     with_type(tokens, self_type)?;
                     tokens.try_push(Token::Ponct("::"))?;
                     tokens.try_push(Token::Ident(name, None))?;
+                    with_generic_args(tokens, &qargs)?;
                 }
                 _ => {
                     todo!("QualifiedPath: trait_ not ResolvedPath");
@@ -1936,11 +1933,13 @@ fn with_type<'tcx>(
                     tokens.try_push(Token::Ponct(">"))?;
                     tokens.try_push(Token::Ponct("::"))?;
                     tokens.try_push(Token::Ident(name, None))?;
+                    with_generic_args(tokens, &qargs)?;
                 }
                 Type::ResolvedPath { .. } => {
                     with_type(tokens, self_type)?;
                     tokens.try_push(Token::Ponct("::"))?;
                     tokens.try_push(Token::Ident(name, None))?;
+                    with_generic_args(tokens, &qargs)?;
                 }
                 _ => {
                     todo!("QualifiedPath: trait_ not ResolvedPath");
