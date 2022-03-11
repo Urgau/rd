@@ -9,9 +9,9 @@ use clap::Parser;
 mod html;
 mod pp;
 
-/// Commande-line options
+/// Experimental frontend for the rustdoc json output format
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(version, about, long_about = None)]
 pub(crate) struct Opt {
     // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
@@ -32,7 +32,7 @@ pub(crate) struct Opt {
 }
 
 fn main() -> Result<()> {
-    let opt = Opt::try_parse()?;
+    let opt = Opt::parse();
 
     env_logger::builder()
         .filter_level(match opt.verbose {
