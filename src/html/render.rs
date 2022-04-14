@@ -946,7 +946,7 @@ fn trait_page<'context>(
     }
 
     let mut impls = trait_
-        .implementors
+        .implementations
         .iter()
         .map(|id| {
             let item = global_context

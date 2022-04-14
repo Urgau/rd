@@ -1425,8 +1425,8 @@ fn with_where_predicate<'tokens>(
     where_predicate: &'tokens WherePredicate,
 ) -> Result<(), FromItemErrorKind> {
     match where_predicate {
-        WherePredicate::BoundPredicate { ty, bounds } => {
-            with_type(tokens, ty)?;
+        WherePredicate::BoundPredicate { type_ , bounds } => {
+            with_type(tokens, type_)?;
 
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1570,8 +1570,8 @@ fn with_generic_param_def<'tcx>(
                 },
             )?;
         }
-        GenericParamDefKind::Type { bounds, default } => {
-            if !&generic_param_def.name.starts_with("impl") {
+        GenericParamDefKind::Type { bounds, default, synthetic } => {
+            if !synthetic {
                 tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
 
                 with(
@@ -1594,13 +1594,13 @@ fn with_generic_param_def<'tcx>(
                 }
             }
         }
-        GenericParamDefKind::Const { ty, default } => {
+        GenericParamDefKind::Const { type_ , default } => {
             tokens.try_push(Token::Kw("const"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
-            with_type(tokens, ty)?;
+            with_type(tokens, type_)?;
 
             if let Some(default) = default {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
