@@ -290,6 +290,14 @@ pub(super) fn href<'context, 'krate>(
                         "associatedconst",
                     ))
                 }
+                ItemEnum::Typedef(..) => {
+                    return Some((
+                        None,
+                        "".into(),
+                        Some(format!("type.{}", item.name.as_ref().unwrap())),
+                        "type",
+                    ))
+                }
                 _ => warn!("item={:?} not handling this kind of items", item),
             }
         } else {
