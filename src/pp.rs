@@ -672,7 +672,11 @@ impl Tokens<'_> {
                     &trait_.bounds,
                     Some([Token::Ponct(":"), Token::Special(SpecialToken::Space)]),
                     Option::<Token>::None,
-                    Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+                    Some([
+                        Token::Special(SpecialToken::Space),
+                        Token::Ponct("+"),
+                        Token::Special(SpecialToken::Space),
+                    ]),
                     with_generic_bound,
                 )?;
 
