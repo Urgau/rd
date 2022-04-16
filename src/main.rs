@@ -1,10 +1,10 @@
 use anyhow::{Context as _, Result};
+use clap::Parser;
 use log::{info, LevelFilter};
 use rustdoc_types::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use clap::Parser;
 
 mod html;
 mod pp;
@@ -73,7 +73,7 @@ fn main() -> Result<()> {
     if opt.open {
         open::that(match outputs[..] {
             [ref module_index] => module_index,
-            _ => &global_index
+            _ => &global_index,
         })?;
     }
 

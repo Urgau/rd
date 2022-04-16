@@ -16,7 +16,7 @@ pub struct BodyInformations<'a> {
 
 fn anchor<'a>(id: &'a str) -> impl markup::Render + 'a {
     struct Anchor<'a> {
-        id: &'a str
+        id: &'a str,
     }
 
     impl<'a> markup::Render for Anchor<'a> {

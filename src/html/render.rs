@@ -136,11 +136,7 @@ fn dump_to<P: AsRef<std::path::Path>>(path: P, buf: &[u8]) -> std::io::Result<()
     Ok(())
 }
 
-pub(crate) fn render_global(
-    opt: &super::super::Opt,
-    _outputs: &[PathBuf],
-) -> Result<PathBuf> {
-
+pub(crate) fn render_global(opt: &super::super::Opt, _outputs: &[PathBuf]) -> Result<PathBuf> {
     // TODO: Do a global index with the outputs links
 
     dump_to(
@@ -548,7 +544,7 @@ fn module_page<'context>(
                         Some("This function is unsafe to use")
                     } else {
                         unsafety
-                    }
+                    },
                 });
             }
             ItemEnum::Trait(trait_) => {
@@ -579,7 +575,7 @@ fn module_page<'context>(
                         Some("This trait is unsafe to use")
                     } else {
                         unsafety
-                    }
+                    },
                 });
             }
             ItemEnum::TraitAlias(_) => {

@@ -274,10 +274,7 @@ impl Tokens<'_> {
                         Token::Special(SpecialToken::NewLine),
                         Token::Special(SpecialToken::Tabulation),
                     ]),
-                    Some([
-                        Token::Ponct(","),
-                        Token::Special(SpecialToken::NewLine),
-                    ]),
+                    Some([Token::Ponct(","), Token::Special(SpecialToken::NewLine)]),
                     Some([
                         Token::Ponct(","),
                         Token::Special(SpecialToken::NewLine),
@@ -361,10 +358,7 @@ impl Tokens<'_> {
                         Token::Special(SpecialToken::NewLine),
                         Token::Special(SpecialToken::Tabulation),
                     ]),
-                    Some([
-                        Token::Ponct(","),
-                        Token::Special(SpecialToken::NewLine),
-                    ]),
+                    Some([Token::Ponct(","), Token::Special(SpecialToken::NewLine)]),
                     Some([
                         Token::Ponct(","),
                         Token::Special(SpecialToken::NewLine),
@@ -712,9 +706,13 @@ impl Tokens<'_> {
                                     ItemEnum::AssocConst { type_, default } => {
                                         with_assoc_const(tokens, item, type_, default, false)?
                                     }
-                                    ItemEnum::AssocType { bounds, default, generics } => {
-                                        with_assoc_type(tokens, item, bounds, default, generics, false)?
-                                    }
+                                    ItemEnum::AssocType {
+                                        bounds,
+                                        default,
+                                        generics,
+                                    } => with_assoc_type(
+                                        tokens, item, bounds, default, generics, false,
+                                    )?,
                                     ItemEnum::Method(method) => {
                                         with_method(tokens, item, method, false)?
                                     }
@@ -1005,7 +1003,11 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::AssocType { bounds, default, generics } => {
+            ItemEnum::AssocType {
+                bounds,
+                default,
+                generics,
+            } => {
                 let mut tokens = Vec::with_capacity(12);
 
                 with_assoc_type(&mut tokens, item, bounds, default, generics, true)?;
@@ -1061,7 +1063,7 @@ fn with_assoc_type<'tokens>(
     tokens.try_push(Token::Kw("type"))?;
     tokens.try_push(Token::Special(SpecialToken::Space))?;
     tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
-    
+
     with(
         tokens,
         &generics.params,
@@ -1086,7 +1088,7 @@ fn with_assoc_type<'tokens>(
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         with_type(tokens, default)?;
     }
-    
+
     with(
         tokens,
         &generics.where_predicates,
@@ -1120,26 +1122,29 @@ fn with_abi<'tokens>(
         tokens.try_push(Token::Kw("extern"))?;
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         tokens.try_push(Token::Ponct("\""))?;
-        tokens.try_push(Token::Ident(match abi {
-            Abi::Rust => "Rust",
-            Abi::C { unwind: false } => "C",
-            Abi::C { unwind: true } => "C-unwind",
-            Abi::Cdecl { unwind: false } => "cdecl",
-            Abi::Cdecl { unwind: true } => "cdecl-unwind",
-            Abi::Stdcall { unwind: false } => "stdcall",
-            Abi::Stdcall { unwind: true } => "stdcall-unwind",
-            Abi::Fastcall { unwind: false } => "fastcall",
-            Abi::Fastcall { unwind: true } => "fastcall-unwind",
-            Abi::Aapcs { unwind: false } => "aapcs",
-            Abi::Aapcs { unwind: true } => "aapcs-unwind",
-            Abi::Win64 { unwind: false } => "win64",
-            Abi::Win64 { unwind: true } => "win64-unwind",
-            Abi::SysV64 { unwind: false } => "sysv64",
-            Abi::SysV64 { unwind: true } => "sysv64",
-            Abi::System { unwind: false } => "system",
-            Abi::System { unwind: true } => "system-unwind",
-            Abi::Other(abi) => abi,
-        }, None))?;
+        tokens.try_push(Token::Ident(
+            match abi {
+                Abi::Rust => "Rust",
+                Abi::C { unwind: false } => "C",
+                Abi::C { unwind: true } => "C-unwind",
+                Abi::Cdecl { unwind: false } => "cdecl",
+                Abi::Cdecl { unwind: true } => "cdecl-unwind",
+                Abi::Stdcall { unwind: false } => "stdcall",
+                Abi::Stdcall { unwind: true } => "stdcall-unwind",
+                Abi::Fastcall { unwind: false } => "fastcall",
+                Abi::Fastcall { unwind: true } => "fastcall-unwind",
+                Abi::Aapcs { unwind: false } => "aapcs",
+                Abi::Aapcs { unwind: true } => "aapcs-unwind",
+                Abi::Win64 { unwind: false } => "win64",
+                Abi::Win64 { unwind: true } => "win64-unwind",
+                Abi::SysV64 { unwind: false } => "sysv64",
+                Abi::SysV64 { unwind: true } => "sysv64",
+                Abi::System { unwind: false } => "system",
+                Abi::System { unwind: true } => "system-unwind",
+                Abi::Other(abi) => abi,
+            },
+            None,
+        ))?;
         tokens.try_push(Token::Ponct("\""))?;
         tokens.try_push(Token::Special(SpecialToken::Space))?;
     }
@@ -1151,7 +1156,6 @@ fn with_header<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     header: &'tokens Header,
 ) -> Result<(), FromItemErrorKind> {
-
     if header.const_ {
         tokens.try_push(Token::Kw("const"))?;
         tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1238,10 +1242,8 @@ fn with_method<'tokens>(
 
     if method.decl.c_variadic {
         if method.decl.inputs.len() >= 1 {
-            tokens.try_extend_from_slice(&[
-                Token::Ponct(","),
-                Token::Special(SpecialToken::Space),
-            ])?;
+            tokens
+                .try_extend_from_slice(&[Token::Ponct(","), Token::Special(SpecialToken::Space)])?;
         }
         tokens.try_push(Token::Kw("..."))?;
     }
@@ -1439,7 +1441,7 @@ fn with_where_predicate<'tokens>(
     where_predicate: &'tokens WherePredicate,
 ) -> Result<(), FromItemErrorKind> {
     match where_predicate {
-        WherePredicate::BoundPredicate { type_ , bounds } => {
+        WherePredicate::BoundPredicate { type_, bounds } => {
             with_type(tokens, type_)?;
 
             tokens.try_push(Token::Ponct(":"))?;
@@ -1584,7 +1586,11 @@ fn with_generic_param_def<'tcx>(
                 },
             )?;
         }
-        GenericParamDefKind::Type { bounds, default, synthetic } => {
+        GenericParamDefKind::Type {
+            bounds,
+            default,
+            synthetic,
+        } => {
             if !synthetic {
                 tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
 
@@ -1608,7 +1614,7 @@ fn with_generic_param_def<'tcx>(
                 }
             }
         }
-        GenericParamDefKind::Const { type_ , default } => {
+        GenericParamDefKind::Const { type_, default } => {
             tokens.try_push(Token::Kw("const"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             tokens.try_push(Token::Ident(&generic_param_def.name, None))?;
