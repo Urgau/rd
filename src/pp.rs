@@ -274,7 +274,10 @@ impl Tokens<'_> {
                         Token::Special(SpecialToken::NewLine),
                         Token::Special(SpecialToken::Tabulation),
                     ]),
-                    Some([Token::Ponct(",")]),
+                    Some([
+                        Token::Ponct(","),
+                        Token::Special(SpecialToken::NewLine),
+                    ]),
                     Some([
                         Token::Ponct(","),
                         Token::Special(SpecialToken::NewLine),
@@ -283,7 +286,9 @@ impl Tokens<'_> {
                     with_where_predicate,
                 )?;
 
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                if union_.generics.where_predicates.is_empty() {
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                }
                 tokens.try_push(Token::Ponct("{"))?;
 
                 let items = union_
@@ -356,7 +361,10 @@ impl Tokens<'_> {
                         Token::Special(SpecialToken::NewLine),
                         Token::Special(SpecialToken::Tabulation),
                     ]),
-                    Some([Token::Ponct(",")]),
+                    Some([
+                        Token::Ponct(","),
+                        Token::Special(SpecialToken::NewLine),
+                    ]),
                     Some([
                         Token::Ponct(","),
                         Token::Special(SpecialToken::NewLine),
@@ -367,7 +375,9 @@ impl Tokens<'_> {
 
                 match struct_.struct_type {
                     StructType::Plain => {
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
+                        if struct_.generics.where_predicates.is_empty() {
+                            tokens.try_push(Token::Special(SpecialToken::Space))?;
+                        }
                         tokens.try_push(Token::Ponct("{"))?;
 
                         let items = struct_
