@@ -49,8 +49,9 @@ assert_eq!(None, finder.find(b&quot;quux baz bar&quot;));</code></pre></div></de
 </div><div><p><a href="struct.FinderRev.html" class="struct">FinderRev</a></p></div><div><p>A single substring reverse searcher fixed to a particular needle.</p>
 </div></div></section><section><h2 id="enums" class="rd-anchor">Enums<a aria-label="anchor" href="#enums"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="enum.Prefilter.html" class="enum">Prefilter</a></p></div><div><p>Prefilter controls whether heuristics are used to accelerate searching.</p>
 </div></div></section><section><h2 id="functions" class="rd-anchor">Functions<a aria-label="anchor" href="#functions"><i class="bi bi-hash"></i></a></h2><div class="item-table"><div><p><a href="fn.find.html" class="fn">find</a></p></div><div><p>Returns the index of the first occurrence of the given needle.</p>
-</div><div><p><a href="fn.find_iter.html" class="fn">find_iter</a></p></div><div><p>Returns an iterator over all occurrences of a substring in a haystack.</p>
+</div><div><p><a href="fn.find_iter.html" class="fn">find_iter</a></p></div><div><p>Returns an iterator over all non-overlapping occurrences of a substring in
+a haystack.</p>
 </div><div><p><a href="fn.rfind.html" class="fn">rfind</a></p></div><div><p>Returns the index of the last occurrence of the given needle.</p>
-</div><div><p><a href="fn.rfind_iter.html" class="fn">rfind_iter</a></p></div><div><p>Returns a reverse iterator over all occurrences of a substring in a
-haystack.</p>
+</div><div><p><a href="fn.rfind_iter.html" class="fn">rfind_iter</a></p></div><div><p>Returns a reverse iterator over all non-overlapping occurrences of a
+substring in a haystack.</p>
 </div></div></section></div></div></div><footer class="container-xxl text-center">The rd developpers - (c) 2022</footer><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js" integrity="sha384-cn7l7gDp0eyniUwwAZgrzD06kc/tftFf19TOAs2zVinnD/C7E91j9yyk5//jjpt/" crossorigin="anonymous"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap-dark-5@1.1.3/dist/js/darkmode.min.js" integrity="sha384-A4SLs39X/aUfwRclRaXvNeXNBTLZdnZdHhhteqbYFS2jZTRD79tKeFeBn7SGXNpi" crossorigin="anonymous"></script><script src="../../memchr/search-index.js"></script><script src="../../search.js"></script></body></html>
