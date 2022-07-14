@@ -5,14 +5,14 @@ edition = "2018"
 license = "BSD+Patent"
 
 [dependencies]
-clap = { version = "3.1", features = ["derive"] }
+clap = { version = "3.2", features = ["derive"] }
 anyhow = "1.0"
-rustdoc-types = "0.10"
+rustdoc-types = "0.11"
 serde_json = "1.0"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 pulldown-cmark = { version = "0.9", default-features = false }
 log = "0.4"
 env_logger = "0.9"
-markup = "0.12"
+markup = "0.13"
 typed-arena = "2"
-open = "2"
+open = "3"

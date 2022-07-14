@@ -1441,8 +1441,25 @@ fn with_where_predicate<'tokens>(
     where_predicate: &'tokens WherePredicate,
 ) -> Result<(), FromItemErrorKind> {
     match where_predicate {
-        WherePredicate::BoundPredicate { type_, bounds } => {
+        WherePredicate::BoundPredicate {
+            type_,
+            bounds,
+            generic_params,
+        } => {
             with_type(tokens, type_)?;
+
+            with(
+                tokens,
+                generic_params,
+                Some([
+                    Token::Special(SpecialToken::Space),
+                    Token::Kw("for"),
+                    Token::Ponct("<"),
+                ]),
+                Some([Token::Ponct(">"), Token::Special(SpecialToken::Space)]),
+                Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+                with_generic_param_def,
+            )?;
 
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
