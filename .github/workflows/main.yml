@@ -52,12 +52,12 @@ jobs:
           repository: nix-rust/nix
           ref: afba7c5a33dd4fd62b047e64089487cf822ccec2 # 0.23.1
           path: nix
-      # - name: Checkout bytecodealliance/rustix
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: bytecodealliance/rustix
-      #     ref: 1ebbf6330308c644ca675f9de6fc12abd7289f9b # 0.33.0
-      #     path: rustix
+      - name: Checkout bytecodealliance/rustix
+        uses: actions/checkout@v2
+        with:
+          repository: bytecodealliance/rustix
+          ref: 1ebbf6330308c644ca675f9de6fc12abd7289f9b # 0.33.0
+          path: rustix
       - name: Checkout rust-lang/regex
         uses: actions/checkout@v2
         with:
@@ -77,13 +77,13 @@ jobs:
           args: --manifest-path nix/Cargo.toml
         env:
           RUSTDOCFLAGS: -Zunstable-options --output-format=json
-      # - name: rustdoc.json rustix
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: doc
-      #     args: --manifest-path rustix/Cargo.toml
-      #   env:
-      #     RUSTDOCFLAGS: -Zunstable-options --output-format=json
+      - name: rustdoc.json rustix
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --manifest-path rustix/Cargo.toml
+        env:
+          RUSTDOCFLAGS: -Zunstable-options --output-format=json
       - name: rustdoc.json regex
         uses: actions-rs/cargo@v1
         with:
@@ -112,8 +112,8 @@ jobs:
             curl/target/doc/curl.json
             curl/target/doc/curl_sys.json
             curl/target/doc/openssl_sys.json
-          #  rustix/target/doc/rustix.json
-          #  rustix/target/doc/io_lifetimes.json
+            rustix/target/doc/rustix.json
+            rustix/target/doc/io_lifetimes.json
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
