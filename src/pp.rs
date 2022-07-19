@@ -575,19 +575,42 @@ impl Tokens<'_> {
 
                 tokens.try_push(Token::Ponct("("))?;
 
-                with(
-                    &mut tokens,
-                    &function.decl.inputs,
-                    Option::<Token>::None,
-                    Option::<Token>::None,
-                    Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
-                    |tokens, (name, ty)| {
-                        tokens.try_push(Token::Ident(name, None))?;
-                        tokens.try_push(Token::Ponct(":"))?;
-                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                        with_type(tokens, ty)
-                    },
-                )?;
+                if function.decl.inputs.len() <= 2 {
+                    with(
+                        &mut tokens,
+                        &function.decl.inputs,
+                        Option::<Token>::None,
+                        Option::<Token>::None,
+                        Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+                        |tokens, (name, ty)| {
+                            tokens.try_push(Token::Ident(name, None))?;
+                            tokens.try_push(Token::Ponct(":"))?;
+                            tokens.try_push(Token::Special(SpecialToken::Space))?;
+                            with_type(tokens, ty)
+                        },
+                    )?;
+                } else {
+                    with(
+                        &mut tokens,
+                        &function.decl.inputs,
+                        Some([
+                            Token::Special(SpecialToken::NewLine),
+                            Token::Special(SpecialToken::Tabulation),
+                        ]),
+                        Some([Token::Special(SpecialToken::NewLine)]),
+                        Some([
+                            Token::Ponct(","),
+                            Token::Special(SpecialToken::NewLine),
+                            Token::Special(SpecialToken::Tabulation),
+                        ]),
+                        |tokens, (name, ty)| {
+                            tokens.try_push(Token::Ident(name, None))?;
+                            tokens.try_push(Token::Ponct(":"))?;
+                            tokens.try_push(Token::Special(SpecialToken::Space))?;
+                            with_type(tokens, ty)
+                        },
+                    )?;
+                }
 
                 if function.decl.c_variadic {
                     if function.decl.inputs.len() >= 1 {
