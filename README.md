@@ -30,8 +30,8 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 - [X] Deprecation notice and attributes filtering
 - [X] `cfg` and `doc` printting
 - [X] Themes (currently light and black)
-- [ ] Generation of the global index.html
-- [ ] Handling of re-export(s)
+- [\] Generation of the global index.html
+- [\] Handling of re-export(s) (Mostly done, but links to them won't work)
 - [ ] Source code inclusion
 - [ ] Options/customization
 

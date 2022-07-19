@@ -170,7 +170,13 @@ pub(crate) fn render<'krate>(
             krate_name: krate_item.name.as_ref().context("expect a crate name")?,
         };
 
-        let module_page_context = module_page(&global_context, None, krate_item, krate_module)?;
+        let module_page_context = module_page(
+            &global_context,
+            None,
+            krate_item,
+            &global_context.krate_name,
+            krate_module,
+        )?;
         let module_index_path = global_context.opt.output.join(module_page_context.filepath);
         let mut search = String::new();
 
@@ -221,22 +227,17 @@ fn base_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: Option<&'context ItemPath>,
     item: &'context Item,
-) -> Result<(PageContext<'context>, impl Write, &'context str)> {
-    let name = item
-        .name
-        .as_ref()
-        .context("unable to get the name of an item")?;
-
-    let krate_path = global_context
-        .krate
-        .paths
-        .get(&item.id)
-        .with_context(|| format!("unable to find the path of for the {:?}", &item.id))?;
-    let parts = &krate_path.path[..(krate_path.path.len() - 1)];
+    name: &'context str,
+) -> Result<(PageContext<'context>, impl Write)> {
+    let parts = if let Some(parent_item_path) = parent_item_path {
+        parent_item_path.0.iter().map(|c| &c.name).collect()
+    } else {
+        Vec::new()
+    };
 
     let (item_kind_name, _item_kind_file) =
         prefix_item(item).context("unable to get of this item")?;
-    let filename: PathBuf = if matches!(krate_path.kind, ItemKind::Module) {
+    let filename: PathBuf = if matches!(item.inner, ItemEnum::Module(..)) {
         format!("{}/index.html", name).into()
     } else {
         format!("{}.{}.html", item_kind_name, name).into()
@@ -244,7 +245,7 @@ fn base_page<'context>(
 
     if let ItemEnum::Module(_) = &item.inner {
         let mut path = global_context.opt.output.to_path_buf();
-        path.extend(parts);
+        path.extend(&parts);
         path.push(name);
 
         debug!("creating the module directory {:?}", &path);
@@ -255,14 +256,14 @@ fn base_page<'context>(
     }
 
     let mut filepath: PathBuf = "".into();
-    filepath.extend(parts);
+    filepath.extend(&parts);
     filepath.push(&filename);
 
     let filepath = global_context.files.alloc(filepath);
 
     info!("generating {} {}", item_kind_name, name);
     debug!("creating the {} file {:?}", item_kind_name, filepath);
-    trace!("ID: {:?} -- krate_path {:?}", &item.id, &krate_path);
+    trace!("ID: {:?} -- krate_path {:?}", &item.id, &parts);
 
     let path = global_context.opt.output.join(&filepath);
     let file =
@@ -280,7 +281,7 @@ fn base_page<'context>(
                     path.extend_from_slice(pip.0.as_slice());
                 }
                 path.push(ItemPathComponent {
-                    name: name.clone(),
+                    name: name.to_string(),
                     kind: item_kind_name,
                     filepath: filepath.clone(),
                 });
@@ -290,7 +291,6 @@ fn base_page<'context>(
             ids: Default::default(),
         },
         file,
-        name,
     ))
 }
 
@@ -309,9 +309,10 @@ fn module_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: Option<&'context ItemPath>,
     item: &'context Item,
+    module_name: &'context str,
     module: &'context Module,
 ) -> Result<PageContext<'context>> {
-    let (page_context, mut file, module_name) = base_page(global_context, parent_item_path, item)?;
+    let (page_context, mut file) = base_page(global_context, parent_item_path, item, module_name)?;
 
     let mut module_page_content = ModulePageContent {
         imports: Default::default(),
@@ -386,29 +387,42 @@ fn module_page<'context>(
         .items
         .iter()
         .filter_map(|id| {
-            let item = global_context
-                .krate
-                .index
-                .get(id)
-                .with_context(|| format!("Unable to find the item {:?}", id))
-                .ok()?;
+            fn get<'context>(
+                global_context: &'context GlobalContext<'context>,
+                id: &'context Id,
+                name: Option<&'context str>,
+            ) -> Option<Result<(&'context Item, Option<&'context str>)>> {
+                if !id.0.starts_with("0:") {
+                    warn!("ignoring for now `pub use`: {:?}", id);
+                    return None;
+                }
 
-            if !id.0.starts_with("0:") {
-                warn!("ignoring for now `pub use`: {:?}", id);
-                return None;
+                let item = global_context
+                    .krate
+                    .index
+                    .get(id)
+                    .with_context(|| format!("Unable to find the item {:?}", id))
+                    .ok()?;
+
+                match &item.inner {
+                    ItemEnum::Import(Import {
+                        name, id: Some(id), ..
+                    }) => get(global_context, &id, Some(&name)),
+                    _ => Some(Ok((item, name.or_else(|| item.name.as_deref())))),
+                }
             }
 
-            Some(Ok(item))
+            get(&global_context, id, None)
         })
         .collect::<Result<Vec<_>>>()?;
-    items.sort_by(|x_item, y_item| match (&x_item.inner, &y_item.inner) {
-        (ItemEnum::Module(_), ItemEnum::Module(_)) => x_item.name.cmp(&y_item.name),
+    items.sort_by(|x_item, y_item| match (&x_item.0.inner, &y_item.0.inner) {
+        (ItemEnum::Module(_), ItemEnum::Module(_)) => x_item.0.name.cmp(&y_item.0.name),
         (ItemEnum::Module(_), _) => Ordering::Less,
         (_, ItemEnum::Module(_)) => Ordering::Greater,
-        _ => x_item.name.cmp(&y_item.name),
+        _ => x_item.0.name.cmp(&y_item.0.name),
     });
 
-    for item in items {
+    for (item, name) in items {
         let summary =
             MarkdownSummaryLine::from_docs(global_context, &page_context, &item.docs, &item.links);
         let portability = Portability::from_attrs(&item.attrs)?
@@ -437,13 +451,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Union(union_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of union")?;
-
+                let name = name.context("unable to get the name of the union")?;
                 let page_context =
-                    union_page(global_context, page_context.item_path, item, union_)?;
+                    union_page(global_context, page_context.item_path, item, name, union_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_unions
@@ -464,13 +474,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Struct(struct_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of struct")?;
-
+                let name = name.context("unable to get the name of the struct")?;
                 let page_context =
-                    struct_page(global_context, page_context.item_path, item, struct_)?;
+                    struct_page(global_context, page_context.item_path, item, name, struct_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_structs
@@ -491,12 +497,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Enum(enum_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of enum")?;
-
-                let page_context = enum_page(global_context, page_context.item_path, item, enum_)?;
+                let name = name.context("unable to get the name of the enum")?;
+                let page_context =
+                    enum_page(global_context, page_context.item_path, item, name, enum_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_enums
@@ -517,13 +520,14 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Function(function_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of function")?;
-
-                let page_context =
-                    function_page(global_context, page_context.item_path, item, function_)?;
+                let name = name.context("unable to get the name of the function")?;
+                let page_context = function_page(
+                    global_context,
+                    page_context.item_path,
+                    item,
+                    name,
+                    function_,
+                )?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_functions
@@ -548,13 +552,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Trait(trait_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of trait")?;
-
+                let name = name.context("unable to get the name of the trait")?;
                 let page_context =
-                    trait_page(global_context, page_context.item_path, item, trait_)?;
+                    trait_page(global_context, page_context.item_path, item, name, trait_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_traits
@@ -594,13 +594,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Typedef(typedef_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of typedef")?;
-
+                let name = name.context("unable to get the name of the typedef")?;
                 let page_context2 =
-                    typedef_page(global_context, page_context.item_path, item, typedef_)?;
+                    typedef_page(global_context, page_context.item_path, item, name, typedef_)?;
                 let filename = filenames.alloc(page_context2.filename);
 
                 toc_typedefs
@@ -646,13 +642,14 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Constant(constant_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of constant")?;
-
-                let page_context =
-                    constant_page(global_context, page_context.item_path, item, constant_)?;
+                let name = name.context("unable to get the name of the constant")?;
+                let page_context = constant_page(
+                    global_context,
+                    page_context.item_path,
+                    item,
+                    name,
+                    constant_,
+                )?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_constants
@@ -673,13 +670,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Static(static_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of constant")?;
-
+                let name = name.context("unable to get the name of the static")?;
                 let page_context =
-                    static_page(global_context, page_context.item_path, item, static_)?;
+                    static_page(global_context, page_context.item_path, item, name, static_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_constants
@@ -700,13 +693,9 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Macro(macro_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of macro")?;
-
+                let name = name.context("unable to get the name of the macro")?;
                 let page_context =
-                    macro_page(global_context, page_context.item_path, item, macro_)?;
+                    macro_page(global_context, page_context.item_path, item, name, macro_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_macros
@@ -727,13 +716,14 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::ProcMacro(proc_macro_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of proc_macro")?;
-
-                let page_context =
-                    proc_macro_page(global_context, page_context.item_path, item, proc_macro_)?;
+                let name = name.context("unable to get the name of the proc-macro")?;
+                let page_context = proc_macro_page(
+                    global_context,
+                    page_context.item_path,
+                    item,
+                    name,
+                    proc_macro_,
+                )?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_proc_macros
@@ -754,12 +744,14 @@ fn module_page<'context>(
                 });
             }
             ItemEnum::Module(module_) => {
-                let name = item
-                    .name
-                    .as_ref()
-                    .context("unable to get the name of module")?;
-                let page_context =
-                    module_page(global_context, Some(page_context.item_path), item, module_)?;
+                let name = name.context("unable to get the name of the module")?;
+                let page_context = module_page(
+                    global_context,
+                    Some(page_context.item_path),
+                    item,
+                    name,
+                    module_,
+                )?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_modules
@@ -825,9 +817,10 @@ fn trait_page<'context>(
     global_context: &'context GlobalContext<'context>,
     parent_item_path: &'context ItemPath,
     item: &'context Item,
+    name: &'context str,
     trait_: &'context Trait,
 ) -> Result<PageContext<'context>> {
-    let (page_context, mut file, name) = base_page(global_context, Some(parent_item_path), item)?;
+    let (page_context, mut file) = base_page(global_context, Some(parent_item_path), item, name)?;
     let definition = item_definition(global_context, &page_context, item)?;
 
     let mut trait_page_content = TraitPageContent {
@@ -1208,10 +1201,11 @@ macro_rules! ç {
             global_context: &'context GlobalContext<'context>,
             parent_item_path: &'context ItemPath,
             item: &'context Item,
+            name: &'context str,
             inner: &'context $ty,
         ) -> Result<PageContext<'context>> {
-            let (page_context, mut file, name) =
-                base_page(global_context, Some(parent_item_path), item)?;
+            let (page_context, mut file) =
+                base_page(global_context, Some(parent_item_path), item, name)?;
             let definition = item_definition(global_context, &page_context, item)?;
 
             let (toc, content) = struct_union_enum_content(
@@ -1257,9 +1251,10 @@ macro_rules! é {
             global_context: &'context GlobalContext<'context>,
             parent_item_path: &'context ItemPath,
             item: &'context Item,
+            name: &'context str,
             #[allow(unused)] inner: &'context $ty,
         ) -> Result<PageContext<'context>> {
-            let (page_context, mut file, name) = base_page(global_context, Some(parent_item_path), item)?;
+            let (page_context, mut file) = base_page(global_context, Some(parent_item_path), item, name)?;
             let definition = item_definition(global_context, &page_context, item)?;
 
             let page = Base {
