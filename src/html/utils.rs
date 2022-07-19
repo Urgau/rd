@@ -298,7 +298,8 @@ pub(super) fn href<'context, 'krate>(
                         "type",
                     ))
                 }
-                _ => warn!("item={:?} not handling this kind of items", item),
+                // _ => warn!("item={:?} not handling this kind of items", item),
+                _ => {},
             }
         } else {
             debug!(
