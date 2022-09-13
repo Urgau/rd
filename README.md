@@ -20,7 +20,7 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 
 ## Features
 
-- [X] Pretty pritting of items (methods, structs, traits, ...)
+- [X] Pretty printing of items (methods, structs, traits, ...)
 - [X] Minimal self-contained search engine with index
 - [X] Bootstrap 5 html pages
 - [X] Syntax highlighting of items
@@ -28,7 +28,7 @@ This project is a POC/experimental frontend for the [rustdoc json](https://rust-
 - [X] Improved markdown output (similar to rustdoc)
 - [X] Table of contents (markdown + items)
 - [X] Deprecation notice and attributes filtering
-- [X] `cfg` and `doc` printting
+- [X] `cfg` and `doc` printing
 - [X] Themes (currently light and black)
 - [\] Generation of the global index.html
 - [\] Handling of re-export(s) (Mostly done, but links to them won't work)
