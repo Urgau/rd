@@ -367,15 +367,17 @@ impl Tokens<'_> {
                     with_where_predicate,
                 )?;
 
-                match struct_.struct_type {
-                    StructType::Plain => {
+                match &struct_.kind {
+                    StructKind::Plain {
+                        fields,
+                        fields_stripped,
+                    } => {
                         if struct_.generics.where_predicates.is_empty() {
                             tokens.try_push(Token::Special(SpecialToken::Space))?;
                         }
                         tokens.try_push(Token::Ponct("{"))?;
 
-                        let items = struct_
-                            .fields
+                        let items = fields
                             .iter()
                             .map(|id| match index.get(id) {
                                 Some(item) => match &item.inner {
@@ -396,7 +398,7 @@ impl Tokens<'_> {
                                     with_struct_field(tokens, item, struct_field)?;
                                     tokens.try_push(Token::Ponct(","))?;
                                 }
-                                if struct_.fields_stripped {
+                                if *fields_stripped {
                                     tokens.try_push(Token::Special(SpecialToken::NewLine))?;
                                     tokens.try_push(Token::Special(SpecialToken::Hidden {
                                         all: false,
@@ -405,7 +407,7 @@ impl Tokens<'_> {
                                 Ok(())
                             })?;
                             tokens.try_push(Token::Special(SpecialToken::NewLine))?;
-                        } else if struct_.fields_stripped {
+                        } else if *fields_stripped {
                             tokens.try_push(Token::Special(SpecialToken::Space))?;
                             tokens.try_push(Token::Special(SpecialToken::Hidden { all: true }))?;
                             tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -413,16 +415,14 @@ impl Tokens<'_> {
 
                         tokens.try_push(Token::Ponct("}"))?;
                     }
-                    StructType::Tuple => {
+                    StructKind::Tuple(fields) => {
                         tokens.try_push(Token::Ponct("("))?;
-                        if struct_.fields_stripped {
-                            tokens.try_push(Token::Ponct("_"))?;
-                        } else {
-                            // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
-                            let items = struct_
-                                .fields
-                                .iter()
-                                .map(|id| match index.get(id) {
+
+                        // TODO: Maybe put the printing directly in the map() to avoid creating a Vec
+                        let items = fields
+                            .iter()
+                            .map(|id| {
+                                id.as_ref().map(|id| match index.get(&id) {
                                     Some(item) => match &item.inner {
                                         ItemEnum::StructField(struct_field) => {
                                             Ok((item, struct_field))
@@ -434,24 +434,29 @@ impl Tokens<'_> {
                                     },
                                     None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
                                 })
-                                .collect::<Result<Vec<(_, _)>, FromItemErrorKind>>()?;
+                                .transpose()
+                            })
+                            .collect::<Result<Vec<Option<(_, _)>>, FromItemErrorKind>>()?;
 
-                            if !items.is_empty() {
-                                for (index, (item, struct_field)) in items.iter().enumerate() {
-                                    if index != 0 {
-                                        tokens.try_push(Token::Ponct(","))?;
-                                        tokens.try_push(Token::Special(SpecialToken::Space))?;
-                                    }
+                        if !items.is_empty() {
+                            for (index, item) in items.iter().enumerate() {
+                                if index != 0 {
+                                    tokens.try_push(Token::Ponct(","))?;
+                                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                                }
+                                if let Some((item, struct_field)) = item {
                                     //with_struct_field(&mut tokens, item, struct_field)?;
                                     with_visibility(&mut tokens, &item.visibility)?;
                                     with_type(&mut tokens, struct_field)?;
+                                } else {
+                                    tokens.try_push(Token::Ponct("_"))?;
                                 }
                             }
                         }
                         tokens.try_push(Token::Ponct(")"))?;
                         tokens.try_push(Token::Ponct(";"))?;
                     }
-                    StructType::Unit => {
+                    StructKind::Unit => {
                         tokens.try_push(Token::Ponct(";"))?;
                     }
                 }
@@ -845,11 +850,11 @@ impl Tokens<'_> {
                 )?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
 
-                if let Some(type_) = &impl_.trait_ {
+                if let Some(trait_) = &impl_.trait_ {
                     if impl_.negative {
                         tokens.try_push(Token::Ponct("!"))?;
                     }
-                    with_type(&mut tokens, type_)?;
+                    with_path(&mut tokens, trait_)?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
                     tokens.try_push(Token::Kw("for"))?;
                     tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -928,7 +933,6 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::PrimitiveType(_) => todo!("ItemEnum::PrimitiveType"),
             ItemEnum::OpaqueTy(_) => todo!("ItemEnum::OpaqueTy"),
             ItemEnum::Constant(constant) => {
                 let mut tokens = Vec::with_capacity(16);
@@ -1037,6 +1041,7 @@ impl Tokens<'_> {
 
                 tokens
             }
+            ItemEnum::Primitive(_) => todo!("ItemEnum::Primitive")
         }))
     }
 }
@@ -1347,23 +1352,50 @@ fn with_enum_variant<'tokens>(
     tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), None))?;
 
     match enum_variant {
-        Variant::Plain => {}
+        Variant::Plain(ref discriminant) => {
+            if let Some(discriminant) = discriminant {
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Ponct("="))?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Ident(&discriminant.value, None))?;
+            }
+        }
         Variant::Tuple(items) => {
+            let items = items
+                .iter()
+                .map(|id| {
+                    id.as_ref().map(|id| match index.get(&id) {
+                        Some(item) => match &item.inner {
+                            ItemEnum::StructField(struct_field) => Ok(struct_field),
+                            _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                id.clone(),
+                                ItemKind::StructField,
+                            )),
+                        },
+                        None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
+                    })
+                    .transpose()
+                })
+                .collect::<Result<Vec<_>, FromItemErrorKind>>()?;
+
             with(
                 tokens,
-                items,
+                &items,
                 Some([Token::Ponct("(")]),
                 Some(Token::Ponct(")")),
                 Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
-                with_type,
+                with_opt_type,
             )?;
         }
-        Variant::Struct(items) => {
+        Variant::Struct {
+            fields,
+            fields_stripped,
+        } => {
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             tokens.try_push(Token::Ponct("{"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
 
-            let items = items
+            let items = fields
                 .iter()
                 .map(|id| match index.get(id) {
                     Some(item) => match &item.inner {
@@ -1385,6 +1417,13 @@ fn with_enum_variant<'tokens>(
                     }
                     with_struct_field(tokens, item, struct_field)?;
                 }
+                if *fields_stripped {
+                    tokens.try_push(Token::Ponct(","))?;
+                    tokens.try_push(Token::Special(SpecialToken::Space))?;
+                    tokens.try_push(Token::Ponct("..."))?;
+                }
+            } else if *fields_stripped {
+                tokens.try_push(Token::Ponct("_"))?;
             } else {
                 unreachable!("Enum with 0 variants and non-stripped");
             }
@@ -1568,7 +1607,7 @@ fn with_generic_bound<'tokens>(
                 Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
                 with_generic_param_def,
             )?;
-            with_type(tokens, trait_)?;
+            with_path(tokens, trait_)?;
             with(
                 tokens,
                 &generic_params[pivot..],
@@ -1789,42 +1828,62 @@ fn with_generic_args<'tcx>(
     Ok(())
 }
 
+fn with_poly_trait<'tcx, 'tokens>(
+    tokens: &mut dyn Pusher<Token<'tcx>>,
+    poly_trait: &'tcx PolyTrait,
+) -> Result<(), FromItemErrorKind> {
+    with(
+        tokens,
+        &poly_trait.generic_params,
+        Some([Token::Kw("for"), Token::Ponct("<")]),
+        Some(Token::Ponct(">")),
+        Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
+        with_generic_param_def,
+    )?;
+    with_path(tokens, &poly_trait.trait_)?;
+    Ok(())
+}
+
+fn with_path<'tcx, 'tokens>(
+    tokens: &mut dyn Pusher<Token<'tcx>>,
+    path: &'tcx Path,
+) -> Result<(), FromItemErrorKind> {
+    // TODO: Should it be like this?
+    // tokens.try_push(Token::Ident(
+    //     if let Some(item) = index.get(&path.id) {
+    //         &item.name.expect("should have a name")
+    //     } else {
+    //         &path.name
+    //     },
+    //     Some(&path.id),
+    // ))?;
+    tokens.try_push(Token::Ident(&path.name, Some(&path.id)))?;
+    if let Some(generic_args) = &path.args {
+        with_generic_args(tokens, &generic_args)?;
+    }
+    Ok(())
+}
+
+fn with_opt_type<'tcx>(
+    tokens: &mut dyn Pusher<Token<'tcx>>,
+    type_: &Option<&'tcx Type>,
+) -> Result<(), FromItemErrorKind> {
+    if let Some(type_) = type_ {
+        with_type(tokens, type_)?;
+    } else {
+        tokens.try_push(Token::Ponct("_"))?;
+    }
+    Ok(())
+}
+
 fn with_type<'tcx>(
     tokens: &mut dyn Pusher<Token<'tcx>>,
     type_: &'tcx Type,
 ) -> Result<(), FromItemErrorKind> {
     match type_ {
         // Structs, enums, and traits
-        Type::ResolvedPath {
-            name,
-            id,
-            args,
-            param_names,
-        } => {
-            if !param_names.is_empty() {
-                tokens.try_push(Token::Kw("dyn"))?;
-                tokens.try_push(Token::Special(SpecialToken::Space))?;
-            }
-            tokens.try_push(Token::Ident(name, Some(id)))?;
-            if let Some(args) = args {
-                with_generic_args(tokens, args)?;
-            }
-            with(
-                tokens,
-                param_names,
-                Some([
-                    Token::Special(SpecialToken::Space),
-                    Token::Ponct("+"),
-                    Token::Special(SpecialToken::Space),
-                ]),
-                Option::<Token>::None,
-                Some([
-                    Token::Special(SpecialToken::Space),
-                    Token::Ponct("+"),
-                    Token::Special(SpecialToken::Space),
-                ]),
-                with_generic_bound,
-            )?;
+        Type::ResolvedPath(path) => {
+            with_path(tokens, path)?;
         }
         // Parameterized types
         Type::Generic(generic) => {
@@ -1911,7 +1970,7 @@ fn with_type<'tcx>(
                     Token::Ponct("+"),
                     Token::Special(SpecialToken::Space),
                 ]),
-                &with_generic_bound,
+                with_generic_bound,
             )?;
         }
         // `_`
@@ -1924,6 +1983,26 @@ fn with_type<'tcx>(
             tokens.try_push(Token::Kw(if *mutable { "mut" } else { "const" }))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
             with_type(tokens, type_)?;
+        }
+        Type::DynTrait(dyn_trait) => {
+            tokens.try_push(Token::Kw("dyn"))?;
+            with(
+                tokens,
+                &dyn_trait.traits,
+                Some([Token::Special(SpecialToken::Space)]),
+                Option::<Token>::None,
+                Some([
+                    Token::Special(SpecialToken::Space),
+                    Token::Ponct("+"),
+                    Token::Special(SpecialToken::Space),
+                ]),
+                with_poly_trait
+            )?;
+            if let Some(lifetime) = &dyn_trait.lifetime {
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Ponct("+"))?;
+                tokens.try_push(Token::Ident(lifetime, None))?;
+            }
         }
         // `&'a mut String`, `&str`, etc.
         Type::BorrowedRef {
@@ -1948,64 +2027,25 @@ fn with_type<'tcx>(
             self_type,
             trait_,
             args: qargs,
-        } => match **self_type {
-            Type::ResolvedPath { .. }
-            | Type::Primitive(_)
-            | Type::FunctionPointer(_)
-            | Type::Tuple(_)
-            | Type::Slice(_)
-            | Type::Array { .. }
-            | Type::ImplTrait(_)
-            | Type::Infer
-            | Type::RawPointer { .. }
-            | Type::BorrowedRef { .. }
-            | Type::Generic(_) => match &**trait_ {
-                Type::ResolvedPath { args, .. } if args.is_some() => {
-                    tokens.try_push(Token::Ponct("<"))?;
-                    with_type(tokens, self_type)?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Kw("as"))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    with_type(tokens, trait_)?;
-                    tokens.try_push(Token::Ponct(">"))?;
-                    tokens.try_push(Token::Ponct("::"))?;
-                    tokens.try_push(Token::Ident(name, None))?;
-                    with_generic_args(tokens, &qargs)?;
-                }
-                Type::ResolvedPath { .. } => {
-                    with_type(tokens, self_type)?;
-                    tokens.try_push(Token::Ponct("::"))?;
-                    tokens.try_push(Token::Ident(name, None))?;
-                    with_generic_args(tokens, &qargs)?;
-                }
-                _ => {
-                    todo!("QualifiedPath: trait_ not ResolvedPath");
-                }
-            },
-            Type::QualifiedPath { .. } => match &**trait_ {
-                Type::ResolvedPath { args, .. } if args.is_some() => {
-                    tokens.try_push(Token::Ponct("<"))?;
-                    with_type(tokens, self_type)?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Kw("as"))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    with_type(tokens, trait_)?;
-                    tokens.try_push(Token::Ponct(">"))?;
-                    tokens.try_push(Token::Ponct("::"))?;
-                    tokens.try_push(Token::Ident(name, None))?;
-                    with_generic_args(tokens, &qargs)?;
-                }
-                Type::ResolvedPath { .. } => {
-                    with_type(tokens, self_type)?;
-                    tokens.try_push(Token::Ponct("::"))?;
-                    tokens.try_push(Token::Ident(name, None))?;
-                    with_generic_args(tokens, &qargs)?;
-                }
-                _ => {
-                    todo!("QualifiedPath: trait_ not ResolvedPath");
-                }
-            },
-        },
+        } => {
+            if let Some(_trait_args) = &trait_.args {
+                tokens.try_push(Token::Ponct("<"))?;
+                with_type(tokens, self_type)?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                tokens.try_push(Token::Kw("as"))?;
+                tokens.try_push(Token::Special(SpecialToken::Space))?;
+                with_path(tokens, trait_)?;
+                tokens.try_push(Token::Ponct(">"))?;
+                tokens.try_push(Token::Ponct("::"))?;
+                tokens.try_push(Token::Ident(name, None))?;
+                with_generic_args(tokens, &qargs)?;
+            } else {
+                with_type(tokens, self_type)?;
+                tokens.try_push(Token::Ponct("::"))?;
+                tokens.try_push(Token::Ident(name, None))?;
+                with_generic_args(tokens, &qargs)?;
+            }
+        }
     }
     Ok(())
 }

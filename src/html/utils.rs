@@ -1,10 +1,10 @@
 //! Collections of utilities functions for the html generation
 
 use anyhow::{anyhow, Context as _, Result};
-use log::{debug, trace, warn};
+use log::{debug, trace};
 use rustdoc_types::*;
 use std::borrow::Cow;
-use std::path::{Path, PathBuf};
+use std::path::{Path as StdPath, PathBuf};
 
 use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
@@ -62,7 +62,7 @@ pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
         ItemEnum::AssocConst { .. } => ("associatedconst", false),
         ItemEnum::AssocType { .. } => ("associatedtype", false),
         ItemEnum::ForeignType => return None, // TODO: not sure how to handle this
-        ItemEnum::ExternCrate { .. } | ItemEnum::OpaqueTy(_) | ItemEnum::PrimitiveType(_) => {
+        ItemEnum::ExternCrate { .. } | ItemEnum::OpaqueTy(_) | ItemEnum::Primitive(_) => {
             unreachable!()
         }
     })
@@ -71,7 +71,7 @@ pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
 /// Try to get the [`Id`] of any [`Type`]
 pub(crate) fn type_id(type_: &Type) -> Result<&Id, Option<ItemKind>> {
     match type_ {
-        Type::ResolvedPath { id, .. } => Ok(id),
+        Type::ResolvedPath(Path { id, .. }) => Ok(id),
         Type::BorrowedRef { type_, .. } => type_id(type_),
         Type::RawPointer { type_, .. } => type_id(type_),
         Type::Slice(type_) => type_id(type_),
@@ -98,20 +98,20 @@ pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Res
 pub(crate) fn name_of(impl_: &Impl) -> Result<String> {
     let mut name = String::new();
 
-    let name_type = match &impl_.trait_ {
-        Some(type_) => match type_ {
-            Type::ResolvedPath { id, .. } if !id.0.starts_with("0:") => {
-                if impl_.negative {
-                    name.push('!');
-                }
-                type_
-            }
-            _ => &impl_.for_,
-        },
-        None => &impl_.for_,
-    };
+    // let name_type = match &impl_.trait_ {
+    //     Some(type_) => match type_ {
+    //         Type::ResolvedPath { id, .. } if !id.0.starts_with("0:") => {
+    //             if impl_.negative {
+    //                 name.push('!');
+    //             }
+    //             type_
+    //         }
+    //         _ => &impl_.for_,
+    //     },
+    //     None => &impl_.for_,
+    // };
 
-    for token in pp::Tokens::from_type(name_type)?.iter() {
+    for token in pp::Tokens::from_type(&impl_.for_)?.iter() {
         match token {
             pp::Token::Ponct(p) => name.push_str(p),
             pp::Token::Ident(ident, _) => name.push_str(ident),
@@ -176,7 +176,7 @@ pub(crate) fn id<'krate>(
 }
 
 /// Create a relative path from a base one and a target
-pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
+pub(crate) fn relative(base: &StdPath, url: &StdPath) -> PathBuf {
     let mut relative = PathBuf::new();
 
     // TODO: This a hacky, replace with a better way
@@ -231,7 +231,7 @@ pub(crate) fn relative(base: &Path, url: &Path) -> PathBuf {
 }
 
 /// Create a relative path for going to the top of the path
-pub(crate) fn top_of(base: &Path) -> PathBuf {
+pub(crate) fn top_of(base: &StdPath) -> PathBuf {
     let mut relative = PathBuf::new();
 
     // Add `..` segments for the remainder of the base path

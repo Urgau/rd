@@ -1123,7 +1123,7 @@ fn struct_union_enum_content<'context, 'krate>(
                 .iter()
                 .filter_map(
                     |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
-                        (Some(Type::ResolvedPath { id, .. }), None) => {
+                        (Some(rustdoc_types::Path { id, .. }), None) => {
                             match is_auto_trait(global_context.krate, id) {
                                 Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
@@ -1145,7 +1145,7 @@ fn struct_union_enum_content<'context, 'krate>(
                 .iter()
                 .filter_map(
                     |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
-                        (Some(Type::ResolvedPath { id, .. }), None) => {
+                        (Some(rustdoc_types::Path { id, .. }), None) => {
                             match is_auto_trait(global_context.krate, id) {
                                 Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
@@ -1195,7 +1195,7 @@ fn struct_union_enum_content<'context, 'krate>(
 }
 
 macro_rules! ç {
-    ($ty:ty => $fn:ident $type:literal $title:literal $fields:ident) => {
+    ($ty:ty => $fn:ident $type:literal $title:literal $fields:expr) => {
         /// Function for generating a $ty page
         fn $fn<'context>(
             global_context: &'context GlobalContext<'context>,
@@ -1212,7 +1212,7 @@ macro_rules! ç {
                 global_context,
                 &page_context,
                 $title,
-                &inner.$fields,
+                $fields(&inner),
                 &inner.impls,
             )?;
 
@@ -1242,6 +1242,18 @@ macro_rules! ç {
             Ok(page_context)
         }
     };
+}
+
+macro_rules! ù {
+    ($ty:ty => $fn:ident $type:literal $title:literal $fields:ident) => {
+        ç!($ty => $fn $type $title {
+            // HACK: This is a giant hack, we should do better
+            fn ids<'a>(ty: &'a $ty) -> &'a [Id] {
+                &ty.$fields
+            }
+            ids
+        });
+    }
 }
 
 macro_rules! é {
@@ -1284,9 +1296,20 @@ macro_rules! é {
     };
 }
 
-ç!(Union => union_page "Union" "Fields" fields);
-ç!(Struct => struct_page "Struct" "Fields" fields);
-ç!(Enum => enum_page "Enum" "Variants" variants);
+ç!(Struct => struct_page "Struct" "Fields" {
+    // HACK: This is a giant hack, we should do better
+    fn ids<'a>(struct_: &'a Struct) -> &'a [Id] { 
+        match &struct_.kind {
+            StructKind::Unit => &[],
+            // TODO: This should return fields but it's a `Vec<Option<Id>>` and not `Vec<Id>`
+            StructKind::Tuple(_fields) => &[],
+            StructKind::Plain { fields, fields_stripped: _ } => &fields,
+        }
+    }
+    ids
+});
+ù!(Union => union_page "Union" "Fields" fields);
+ù!(Enum => enum_page "Enum" "Variants" variants);
 é!(Typedef => typedef_page "Type Definition");
 é!(str => macro_page "Macro");
 é!(ProcMacro => proc_macro_page "Proc-Macro");
@@ -1437,24 +1460,6 @@ impl<'context, 'krate>
         DeprecationNotice<'context>,
     >
 {
-    fn from_type(
-        global_context: &'context GlobalContext<'krate>,
-        page_context: &'context PageContext<'context>,
-        parent_id: &HtmlId,
-        type_: &'krate Type,
-        pos: usize,
-    ) -> Result<Self> {
-        let id = HtmlId::new(format!("field.{}", pos));
-        let id = page_context.ids.alloc(parent_id + id);
-
-        Ok(Self {
-            def: TokensToHtml(global_context, page_context, pp::Tokens::from_type(type_)?),
-            id,
-            doc: None,
-            deprecation: None,
-        })
-    }
-
     fn from_item(
         global_context: &'context GlobalContext<'krate>,
         page_context: &'context PageContext<'context>,
@@ -1528,8 +1533,12 @@ impl<'context, 'krate>
             deprecation: DeprecationNotice::from(&item.deprecation),
             extras: match &item.inner {
                 ItemEnum::Variant(v) => match v {
-                    Variant::Struct(ids) => Some(
-                        ids.iter()
+                    Variant::Struct {
+                        fields,
+                        fields_stripped: _,
+                    } => Some(
+                        fields
+                            .iter()
                             .map(|id| {
                                 let item =
                                     global_context.krate.index.get(id).with_context(|| {
@@ -1548,19 +1557,23 @@ impl<'context, 'krate>
                     Variant::Tuple(types) => Some(
                         types
                             .iter()
-                            .enumerate()
-                            .map(|(pos, type_)| {
-                                VariantEnchanted::from_type(
+                            .flatten()
+                            .map(|id| {
+                                let item =
+                                    global_context.krate.index.get(id).with_context(|| {
+                                        format!("Unable to find the item {:?}", id)
+                                    })?;
+
+                                VariantEnchanted::from_item(
                                     global_context,
                                     page_context,
                                     parent_id,
-                                    type_,
-                                    pos,
+                                    item,
                                 )
                             })
                             .collect::<Result<Vec<_>>>()?,
                     ),
-                    Variant::Plain => None,
+                    Variant::Plain(_) => None,
                 },
                 ItemEnum::StructField(_) => None,
                 _ => unreachable!(),
