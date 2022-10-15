@@ -1166,7 +1166,7 @@ fn with_abi<'tokens>(
                 Abi::Win64 { unwind: false } => "win64",
                 Abi::Win64 { unwind: true } => "win64-unwind",
                 Abi::SysV64 { unwind: false } => "sysv64",
-                Abi::SysV64 { unwind: true } => "sysv64",
+                Abi::SysV64 { unwind: true } => "sysv64-unwind",
                 Abi::System { unwind: false } => "system",
                 Abi::System { unwind: true } => "system-unwind",
                 Abi::Other(abi) => abi,
