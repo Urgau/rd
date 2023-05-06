@@ -7,6 +7,8 @@ rd
 
 This project is a POC/experimental frontend for the [rustdoc json](https://rust-lang.github.io/rfcs/2963-rustdoc-json.html) output format to generate html documentation.
 
+⚠️ This project is currently broken for newer rustdoc (>=2023)! ⚠️
+
 ## Demos
 
  - [nix](https://urgau.github.io/rd/nix/) ([docs.rs](https://docs.rs/nix/0.23.1/nix/))
