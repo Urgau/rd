@@ -22,7 +22,6 @@ pub(crate) fn prefix_item_kind(kind: &ItemKind) -> Option<(&'static str, bool)> 
         ItemKind::Function => ("fn", true),
         ItemKind::Trait => ("trait", true),
         ItemKind::TraitAlias => ("trait.alias", true),
-        ItemKind::Method => ("method", false),
         ItemKind::Impl => ("impl", false),
         ItemKind::Typedef => ("type", true),
         ItemKind::Constant => ("constant", true),
@@ -52,7 +51,6 @@ pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
         ItemEnum::Function(_) => ("fn", true),
         ItemEnum::Trait(_) => ("trait", true),
         ItemEnum::TraitAlias(_) => ("trait.alias", true),
-        ItemEnum::Method(_) => ("method", false),
         ItemEnum::Impl(_) => ("impl", false),
         ItemEnum::Typedef(_) => ("type", true),
         ItemEnum::Constant(_) => ("constant", true),
@@ -266,7 +264,7 @@ pub(super) fn href<'context, 'krate>(
         // TODO: Here we wrongly supposed that we are in the same "page"
         if let Some(item) = global_context.krate.index.get(id) {
             match &item.inner {
-                ItemEnum::Method { .. } => {
+                ItemEnum::Function { .. } => {
                     return Some((
                         None,
                         "".into(),

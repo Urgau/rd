@@ -559,103 +559,7 @@ impl Tokens<'_> {
             ItemEnum::Function(function) => {
                 let mut tokens = Vec::with_capacity(16);
 
-                with_attrs(&mut tokens, &item.attrs)?;
-                with_visibility(&mut tokens, &item.visibility)?;
-                with_header(&mut tokens, &function.header)?;
-
-                tokens.try_push(Token::Kw("fn"))?;
-                if let Some(name) = &item.name {
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Ident(name, Some(&item.id)))?;
-                }
-
-                with(
-                    &mut tokens,
-                    without_impl(&function.generics.params),
-                    Some([Token::Ponct("<")]),
-                    Some(Token::Ponct(">")),
-                    Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
-                    with_generic_param_def,
-                )?;
-
-                tokens.try_push(Token::Ponct("("))?;
-
-                if function.decl.inputs.len() <= 2 {
-                    with(
-                        &mut tokens,
-                        &function.decl.inputs,
-                        Option::<Token>::None,
-                        Option::<Token>::None,
-                        Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
-                        |tokens, (name, ty)| {
-                            tokens.try_push(Token::Ident(name, None))?;
-                            tokens.try_push(Token::Ponct(":"))?;
-                            tokens.try_push(Token::Special(SpecialToken::Space))?;
-                            with_type(tokens, ty)
-                        },
-                    )?;
-                } else {
-                    with(
-                        &mut tokens,
-                        &function.decl.inputs,
-                        Some([
-                            Token::Special(SpecialToken::NewLine),
-                            Token::Special(SpecialToken::Tabulation),
-                        ]),
-                        Some([Token::Special(SpecialToken::NewLine)]),
-                        Some([
-                            Token::Ponct(","),
-                            Token::Special(SpecialToken::NewLine),
-                            Token::Special(SpecialToken::Tabulation),
-                        ]),
-                        |tokens, (name, ty)| {
-                            tokens.try_push(Token::Ident(name, None))?;
-                            tokens.try_push(Token::Ponct(":"))?;
-                            tokens.try_push(Token::Special(SpecialToken::Space))?;
-                            with_type(tokens, ty)
-                        },
-                    )?;
-                }
-
-                if function.decl.c_variadic {
-                    if function.decl.inputs.len() >= 1 {
-                        tokens.try_extend_from_slice(&[
-                            Token::Ponct(","),
-                            Token::Special(SpecialToken::Space),
-                        ])?;
-                    }
-                    tokens.try_push(Token::Kw("..."))?;
-                }
-
-                tokens.try_push(Token::Ponct(")"))?;
-
-                if let Some(output) = &function.decl.output {
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    tokens.try_push(Token::Ponct("-"))?;
-                    tokens.try_push(Token::Ponct(">"))?;
-                    tokens.try_push(Token::Special(SpecialToken::Space))?;
-                    with_type(&mut tokens, output)?;
-                }
-
-                with(
-                    &mut tokens,
-                    &function.generics.where_predicates,
-                    Some([
-                        Token::Special(SpecialToken::NewLine),
-                        Token::Kw("where"),
-                        Token::Special(SpecialToken::NewLine),
-                        Token::Special(SpecialToken::Tabulation),
-                    ]),
-                    Some([Token::Ponct(",")]),
-                    Some([
-                        Token::Ponct(","),
-                        Token::Special(SpecialToken::NewLine),
-                        Token::Special(SpecialToken::Tabulation),
-                    ]),
-                    with_where_predicate,
-                )?;
-
-                // tokens.try_push(Token::Ponct(";"))?;
+                with_function(&mut tokens, item, function, false)?;
 
                 tokens
             }
@@ -741,8 +645,8 @@ impl Tokens<'_> {
                                     } => with_assoc_type(
                                         tokens, item, bounds, default, generics, false,
                                     )?,
-                                    ItemEnum::Method(method) => {
-                                        with_method(tokens, item, method, false)?
+                                    ItemEnum::Function(func) => {
+                                        with_function(tokens, item, func, false)?
                                     }
                                     _ => {
                                         return Err(FromItemErrorKind::UnexpectedItemType(
@@ -820,13 +724,6 @@ impl Tokens<'_> {
                 )?;
 
                 tokens.try_push(Token::Ponct(";"))?;
-                tokens
-            }
-            ItemEnum::Method(method) => {
-                let mut tokens = Vec::with_capacity(16);
-
-                with_method(&mut tokens, item, method, true)?;
-
                 tokens
             }
             ItemEnum::Impl(impl_) => {
@@ -1200,15 +1097,15 @@ fn with_header<'tokens>(
     with_abi(tokens, &header.abi)
 }
 
-fn with_method<'tokens>(
+fn with_function<'tokens>(
     tokens: &mut dyn Pusher<Token<'tokens>>,
     item: &'tokens Item,
-    method: &'tokens Method,
+    function: &'tokens Function,
     standalone: bool,
 ) -> Result<(), FromItemErrorKind> {
     with_attrs(tokens, &item.attrs)?;
     with_visibility(tokens, &item.visibility)?;
-    with_header(tokens, &method.header)?;
+    with_header(tokens, &function.header)?;
 
     tokens.try_push(Token::Kw("fn"))?;
     if let Some(name) = &item.name {
@@ -1218,7 +1115,7 @@ fn with_method<'tokens>(
 
     with(
         tokens,
-        &method.generics.params,
+        without_impl(&function.generics.params),
         Some([Token::Ponct("<")]),
         Some(Token::Ponct(">")),
         Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
@@ -1227,10 +1124,10 @@ fn with_method<'tokens>(
 
     tokens.try_push(Token::Ponct("("))?;
 
-    if method.decl.inputs.len() <= 2 {
+    if function.decl.inputs.len() <= 2 {
         with(
             tokens,
-            &method.decl.inputs,
+            &function.decl.inputs,
             Option::<Token>::None,
             Option::<Token>::None,
             Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
@@ -1246,7 +1143,7 @@ fn with_method<'tokens>(
     } else {
         with(
             tokens,
-            &method.decl.inputs,
+            &function.decl.inputs,
             Some([
                 Token::Special(SpecialToken::NewLine),
                 Token::Special(SpecialToken::Tabulation),
@@ -1268,8 +1165,8 @@ fn with_method<'tokens>(
         )?;
     }
 
-    if method.decl.c_variadic {
-        if method.decl.inputs.len() >= 1 {
+    if function.decl.c_variadic {
+        if function.decl.inputs.len() >= 1 {
             tokens
                 .try_extend_from_slice(&[Token::Ponct(","), Token::Special(SpecialToken::Space)])?;
         }
@@ -1278,7 +1175,7 @@ fn with_method<'tokens>(
 
     tokens.try_push(Token::Ponct(")"))?;
 
-    if let Some(output) = &method.decl.output {
+    if let Some(output) = &function.decl.output {
         tokens.try_push(Token::Special(SpecialToken::Space))?;
         tokens.try_push(Token::Ponct("-"))?;
         tokens.try_push(Token::Ponct(">"))?;
@@ -1288,7 +1185,7 @@ fn with_method<'tokens>(
 
     with(
         tokens,
-        &method.generics.where_predicates,
+        &function.generics.where_predicates,
         Some([
             Token::Special(SpecialToken::NewLine),
             Token::Kw("where"),
@@ -1305,8 +1202,8 @@ fn with_method<'tokens>(
     )?;
 
     if !standalone {
-        if method.has_body {
-            if method.generics.where_predicates.is_empty() {
+        if function.has_body {
+            if function.generics.where_predicates.is_empty() {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
             } else {
                 tokens.try_push(Token::Ponct(","))?;
@@ -1351,16 +1248,16 @@ fn with_enum_variant<'tokens>(
 ) -> Result<(), FromItemErrorKind> {
     tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), None))?;
 
-    match enum_variant {
-        Variant::Plain(ref discriminant) => {
-            if let Some(discriminant) = discriminant {
+    match &enum_variant.kind {
+        VariantKind::Plain => {
+            if let Some(discriminant) = &enum_variant.discriminant {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("="))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ident(&discriminant.value, None))?;
             }
         }
-        Variant::Tuple(items) => {
+        VariantKind::Tuple(items) => {
             let items = items
                 .iter()
                 .map(|id| {
@@ -1387,7 +1284,7 @@ fn with_enum_variant<'tokens>(
                 with_opt_type,
             )?;
         }
-        Variant::Struct {
+        VariantKind::Struct {
             fields,
             fields_stripped,
         } => {

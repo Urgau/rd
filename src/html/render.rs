@@ -252,7 +252,7 @@ fn base_page<'context>(
         DirBuilder::new()
             .recursive(false)
             .create(&path)
-            .context("unable to create the module dir")?;
+            .context(format!("unable to create the module dir: {}", path.display()))?;
     }
 
     let mut filepath: PathBuf = "".into();
@@ -884,8 +884,8 @@ fn trait_page<'context>(
 
     for (item, _name) in items {
         match &item.inner {
-            ItemEnum::Method(method_) => {
-                let (toc, who) = if method_.has_body {
+            ItemEnum::Function(func) => {
+                let (toc, who) = if func.has_body {
                     (
                         &mut toc_provided_methods,
                         &mut trait_page_content.provided_methods,
@@ -1434,7 +1434,7 @@ impl<'context, 'krate>
                             &mut toc_section
                         {
                             Some(match item.inner {
-                                ItemEnum::Method(_) => toc_methods,
+                                ItemEnum::Function(_) => toc_methods,
                                 ItemEnum::AssocConst { .. } => toc_assoc_consts,
                                 ItemEnum::AssocType { .. } => toc_assoc_types,
                                 _ => unreachable!("cannot be anything else"),
@@ -1532,8 +1532,8 @@ impl<'context, 'krate>
             ),
             deprecation: DeprecationNotice::from(&item.deprecation),
             extras: match &item.inner {
-                ItemEnum::Variant(v) => match v {
-                    Variant::Struct {
+                ItemEnum::Variant(v) => match &v.kind {
+                    VariantKind::Struct {
                         fields,
                         fields_stripped: _,
                     } => Some(
@@ -1554,7 +1554,7 @@ impl<'context, 'krate>
                             })
                             .collect::<Result<Vec<_>>>()?,
                     ),
-                    Variant::Tuple(types) => Some(
+                    VariantKind::Tuple(types) => Some(
                         types
                             .iter()
                             .flatten()
@@ -1573,7 +1573,7 @@ impl<'context, 'krate>
                             })
                             .collect::<Result<Vec<_>>>()?,
                     ),
-                    Variant::Plain(_) => None,
+                    VariantKind::Plain => None,
                 },
                 ItemEnum::StructField(_) => None,
                 _ => unreachable!(),
