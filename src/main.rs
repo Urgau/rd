@@ -11,23 +11,23 @@ mod pp;
 
 /// Experimental frontend for the rustdoc json output format
 #[derive(Parser, Debug)]
-#[clap(version, about, long_about = None)]
+#[command(version, about, long_about = None)]
 pub(crate) struct Opt {
     // The number of occurrences of the `v/verbose` flag
     /// Verbose mode (-v, -vv, -vvv, etc.)
-    #[clap(short, long, parse(from_occurrences))]
+    #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 
     /// Open the generated documentation if successful
-    #[clap(long)]
+    #[arg(long)]
     open: bool,
 
     /// Output directory of html files
-    #[clap(short, long, parse(from_os_str))]
+    #[arg(short, long)]
     output: PathBuf,
 
     /// Rustdoc json input file to process
-    #[clap(name = "FILE", required = true, parse(from_os_str))]
+    #[arg(name = "FILE", required = true)]
     files: Vec<PathBuf>,
 }
 
