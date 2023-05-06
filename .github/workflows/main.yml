@@ -3,25 +3,11 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
-  check:
-    name: Check and build (stable)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: build
-
   test:
-    name: Test suite (stable)
+    name: Test (stable)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -35,12 +21,11 @@ jobs:
     name: Demos (nightly)
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
-    needs: [check]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2022-10-12
+          toolchain: nightly-2023-05-01
           override: true
       - uses: actions-rs/cargo@v1
         with:
@@ -98,6 +83,11 @@ jobs:
           args: --manifest-path curl/Cargo.toml
         env:
           RUSTDOCFLAGS: -Zunstable-options --output-format=json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: jsons
+          path: |
+            */target/doc/*.json
       - name: rd.html *.json
         uses: actions-rs/cargo@v1
         with:
