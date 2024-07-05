@@ -23,7 +23,7 @@ pub(crate) fn prefix_item_kind(kind: &ItemKind) -> Option<(&'static str, bool)> 
         ItemKind::Trait => ("trait", true),
         ItemKind::TraitAlias => ("trait.alias", true),
         ItemKind::Impl => ("impl", false),
-        ItemKind::Typedef => ("type", true),
+        ItemKind::TypeAlias => ("type", true),
         ItemKind::Constant => ("constant", true),
         ItemKind::Static => ("static", true),
         ItemKind::Macro => ("macro", true),
@@ -52,8 +52,8 @@ pub(crate) fn prefix_item(item: &Item) -> Option<(&'static str, bool)> {
         ItemEnum::Trait(_) => ("trait", true),
         ItemEnum::TraitAlias(_) => ("trait.alias", true),
         ItemEnum::Impl(_) => ("impl", false),
-        ItemEnum::Typedef(_) => ("type", true),
-        ItemEnum::Constant(_) => ("constant", true),
+        ItemEnum::TypeAlias(_) => ("type", true),
+        ItemEnum::Constant { .. } => ("constant", true),
         ItemEnum::Static(_) => ("static", true),
         ItemEnum::Macro(_) => ("macro", true),
         ItemEnum::ProcMacro(_) => ("proc.macro", true),
@@ -134,7 +134,7 @@ pub(crate) fn id<'krate>(
 
         // TODO: This seems to be another bug with the json where inner assoc type are typedef
         // whitch is clearly wrong!
-        assert!(is_file || !matches!(&item.inner, ItemEnum::Typedef(_)));
+        assert!(is_file || !matches!(&item.inner, ItemEnum::TypeAlias(_)));
         Some((
             Cow::Borrowed(name),
             HtmlId::new(format!("{}.{}", item_kind_name, name)),
@@ -288,7 +288,7 @@ pub(super) fn href<'context, 'krate>(
                         "associatedconst",
                     ))
                 }
-                ItemEnum::Typedef(..) => {
+                ItemEnum::TypeAlias(..) => {
                     return Some((
                         None,
                         "".into(),
@@ -297,7 +297,7 @@ pub(super) fn href<'context, 'krate>(
                     ))
                 }
                 // _ => warn!("item={:?} not handling this kind of items", item),
-                _ => {},
+                _ => {}
             }
         } else {
             debug!(

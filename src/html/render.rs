@@ -252,7 +252,10 @@ fn base_page<'context>(
         DirBuilder::new()
             .recursive(false)
             .create(&path)
-            .context(format!("unable to create the module dir: {}", path.display()))?;
+            .context(format!(
+                "unable to create the module dir: {}",
+                path.display()
+            ))?;
     }
 
     let mut filepath: PathBuf = "".into();
@@ -593,10 +596,15 @@ fn module_page<'context>(
                     portability,
                 });
             }
-            ItemEnum::Typedef(typedef_) => {
+            ItemEnum::TypeAlias(typealias_) => {
                 let name = name.context("unable to get the name of the typedef")?;
-                let page_context2 =
-                    typedef_page(global_context, page_context.item_path, item, name, typedef_)?;
+                let page_context2 = typealias_page(
+                    global_context,
+                    page_context.item_path,
+                    item,
+                    name,
+                    typealias_,
+                )?;
                 let filename = filenames.alloc(page_context2.filename);
 
                 toc_typedefs
@@ -632,7 +640,7 @@ fn module_page<'context>(
                             code: TokensToHtml(
                                 global_context,
                                 &page_context,
-                                pp::Tokens::from_type(&typedef_.type_)?,
+                                pp::Tokens::from_type(&typealias_.type_)?,
                             ),
                         })
                     },
@@ -641,15 +649,10 @@ fn module_page<'context>(
                     portability,
                 });
             }
-            ItemEnum::Constant(constant_) => {
+            ItemEnum::Constant { type_: _, const_ } => {
                 let name = name.context("unable to get the name of the constant")?;
-                let page_context = constant_page(
-                    global_context,
-                    page_context.item_path,
-                    item,
-                    name,
-                    constant_,
-                )?;
+                let page_context =
+                    constant_page(global_context, page_context.item_path, item, name, const_)?;
                 let filename = filenames.alloc(page_context.filename);
 
                 toc_constants
@@ -1298,7 +1301,7 @@ macro_rules! é {
 
 ç!(Struct => struct_page "Struct" "Fields" {
     // HACK: This is a giant hack, we should do better
-    fn ids<'a>(struct_: &'a Struct) -> &'a [Id] { 
+    fn ids<'a>(struct_: &'a Struct) -> &'a [Id] {
         match &struct_.kind {
             StructKind::Unit => &[],
             // TODO: This should return fields but it's a `Vec<Option<Id>>` and not `Vec<Id>`
@@ -1310,7 +1313,7 @@ macro_rules! é {
 });
 ù!(Union => union_page "Union" "Fields" fields);
 ù!(Enum => enum_page "Enum" "Variants" variants);
-é!(Typedef => typedef_page "Type Definition");
+é!(TypeAlias => typealias_page "Type Definition");
 é!(str => macro_page "Macro");
 é!(ProcMacro => proc_macro_page "Proc-Macro");
 é!(Function => function_page "Function");

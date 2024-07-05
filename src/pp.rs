@@ -422,19 +422,22 @@ impl Tokens<'_> {
                         let items = fields
                             .iter()
                             .map(|id| {
-                                id.as_ref().map(|id| match index.get(&id) {
-                                    Some(item) => match &item.inner {
-                                        ItemEnum::StructField(struct_field) => {
-                                            Ok((item, struct_field))
+                                id.as_ref()
+                                    .map(|id| match index.get(&id) {
+                                        Some(item) => match &item.inner {
+                                            ItemEnum::StructField(struct_field) => {
+                                                Ok((item, struct_field))
+                                            }
+                                            _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                                id.clone(),
+                                                ItemKind::StructField,
+                                            )),
+                                        },
+                                        None => {
+                                            Err(FromItemErrorKind::ChildrenNotFound(id.clone()))
                                         }
-                                        _ => Err(FromItemErrorKind::UnexpectedItemType(
-                                            id.clone(),
-                                            ItemKind::StructField,
-                                        )),
-                                    },
-                                    None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
-                                })
-                                .transpose()
+                                    })
+                                    .transpose()
                             })
                             .collect::<Result<Vec<Option<(_, _)>>, FromItemErrorKind>>()?;
 
@@ -783,7 +786,7 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::Typedef(typedef) => {
+            ItemEnum::TypeAlias(typealias) => {
                 let mut tokens = Vec::with_capacity(12);
 
                 with_attrs(&mut tokens, &item.attrs)?;
@@ -796,7 +799,7 @@ impl Tokens<'_> {
 
                 with(
                     &mut tokens,
-                    &typedef.generics.params,
+                    &typealias.generics.params,
                     Some([Token::Ponct("<")]),
                     Some(Token::Ponct(">")),
                     Some([Token::Ponct(","), Token::Special(SpecialToken::Space)]),
@@ -806,11 +809,11 @@ impl Tokens<'_> {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("="))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
-                with_type(&mut tokens, &typedef.type_)?;
+                with_type(&mut tokens, &typealias.type_)?;
 
                 with(
                     &mut tokens,
-                    &typedef.generics.where_predicates,
+                    &typealias.generics.where_predicates,
                     Some([
                         Token::Special(SpecialToken::NewLine),
                         Token::Kw("where"),
@@ -831,7 +834,7 @@ impl Tokens<'_> {
                 tokens
             }
             ItemEnum::OpaqueTy(_) => todo!("ItemEnum::OpaqueTy"),
-            ItemEnum::Constant(constant) => {
+            ItemEnum::Constant { type_, const_ } => {
                 let mut tokens = Vec::with_capacity(16);
 
                 with_attrs(&mut tokens, &item.attrs)?;
@@ -842,11 +845,11 @@ impl Tokens<'_> {
                 tokens.try_push(Token::Ident(item.name.as_ref().unwrap(), Some(&item.id)))?;
                 tokens.try_push(Token::Ponct(":"))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
-                with_type(&mut tokens, &constant.type_)?;
+                with_type(&mut tokens, &type_)?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("="))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
-                tokens.try_push(Token::Ident(&constant.expr, None))?;
+                tokens.try_push(Token::Ident(&const_.expr, None))?;
                 tokens.try_push(Token::Ponct(";"))?;
 
                 tokens
@@ -938,7 +941,7 @@ impl Tokens<'_> {
 
                 tokens
             }
-            ItemEnum::Primitive(_) => todo!("ItemEnum::Primitive")
+            ItemEnum::Primitive(_) => todo!("ItemEnum::Primitive"),
         }))
     }
 }
@@ -1261,17 +1264,18 @@ fn with_enum_variant<'tokens>(
             let items = items
                 .iter()
                 .map(|id| {
-                    id.as_ref().map(|id| match index.get(&id) {
-                        Some(item) => match &item.inner {
-                            ItemEnum::StructField(struct_field) => Ok(struct_field),
-                            _ => Err(FromItemErrorKind::UnexpectedItemType(
-                                id.clone(),
-                                ItemKind::StructField,
-                            )),
-                        },
-                        None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
-                    })
-                    .transpose()
+                    id.as_ref()
+                        .map(|id| match index.get(&id) {
+                            Some(item) => match &item.inner {
+                                ItemEnum::StructField(struct_field) => Ok(struct_field),
+                                _ => Err(FromItemErrorKind::UnexpectedItemType(
+                                    id.clone(),
+                                    ItemKind::StructField,
+                                )),
+                            },
+                            None => Err(FromItemErrorKind::ChildrenNotFound(id.clone())),
+                        })
+                        .transpose()
                 })
                 .collect::<Result<Vec<_>, FromItemErrorKind>>()?;
 
@@ -1436,14 +1440,22 @@ fn with_where_predicate<'tokens>(
                 with_generic_bound,
             )?;
         }
-        WherePredicate::RegionPredicate { lifetime, bounds } => {
+        WherePredicate::LifetimePredicate { lifetime, outlives } => {
             tokens.try_push(Token::Ident(lifetime, None))?;
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
 
+            fn with_outlive<'tokens>(
+                tokens: &mut dyn Pusher<Token<'tokens>>,
+                outlive: &'tokens String,
+            ) -> Result<(), FromItemErrorKind> {
+                tokens.try_push(Token::Ident(outlive, None))?;
+                Ok(())
+            }
+
             with(
                 tokens,
-                bounds,
+                outlives,
                 Option::<Token>::None,
                 Option::<Token>::None,
                 Some([
@@ -1451,7 +1463,7 @@ fn with_where_predicate<'tokens>(
                     Token::Ponct("+"),
                     Token::Special(SpecialToken::Space),
                 ]),
-                with_generic_bound,
+                with_outlive,
             )?;
         }
         WherePredicate::EqPredicate { lhs, rhs } => {
@@ -1659,7 +1671,10 @@ fn with_generic_arg<'tcx>(
             tokens.try_push(Token::Ident(&constant.expr, None))?;
             tokens.try_push(Token::Ponct(":"))?;
             tokens.try_push(Token::Special(SpecialToken::Space))?;
-            with_type(tokens, &constant.type_)?;
+            // FIXME: Since type_ was removed from Contant we have no way to get
+            // the type, which is sad, so for now just print `?` instead.
+            // with_type(tokens, &constant.type_)?;
+            tokens.try_push(Token::Ident("?", None))?;
             if let Some(value) = &constant.value {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Ponct("="))?;
@@ -1893,7 +1908,7 @@ fn with_type<'tcx>(
                     Token::Ponct("+"),
                     Token::Special(SpecialToken::Space),
                 ]),
-                with_poly_trait
+                with_poly_trait,
             )?;
             if let Some(lifetime) = &dyn_trait.lifetime {
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
@@ -1924,25 +1939,27 @@ fn with_type<'tcx>(
             self_type,
             trait_,
             args: qargs,
-        } => {
-            if let Some(_trait_args) = &trait_.args {
+        } => match trait_ {
+            Some(path) => {
                 tokens.try_push(Token::Ponct("<"))?;
                 with_type(tokens, self_type)?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
                 tokens.try_push(Token::Kw("as"))?;
                 tokens.try_push(Token::Special(SpecialToken::Space))?;
-                with_path(tokens, trait_)?;
+                with_path(tokens, path)?;
                 tokens.try_push(Token::Ponct(">"))?;
                 tokens.try_push(Token::Ponct("::"))?;
                 tokens.try_push(Token::Ident(name, None))?;
                 with_generic_args(tokens, &qargs)?;
-            } else {
+            }
+            _ => {
                 with_type(tokens, self_type)?;
                 tokens.try_push(Token::Ponct("::"))?;
                 tokens.try_push(Token::Ident(name, None))?;
                 with_generic_args(tokens, &qargs)?;
             }
-        }
+        },
+        Type::Pat { .. } => todo!("Type::Pat is unstable"),
     }
     Ok(())
 }
