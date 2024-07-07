@@ -396,7 +396,7 @@ fn module_page<'context>(
                 name: Option<&'context str>,
             ) -> Option<Result<(&'context Item, Option<&'context str>)>> {
                 if !id.0.starts_with("0:") {
-                    warn!("ignoring for now `pub use`: {:?}", id);
+                    warn!("ignoring `pub use` of {:?} ({:?})", &name, id);
                     return None;
                 }
 
@@ -404,7 +404,9 @@ fn module_page<'context>(
                     .krate
                     .index
                     .get(id)
-                    .with_context(|| format!("Unable to find the item {:?}", id))
+                    .with_context(|| {
+                        format!("unable to find the item {:?} from module - fatal", id)
+                    })
                     .ok()?;
 
                 match &item.inner {
@@ -871,11 +873,9 @@ fn trait_page<'context>(
         .items
         .iter()
         .map(|id| {
-            let item = global_context
-                .krate
-                .index
-                .get(id)
-                .with_context(|| format!("Unable to find the item {:?}", id))?;
+            let item = global_context.krate.index.get(id).with_context(|| {
+                format!("unable to find the item {:?} - from trait page - fatal", id)
+            })?;
 
             Ok((
                 item,
@@ -937,29 +937,7 @@ fn trait_page<'context>(
         }
     }
 
-    let mut impls = trait_
-        .implementations
-        .iter()
-        .map(|id| {
-            let item = global_context
-                .krate
-                .index
-                .get(id)
-                .with_context(|| format!("Unable to find the item {:?}", id))?;
-
-            let impl_ = match &item.inner {
-                ItemEnum::Impl(impl_) => impl_,
-                _ => {
-                    return Err(anyhow::anyhow!(
-                        "impl id is not impl in struct_union_content"
-                    ))
-                }
-            };
-
-            Ok((item, impl_, name_of(impl_)?))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
+    let impls = fetch_impls(global_context, &trait_.implementations)?;
 
     for (item, impl_, _name) in &impls {
         let (toc, who) = match type_id(&impl_.for_) {
@@ -1024,28 +1002,7 @@ fn struct_union_enum_content<'context, 'krate>(
     variants: &[Id],
     impls: &[Id],
 ) -> Result<(Vec<TocSection<'context>>, impl markup::Render + 'context)> {
-    let mut impls = impls
-        .iter()
-        .map(|id| {
-            let item = global_context
-                .krate
-                .index
-                .get(id)
-                .with_context(|| format!("Unable to find the item {:?}", id))?;
-
-            let impl_ = match &item.inner {
-                ItemEnum::Impl(impl_) => impl_,
-                _ => {
-                    return Err(anyhow::anyhow!(
-                        "impl id is not impl in struct_union_content"
-                    ))
-                }
-            };
-
-            Ok((item, impl_, name_of(impl_)?))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
+    let impls = fetch_impls(global_context, &impls)?;
 
     let mut toc_variants = TocSection {
         name: VARIANTS,
@@ -1093,7 +1050,7 @@ fn struct_union_enum_content<'context, 'krate>(
                     .krate
                     .index
                     .get(id)
-                    .with_context(|| format!("Unable to find the item {:?}", id))?;
+                    .with_context(|| format!("unable to find variant {:?} -- fatal", id))?;
 
                 VariantEnchantedWithExtras::from_variant(
                     global_context,
@@ -1128,7 +1085,7 @@ fn struct_union_enum_content<'context, 'krate>(
                     |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
                         (Some(rustdoc_types::Path { id, .. }), None) => {
                             match is_auto_trait(global_context.krate, id) {
-                                Ok((false, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                Ok(Some((false, _))) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
                                     page_context,
                                     TocSupplier::Top(&mut toc_traits),
@@ -1150,7 +1107,7 @@ fn struct_union_enum_content<'context, 'krate>(
                     |(item, impl_, _)| match (&impl_.trait_, &impl_.blanket_impl) {
                         (Some(rustdoc_types::Path { id, .. }), None) => {
                             match is_auto_trait(global_context.krate, id) {
-                                Ok((true, _)) => Some(CodeEnchantedWithExtras::from_items(
+                                Ok(Some((true, _))) => Some(CodeEnchantedWithExtras::from_items(
                                     global_context,
                                     page_context,
                                     TocSupplier::Top(&mut toc_auto_traits),
@@ -1423,11 +1380,9 @@ impl<'context, 'krate>
                 .items
                 .iter()
                 .map(|id| {
-                    let item = global_context
-                        .krate
-                        .index
-                        .get(id)
-                        .with_context(|| format!("Unable to find the item {:?}", id))?;
+                    let item = global_context.krate.index.get(id).with_context(|| {
+                        format!("unable to find the impl item {:?} -- fatal", id)
+                    })?;
 
                     CodeEnchanted::from_item(
                         global_context,
@@ -1545,7 +1500,7 @@ impl<'context, 'krate>
                             .map(|id| {
                                 let item =
                                     global_context.krate.index.get(id).with_context(|| {
-                                        format!("Unable to find the item {:?}", id)
+                                        format!("unable to find struct field {:?}", id)
                                     })?;
 
                                 VariantEnchanted::from_item(
@@ -1564,7 +1519,7 @@ impl<'context, 'krate>
                             .map(|id| {
                                 let item =
                                     global_context.krate.index.get(id).with_context(|| {
-                                        format!("Unable to find the item {:?}", id)
+                                        format!("unable to find tuple field {:?}", id)
                                     })?;
 
                                 VariantEnchanted::from_item(

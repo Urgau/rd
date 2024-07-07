@@ -1,7 +1,7 @@
 //! Collections of utilities functions for the html generation
 
 use anyhow::{anyhow, Context as _, Result};
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use rustdoc_types::*;
 use std::borrow::Cow;
 use std::path::{Path as StdPath, PathBuf};
@@ -9,6 +9,34 @@ use std::path::{Path as StdPath, PathBuf};
 use super::id::Id as HtmlId;
 use super::render::{GlobalContext, PageContext};
 use crate::pp;
+
+pub(crate) fn fetch_impls<'context, 'krate>(
+    global_context: &'context GlobalContext<'krate>,
+    impls_ids: &[Id],
+) -> Result<Vec<(&'krate Item, &'krate Impl, String)>> {
+    let mut impls = Vec::with_capacity(impls_ids.len());
+
+    for id in impls_ids {
+        let Some(item) = global_context.krate.index.get(id) else {
+            warn!("unable to find impl {:?} -- skipping", id);
+            continue;
+        };
+
+        let impl_ = match &item.inner {
+            ItemEnum::Impl(impl_) => impl_,
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "impl id is not impl in struct_union_content"
+                ))
+            }
+        };
+
+        impls.push((item, impl_, name_of(impl_)?))
+    }
+
+    impls.sort_by(|(_, _, x_name), (_, _, y_name)| x_name.cmp(y_name));
+    Ok(impls)
+}
 
 pub(crate) fn prefix_item_kind(kind: &ItemKind) -> Option<(&'static str, bool)> {
     Some(match kind {
@@ -80,14 +108,20 @@ pub(crate) fn type_id(type_: &Type) -> Result<&Id, Option<ItemKind>> {
 }
 
 /// Determine if an [`Item`] is auto-trait and also return the crate id
-pub(crate) fn is_auto_trait<'krate>(krate: &'krate Crate, id: &'krate Id) -> Result<(bool, u32)> {
-    let item = krate
-        .index
-        .get(id)
-        .with_context(|| format!("Unable to find the item {:?}", id))?;
+pub(crate) fn is_auto_trait<'krate>(
+    krate: &'krate Crate,
+    id: &'krate Id,
+) -> Result<Option<(bool, u32)>> {
+    let Some(item) = krate.index.get(id) else {
+        warn!(
+            "unable to find impl (for auto-trait checking) {:?} -- skipping",
+            id
+        );
+        return Ok(None);
+    };
 
     Ok(match &item.inner {
-        ItemEnum::Trait(trait_) => (trait_.is_auto, item.crate_id),
+        ItemEnum::Trait(trait_) => Some((trait_.is_auto, item.crate_id)),
         _ => return Err(anyhow!("is_auto_trait: error not an trait")),
     })
 }
